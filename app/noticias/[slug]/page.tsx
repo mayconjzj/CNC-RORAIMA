@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { normalizeArticleBlocks } from "@/lib/article-content";
+import { normalizeArticleSections } from "@/lib/article-content";
 import ArticleComments from "./comments";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -33,7 +33,7 @@ export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
   const article = await findArticle(slug);
   if (!article) notFound();
-  const blocks = normalizeArticleBlocks(article.content);
+  const sections = normalizeArticleSections(article.content);
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
     <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 900px)/2))" }}><a href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA</a></header>
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
@@ -44,18 +44,24 @@ export default async function ArticlePage({ params }: Props) {
       <p style={{ color: "#777", fontSize: 13, margin: "20px 0 28px" }}>{article.author_name ? `Por ${article.author_name} · ` : ""}{article.published_at ? new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : ""}</p>
       {article.featured_image_url && <img src={article.featured_image_url} alt={article.image_alt || article.title} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <div style={{ fontSize: 18, lineHeight: 1.85, overflowWrap: "anywhere" }}>
-        {blocks.map((block, i) => {
-          const richText = block.text ? { __html: block.text } : null;
-          if (block.type === "heading") return <h2 key={i} style={{ fontSize: 28, lineHeight: 1.25, margin: "34px 0 14px" }}>{block.title || <span dangerouslySetInnerHTML={richText!} />}</h2>;
-          if (block.type === "quote") return <blockquote key={i} style={{ borderLeft: "4px solid #c9a044", margin: "28px 0", padding: "8px 22px", color: "#555", fontSize: 21, fontStyle: "italic" }}><span dangerouslySetInnerHTML={richText!} /></blockquote>;
-          if (block.type === "image") return <figure key={i} style={{ margin: "30px 0" }}><img src={block.url} alt={block.alt || block.title || ""} loading="lazy" style={{ display: "block", width: "100%", borderRadius: 10, maxHeight: 680, objectFit: "contain" }} />{block.caption && <figcaption style={{ color: "#777", fontSize: 14, marginTop: 8, textAlign: "center" }}>{block.caption}</figcaption>}</figure>;
-          if (block.type === "video") return <figure key={i} style={{ margin: "30px 0" }}><video controls preload="metadata" src={block.url} style={{ width: "100%", borderRadius: 10, background: "#111" }}>{ "Seu navegador não suporta vídeo." }</video>{block.caption && <figcaption style={{ color: "#777", fontSize: 14, marginTop: 8 }}>{block.caption}</figcaption>}</figure>;
-          if (block.type === "audio") return <figure key={i} style={{ margin: "26px 0" }}><figcaption style={{ fontWeight: 700, marginBottom: 8 }}>{block.title || "Áudio"}</figcaption><audio controls preload="metadata" src={block.url} style={{ width: "100%" }} />{block.caption && <p style={{ color: "#777", fontSize: 14 }}>{block.caption}</p>}</figure>;
-          if (block.type === "link") return <p key={i} style={{ margin: "20px 0" }}><a href={block.url} target="_blank" rel="noopener noreferrer" style={{ color: "#b90018", textDecoration: "underline", fontWeight: 700 }}>{block.title || block.url}</a></p>;
-          if (block.type === "divider") return <hr key={i} style={{ border: 0, borderTop: "1px solid #ddd", margin: "32px 0" }} />;
-          return <div key={i} style={{ marginBottom: 22 }} dangerouslySetInnerHTML={richText ?? { __html: "" }} />;
-        })}
+        {sections.map((section, si) => <section key={si} style={{marginBottom:34}}>
+          {section.title && <h2 style={{fontSize:30,lineHeight:1.2,margin:"30px 0 18px"}}>{section.title}</h2>}
+          {section.blocks.map((block, i) => {
+            const richText = block.text ? { __html: block.text } : null;
+            if (block.type === "heading") return <h3 key={i} style={{fontSize:25,lineHeight:1.25,margin:"30px 0 12px"}}>{block.title || <span dangerouslySetInnerHTML={richText!}/>}</h3>;
+            if (block.type === "quote") return <blockquote key={i} style={{borderLeft:"4px solid #c9a044",margin:"28px 0",padding:"8px 22px",color:"#555",fontSize:21,fontStyle:"italic"}}><span dangerouslySetInnerHTML={richText!}/></blockquote>;
+            if (block.type === "image") return <figure key={i} style={{margin:"30px 0"}}><img src={block.url} alt={block.alt||block.title||""} loading="lazy" style={{display:"block",width:"100%",borderRadius:10,maxHeight:680,objectFit:"contain"}}/>{block.caption&&<figcaption style={{color:"#777",fontSize:14,marginTop:8,textAlign:"center"}}>{block.caption}</figcaption>}</figure>;
+            if (block.type === "gallery") return <div key={i} className={block.layout==="feature"?"article-gallery article-gallery-feature":"article-gallery"} style={{display:"grid",gridTemplateColumns:`repeat(${block.columns||3},minmax(0,1fr))`,gap:10,margin:"28px 0"}}>{(block.items||[]).filter(image=>image.url).map((image,j)=><figure key={image.url+j} style={{margin:0,minWidth:0}}><img src={image.url} alt={image.alt||""} loading="lazy" style={{display:"block",width:"100%",height:"100%",minHeight:150,maxHeight:360,objectFit:"cover",borderRadius:9}}/>{image.caption&&<figcaption style={{fontSize:13,color:"#777",lineHeight:1.4,marginTop:5}}>{image.caption}</figcaption>}</figure>)}</div>;
+            if (block.type === "list") return <ul key={i} style={{paddingLeft:28,margin:"18px 0"}}>{(block.text||"").split("\n").filter(item=>item.trim()).map((item,j)=><li key={j} style={{paddingLeft:4,marginBottom:6}}>{item}</li>)}</ul>;
+            if (block.type === "video") return <figure key={i} style={{margin:"30px 0"}}><video controls preload="metadata" src={block.url} style={{width:"100%",borderRadius:10,background:"#111"}}>{"Seu navegador não suporta vídeo."}</video>{block.caption&&<figcaption style={{color:"#777",fontSize:14,marginTop:8}}>{block.caption}</figcaption>}</figure>;
+            if (block.type === "audio") return <figure key={i} style={{margin:"26px 0"}}><figcaption style={{fontWeight:700,marginBottom:8}}>{block.title||"Áudio"}</figcaption><audio controls preload="metadata" src={block.url} style={{width:"100%"}}/>{block.caption&&<p style={{color:"#777",fontSize:14}}>{block.caption}</p>}</figure>;
+            if (block.type === "link") return <p key={i} style={{margin:"20px 0"}}><a href={block.url} target="_blank" rel="noopener noreferrer" style={{color:"#b90018",textDecoration:"underline",fontWeight:700}}>{block.title||block.url}</a></p>;
+            if (block.type === "divider") return <hr key={i} style={{border:0,borderTop:"1px solid #ddd",margin:"32px 0"}}/>;
+            return <div key={i} style={{marginBottom:22}} dangerouslySetInnerHTML={richText??{__html:""}}/>;
+          })}
+        </section>)}
       </div>
+      <style>{'@media(max-width:700px){.article-gallery{grid-template-columns:repeat(2,minmax(0,1fr))!important}.article-gallery-feature>figure:first-child{grid-column:span 2}.article-gallery img{min-height:120px!important}}@media(max-width:420px){.article-gallery{grid-template-columns:1fr!important}.article-gallery-feature>figure:first-child{grid-column:span 1}}'}</style>
       <ArticleComments slug={article.slug} />
     </article>
     <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
