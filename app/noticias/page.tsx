@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { shouldOptimizeImage } from "@/lib/media";
 import { Clock3, Search } from "lucide-react";
 import { getDb } from "@/lib/db";
 import { SiteHeader } from "@/components/site-header";
@@ -55,7 +56,7 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
       <NewsSearch categories={categories} authors={authors} values={values} />
       <div className="all-news-heading"><h2>{q ? <>Resultados para “{q}”</> : "Arquivo de notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}{total > 100 ? " · exibindo as 100 mais relevantes" : ""}</span></div>
       {articles.length ? <div className="all-news-grid">{articles.map((article) => <article className="all-news-card" key={article.id}>
-        <a className="all-news-image" href={`/noticias/${article.slug}`}>{article.featured_image_url ? <Image src={article.featured_image_url} alt="" width={800} height={450} sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw" unoptimized /> : <span className="all-news-placeholder" />}</a>
+        <a className="all-news-image" href={`/noticias/${article.slug}`}>{article.featured_image_url ? <Image src={article.featured_image_url} alt="" width={800} height={450} sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw" unoptimized={!shouldOptimizeImage(article.featured_image_url)} /> : <span className="all-news-placeholder" />}</a>
         <div className="all-news-card-copy"><a className="all-news-category" href={article.category_slug ? `/editorias/${article.category_slug}` : "/noticias"}>{article.category_name ?? "Notícias"}</a><h3><a href={`/noticias/${article.slug}`}>{article.title}</a></h3>{article.excerpt && <p>{article.excerpt}</p>}<div className="all-news-meta">{article.author_name && <span>Por {article.author_name}</span>}<span><Clock3 size={13}/>{dateLabel(article.published_at)}</span></div></div>
       </article>)}</div> : <div className="all-news-empty"><Search size={24}/><h2>Nenhuma notícia encontrada</h2><p>Tente mudar as palavras-chave ou remover algum filtro.</p><a href="/noticias">Limpar busca e filtros</a></div>}
     </section>
