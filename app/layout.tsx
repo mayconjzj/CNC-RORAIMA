@@ -1,15 +1,48 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import "@vercel/analytics";
 import "./globals.css";
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  title: "CNC Roraima | Informação de Credibilidade",
+  metadataBase: new URL(siteUrl),
+  applicationName: "CNC Roraima",
+  title: {
+    default: "CNC Roraima | Informação de Credibilidade",
+    template: "%s | CNC Roraima",
+  },
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
+  alternates: { canonical: "/" },
   openGraph: {
+    type: "website",
+    siteName: "CNC Roraima",
     title: "CNC Roraima — Informação de Credibilidade",
     description: "As notícias de Roraima com informação, contexto e credibilidade.",
+    url: siteUrl,
     locale: "pt_BR",
-    type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "CNC Roraima — Informação de Credibilidade",
+    description: "As notícias de Roraima com informação, contexto e credibilidade.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#202126",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
