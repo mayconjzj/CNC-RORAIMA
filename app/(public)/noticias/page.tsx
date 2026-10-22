@@ -22,6 +22,8 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
   const author = p.author ?? "";
   const from = /^\d{4}-\d{2}-\d{2}$/.test(p.from ?? "") ? p.from! : "";
   const to = /^\d{4}-\d{2}-\d{2}$/.test(p.to ?? "") ? p.to! : "";
+  const fromDate = from || null;
+  const toDate = to || null;
   const sort = ["oldest", "title"].includes(p.sort ?? "") ? p.sort! : "newest";
   const sql = getDb();
   const [categories, authors, articles, countRows] = await Promise.all([
@@ -35,8 +37,8 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
         AND (${q} = '' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%' OR a.slug ILIKE '%' || ${q} || '%')
         AND (${category} = '' OR c.slug = ${category})
         AND (${author} = '' OR a.author_id::text = ${author})
-        AND (${from} = '' OR a.published_at >= ${from}::date)
-        AND (${to} = '' OR a.published_at < (${to}::date + INTERVAL '1 day'))
+        AND (${fromDate}::date IS NULL OR a.published_at >= ${fromDate}::date)
+        AND (${toDate}::date IS NULL OR a.published_at < (${toDate}::date + INTERVAL '1 day'))
       ORDER BY
         CASE WHEN ${sort} = 'title' THEN a.title END ASC,
         CASE WHEN ${sort} = 'oldest' THEN a.published_at END ASC NULLS LAST,
