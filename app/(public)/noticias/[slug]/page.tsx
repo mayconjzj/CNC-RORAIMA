@@ -7,7 +7,6 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
 import ArticleComments from "./comments";
-import { SiteHeader } from "@/components/site-header";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
@@ -76,7 +75,7 @@ export default async function ArticlePage({ params }: Props) {
     inLanguage: "pt-BR",
   };
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
-    <SiteHeader />
+    
     <script type="application/ld+json">{JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
       <Link href="/" style={{ color: "#b90018", fontWeight: 700, fontSize: 13 }}>← Voltar para a página inicial</Link>

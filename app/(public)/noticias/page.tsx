@@ -4,10 +4,9 @@ import Link from "next/link";
 import { shouldOptimizeImage } from "@/lib/media";
 import { Clock3, Search } from "lucide-react";
 import { getDb } from "@/lib/db";
-import { SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 
-export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Todas as notícias", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima.", alternates: { canonical: "/noticias" }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: "/noticias", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." }, twitter: { card: "summary", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." } };
 
 type Params = Promise<{ q?: string; category?: string; author?: string; from?: string; to?: string; sort?: string }>;
@@ -49,7 +48,7 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
   const total = countRows[0]?.total ?? articles.length;
   const values = { q, category, author, from, to, sort };
   return <main className="all-news-page">
-    <SiteHeader />
+    
     <section className="all-news-content">
       <span className="all-news-eyebrow">CNC RORAIMA / ARQUIVO</span>
       <h1>Todas as notícias<span>.</span></h1>
