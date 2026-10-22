@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Todas as notícias", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima.", alternates: { canonical: "/noticias" }, openGraph: { type: "website", url: "/noticias", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." }, twitter: { card: "summary", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." } };
+export const metadata: Metadata = { title: "Todas as notícias", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima.", alternates: { canonical: "/noticias" }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: "/noticias", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." }, twitter: { card: "summary", title: "Todas as notícias | CNC Roraima", description: "Pesquise e filtre as notícias publicadas pela CNC Roraima." } };
 
 type Params = Promise<{ q?: string; category?: string; author?: string; from?: string; to?: string; sort?: string }>;
 type Article = { id: string; title: string; slug: string; excerpt: string | null; featured_image_url: string | null; published_at: string | null; category_name: string | null; category_slug: string | null; author_name: string | null };
