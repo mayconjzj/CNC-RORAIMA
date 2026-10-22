@@ -16,6 +16,7 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
   const [authors, setAuthors] = useState<Option[]>([]);
@@ -44,7 +45,9 @@ export default function AdminPage() {
     setLoggedIn(true);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load().finally(() => setCheckingSession(false));
+  }, []);
 
   async function login(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
@@ -144,6 +147,14 @@ export default function AdminPage() {
 
   const inputStyle: React.CSSProperties = { width: "100%", padding: "12px 14px", border: "1px solid #ddd", borderRadius: 8, font: "inherit", marginTop: 6 };
   const labelStyle: React.CSSProperties = { display: "block", fontSize: 13, fontWeight: 700, marginBottom: 14 };
+
+  if (checkingSession) return <main style={{ minHeight: "100vh", background: "#f5f5f6", display: "grid", placeItems: "center", padding: 20 }}>
+    <div role="status" aria-live="polite" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, color: "#555" }}>
+      <span style={{ width: 28, height: 28, border: "3px solid #e7d6d8", borderTopColor: "#b90018", borderRadius: "50%", animation: "admin-spin 0.8s linear infinite" }} />
+      <span>Verificando sessão...</span>
+      <style>{`@keyframes admin-spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  </main>;
 
   if (!loggedIn) return <main style={{ minHeight: "100vh", background: "#f5f5f6", display: "grid", placeItems: "center", padding: 20 }}>
     <form onSubmit={login} style={{ width: "min(420px, 100%)", background: "#fff", padding: 30, borderRadius: 16, boxShadow: "0 12px 40px #00000012" }}>
