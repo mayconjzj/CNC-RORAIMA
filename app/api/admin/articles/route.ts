@@ -17,18 +17,20 @@ export async function GET(request: Request) {
     const [articles, countRows] = await Promise.all([
       sql`
         SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at, a.seo_title, a.seo_description,
-          c.name AS category_name
-        FROM articles a LEFT JOIN categories c ON c.id = a.category_id
+          c.name AS category_name, au.name AS author_name
+        FROM articles a LEFT JOIN categories c ON c.id = a.category_id LEFT JOIN authors au ON au.id = a.author_id
         WHERE (${query} = '' OR a.title ILIKE '%' || ${query} || '%' OR a.slug ILIKE '%' || ${query} || '%'
           OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
-          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%')
+          OR COALESCE(a.seo_description, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(au.name, '') ILIKE '%' || ${query} || '%')
           AND (${status} = 'all' OR a.status = ${status})
         ORDER BY a.updated_at DESC LIMIT 100
       `,
       sql`
         SELECT COUNT(*)::int AS total
-        FROM articles a LEFT JOIN categories c ON c.id = a.category_id
+        FROM articles a LEFT JOIN categories c ON c.id = a.category_id LEFT JOIN authors au ON au.id = a.author_id
         WHERE (${query} = '' OR a.title ILIKE '%' || ${query} || '%' OR a.slug ILIKE '%' || ${query} || '%'
           OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
