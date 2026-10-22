@@ -9,13 +9,17 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@vercel/analytics": "^1.5.0",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.1.0",
     "lucide-react": "^0.468.0",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
     "@tailwindcss/postcss": "^4.1.0",
     "tailwindcss": "^4.1.0",
     "@types/node": "^22.0.0",
