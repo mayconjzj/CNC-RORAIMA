@@ -1,4 +1,4 @@
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
