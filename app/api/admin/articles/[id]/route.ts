@@ -28,7 +28,7 @@ export async function PATCH(request: Request, context: Context) {
     const rows = await sql`
       UPDATE articles SET title = ${title}, excerpt = ${excerpt || null},
         content = ${JSON.stringify(blocks)}::jsonb, featured_image_url = ${image || null},
-        image_alt = CASE WHEN ${image || null} IS NULL THEN NULL ELSE ${title} END,
+        image_alt = ${image ? title : null},
         status = ${status}, is_featured = ${isFeatured}, category_id = ${categoryId}, author_id = ${authorId},
         published_at = CASE WHEN ${status} = 'published' THEN COALESCE(published_at, NOW()) ELSE NULL END,
         seo_title = ${title}, seo_description = ${excerpt || title}, updated_at = NOW()
