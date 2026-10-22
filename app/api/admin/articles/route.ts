@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const sql = getDb();
     const articles = await sql`
-      SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at,
+      SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at, a.seo_title, a.seo_description,
         c.name AS category_name
       FROM articles a LEFT JOIN categories c ON c.id = a.category_id
       ORDER BY a.updated_at DESC LIMIT 100
@@ -27,7 +27,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const title = typeof body.title === "string" ? body.title.trim() : "";
-    const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim() : "";
+    const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 500) : "";
+    const seoTitle = typeof body.seoTitle === "string" ? body.seoTitle.trim().slice(0, 70) : "";
+    const seoDescription = typeof body.seoDescription === "string" ? body.seoDescription.trim().slice(0, 160) : "";
     const image = typeof body.image === "string" ? body.image.trim() : "";
     const categoryId = typeof body.categoryId === "string" && body.categoryId ? body.categoryId : null;
     const authorId = typeof body.authorId === "string" && body.authorId ? body.authorId : null;
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     const sql = getDb();
     const rows = await sql`
       INSERT INTO articles (title, slug, excerpt, content, featured_image_url, image_alt, status, is_featured, category_id, author_id, published_at, seo_title, seo_description)
-      VALUES (${title}, ${slug}, ${excerpt || null}, ${JSON.stringify(sections)}::jsonb, ${image || null}, ${image ? title : null}, ${status}, ${isFeatured}, ${categoryId}, ${authorId}, CASE WHEN ${status} = 'published' THEN NOW() ELSE NULL END, ${title}, ${excerpt || title})
+      VALUES (${title}, ${slug}, ${excerpt || null}, ${JSON.stringify(sections)}::jsonb, ${image || null}, ${image ? title : null}, ${status}, ${isFeatured}, ${categoryId}, ${authorId}, CASE WHEN ${status} = 'published' THEN NOW() ELSE NULL END, ${seoTitle || title}, ${seoDescription || excerpt || title})
       RETURNING id, title, slug, status
     `;
     return NextResponse.json({ article: rows[0] }, { status: 201 });
