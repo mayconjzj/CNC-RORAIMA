@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) return NextResponse.json({ error: "A foto deve usar uma URL http ou https." }, { status: 400 });
     const sql = getDb();
     const rows = await sql`INSERT INTO authors (name, bio, avatar_url) VALUES (${name}, ${bio || null}, ${avatarUrl || null}) RETURNING id, name, bio, avatar_url, created_at`;
+    revalidatePublishedContent();
     return NextResponse.json({ author: rows[0] }, { status: 201 });
   } catch (error) {
     console.error("Falha ao criar autor", error);
@@ -48,6 +50,7 @@ export async function PATCH(request: Request) {
     const sql = getDb();
     const rows = await sql`UPDATE authors SET name = ${name}, bio = ${bio || null}, avatar_url = ${avatarUrl || null} WHERE id = ${id} RETURNING id, name, bio, avatar_url, created_at`;
     if (!rows.length) return NextResponse.json({ error: "Autor não encontrado." }, { status: 404 });
+    revalidatePublishedContent();
     return NextResponse.json({ author: rows[0] });
   } catch (error) {
     console.error("Falha ao editar autor", error);
@@ -64,6 +67,7 @@ export async function DELETE(request: Request) {
     const sql = getDb();
     const rows = await sql`DELETE FROM authors WHERE id = ${id} RETURNING id, name`;
     if (!rows.length) return NextResponse.json({ error: "Autor não encontrado." }, { status: 404 });
+    revalidatePublishedContent();
     return NextResponse.json({ success: true, author: rows[0] });
   } catch (error) {
     console.error("Falha ao excluir autor", error);

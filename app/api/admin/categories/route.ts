@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export async function GET() {
   if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       VALUES (${name}, ${slug})
       RETURNING id, name, slug
     `;
+    revalidatePublishedContent();
     return NextResponse.json({ category: rows[0] }, { status: 201 });
   } catch (error) {
     console.error("Falha ao criar editoria", error);
@@ -54,6 +56,7 @@ export async function DELETE(request: Request) {
     if (!existing[0]) return NextResponse.json({ error: "Editoria não encontrada." }, { status: 404 });
     await sql`UPDATE articles SET category_id = NULL WHERE category_id = ${id}`;
     await sql`DELETE FROM categories WHERE id = ${id}`;
+    revalidatePublishedContent();
     return NextResponse.json({ success: true, name: existing[0].name });
   } catch (error) {
     console.error("Falha ao excluir editoria", error);

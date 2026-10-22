@@ -1,16 +1,17 @@
 import { Search } from "lucide-react";
+import Link from "next/link";
 import { getPublishedCategories } from "@/lib/db";
 import { SiteNavigation } from "@/components/site-navigation";
 
 export function Brand() {
   return (
-    <a className="brand" href="/" aria-label="CNC Roraima - página inicial">
+    <Link className="brand" href="/" aria-label="CNC Roraima - página inicial">
       <span className="brand-mark">C<span>N</span>C</span>
       <span className="brand-copy">
         <strong>CRISTHIAN CRUZ <i>NEWS</i></strong>
         <small>INFORMAÇÃO DE CREDIBILIDADE</small>
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -29,10 +30,10 @@ export async function SiteHeader() {
         <Brand />
         <div className="masthead-right">
           <span className="edition">NOTÍCIAS • ANÁLISES • COMUNIDADE</span>
-          <a className="search-button" href="/noticias" aria-label="Pesquisar todas as notícias">
+          <Link className="search-button" href="/noticias" aria-label="Pesquisar todas as notícias">
             <Search size={18} />
             <span>Notícias</span>
-          </a>
+          </Link>
         </div>
       </header>
       <SiteNavigation categories={categories} />

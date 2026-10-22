@@ -1,54 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { FormEvent, CSSProperties, ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent, CSSProperties } from "react";
 import { upload } from "@vercel/blob/client";
-import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Bold, Italic, Underline, Link2, ImagePlus, Video, Music, Heading2, Quote, Minus, Eye, Upload, UserRoundPlus } from "lucide-react";
+import { LogOut, PlusCircle, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
+import { ArticleList } from "@/components/admin/article-list";
+import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
 
-type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider" | "gallery" | "list"; text?: string; title?: string; url?: string; alt?: string; caption?: string; items?: {id:string;url:string;alt?:string;caption?:string}[]; columns?:2|3|4; layout?:"grid"|"feature" };
-type ArticleSection = {id:string; title:string; blocks:ArticleBlock[]};
-type Article = { id: string; title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
-type Option = { id: string; name: string };
-type Author = { id: string; name: string; bio: string | null; avatar_url: string | null };
-
-const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random());
-const blankBlock = (type: ArticleBlock["type"] = "paragraph"): ArticleBlock => ({ id: uid(), type, text: "", title: "", url: "", alt: "", caption: "", items: [], columns: 3, layout: "grid" });
-const blankSection = (): ArticleSection => ({id:uid(),title:"",blocks:[blankBlock()]});
-function toSections(content: unknown): ArticleSection[] { let v=content; if(typeof v==="string"){try{v=JSON.parse(v)}catch{return [{...blankSection(),blocks:[{...blankBlock(),text:v as string}]}]}} if(!Array.isArray(v)||!v.length)return [blankSection()]; if(v.some((x:any)=>x&&Array.isArray(x.blocks)))return v.map((x:any)=>({id:uid(),title:x.title||"",blocks:(x.blocks||[]).map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))})); return [{...blankSection(),blocks:v.map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))}];}
-
-function toBlocks(content: unknown): ArticleBlock[] {
-  let value = content;
-  if (typeof value === "string") { const raw = value; try { value = JSON.parse(raw); } catch { return [{ ...blankBlock(), text: raw }]; } }
-  if (!Array.isArray(value)) return [blankBlock()];
-  const blocks = value.map((item: Record<string, unknown>) => ({ ...blankBlock((item.type as ArticleBlock["type"]) || "paragraph"), ...item, id: uid() })) as ArticleBlock[];
-  return blocks.length ? blocks : [blankBlock()];
-}
-
-function RichTextEditor({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
-  const editor = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (editor.current && editor.current.innerHTML !== value) editor.current.innerHTML = value || ""; }, [value]);
-  function command(name: string, argument?: string) {
-    editor.current?.focus();
-    document.execCommand(name, false, argument);
-    onChange(editor.current?.innerHTML ?? "");
-  }
-  function addLink() {
-    const url = window.prompt("Cole o endereço do link (https://...)");
-    if (url && /^https?:\/\//i.test(url)) command("createLink", url);
-  }
-  const tool = (label: string, icon: ReactNode, action: () => void) => <button type="button" title={label} aria-label={label} onClick={action} style={{ padding: 8, border: "1px solid #e3e3e3", borderRadius: 6, background: "#fff", cursor: "pointer", display: "inline-flex" }}>{icon}</button>;
-  return <div style={{ marginTop: 8, border: "1px solid #ddd", borderRadius: 8, overflow: "hidden" }}>
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: 8, background: "#f8f8f8", borderBottom: "1px solid #e5e5e5" }}>
-      {tool("Negrito", <Bold size={16}/>, () => command("bold"))}
-      {tool("Itálico", <Italic size={16}/>, () => command("italic"))}
-      {tool("Sublinhado", <Underline size={16}/>, () => command("underline"))}
-      {tool("Adicionar link", <Link2 size={16}/>, addLink)}
-      <span style={{ alignSelf: "center", fontSize: 12, color: "#777", marginLeft: 4 }}>Selecione o texto para formatar</span>
-    </div>
-    <div ref={editor} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" data-placeholder={placeholder} onInput={event => onChange(event.currentTarget.innerHTML)} style={{ minHeight: 130, padding: 14, outline: "none", lineHeight: 1.7, overflowWrap: "anywhere" }} />
-    <style>{'[contenteditable][data-placeholder]:empty:before{content:attr(data-placeholder);color:#999;pointer-events:none}'}</style>
-  </div>;
-}
+import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
+import type { EditorBlock as ArticleBlock, EditorSection as ArticleSection } from "@/lib/article-editor";
+import type { AdminArticle as Article, AdminOption as Option, AdminAuthor as Author } from "@/lib/admin-types";
 
 export default function AdminPage() {
   const [email, setEmail] = useState("");
@@ -61,6 +22,8 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
   const [sections, setSections] = useState<ArticleSection[]>([blankSection()]);
   const [image, setImage] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -101,11 +64,11 @@ export default function AdminPage() {
   }
 
   function resetForm() {
-    setEditingId(null); setTitle(""); setExcerpt(""); setSections([blankSection()]); setImage("");
+    setEditingId(null); setTitle(""); setExcerpt(""); setSeoTitle(""); setSeoDescription(""); setSections([blankSection()]); setImage("");
     setCategoryId(""); setAuthorId(""); setStatus("draft"); setFeatured(false); setShowPreview(false);
   }
   function editArticle(article: Article) {
-    setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? "");
+    setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? ""); setSeoTitle(article.seo_title ?? ""); setSeoDescription(article.seo_description ?? "");
     setSections(toSections(article.content)); setImage(article.featured_image_url ?? "");
     setCategoryId(article.category_id ?? ""); setAuthorId(article.author_id ?? "");
     setStatus(article.status === "published" ? "published" : "draft"); setFeatured(article.is_featured);
@@ -118,6 +81,7 @@ export default function AdminPage() {
   function appendGalleryImage(si:number,bi:number,url:string){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:sec.blocks.map((block,j)=>j===bi?{...block,items:[...(block.items||[]),{id:uid(),url}]}:block)}:sec));}
   function addBlock(si:number,type:ArticleBlock["type"]){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:[...sec.blocks,blankBlock(type)]}:sec));}
   function moveBlock(si:number,bi:number,d:-1|1){setSections(cur=>cur.map((sec,i)=>{if(i!==si)return sec;const bs=[...sec.blocks],to=bi+d;if(to<0||to>=bs.length)return sec;[bs[bi],bs[to]]=[bs[to],bs[bi]];return {...sec,blocks:bs}}));}
+  function removeBlock(si:number,bi:number){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:sec.blocks.filter((_,j)=>j!==bi)}:sec));}
   async function uploadFile(file: File, onSuccess: (url: string) => void, key: string) {
     setUploading(key); setMessage("");
     try {
@@ -135,7 +99,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, excerpt, content: sections, image, categoryId, authorId, status, isFeatured: featured }),
+        body: JSON.stringify({ title, excerpt, seoTitle, seoDescription, content: sections, image, categoryId, authorId, status, isFeatured: featured }),
       });
       const data = await response.json();
       if (!response.ok) { setMessage(data.error ?? "Falha ao salvar."); return; }
@@ -213,26 +177,18 @@ export default function AdminPage() {
 
   return <main style={{ minHeight: "100vh", background: "#f7f7f8" }}>
     <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 1180px)/2))", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}><a href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA <span style={{ color: "#fff", fontWeight: 400 }}>/ Administração</span></a><button onClick={logout} style={{ ...btn, color: "#fff", background: "transparent", borderColor: "#777" }}><LogOut size={16}/> Sair</button></header>
-    <div style={{ width: "min(1180px, calc(100% - 28px))", margin: "26px auto", display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(300px,.8fr)", gap: 20 }}>
+    <div className="admin-layout-grid" style={{ width: "min(1180px, calc(100% - 28px))", margin: "26px auto", display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(300px,.8fr)", gap: 20 }}>
       <section style={panel}>
         <h1 style={{ fontSize: 24, margin: "0 0 5px" }}><PlusCircle size={22} style={{ verticalAlign: "middle", marginRight: 8, color: "#b90018" }}/>{editingId ? "Editar notícia" : "Nova notícia"}</h1>
         <p style={{ color: "#777", marginBottom: 22 }}>Monte a matéria por blocos: texto, títulos, citações, imagens, vídeos, áudios e links.</p>
         <form onSubmit={save}>
           <label style={label}>Título da notícia<input style={input} minLength={5} maxLength={180} required value={title} onChange={e=>setTitle(e.target.value)}/></label>
           <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:72}} maxLength={500} value={excerpt} onChange={e=>setExcerpt(e.target.value)}/></label>
+          <label style={label}>Título para mecanismos de busca (SEO)<input style={input} maxLength={70} placeholder="Se vazio, será usado o título da notícia" value={seoTitle} onChange={e=>setSeoTitle(e.target.value)}/><span style={{display:"block",fontWeight:400,color:"#777",fontSize:11,marginTop:5}}>{seoTitle.length}/70 caracteres recomendados</span></label>
+          <label style={label}>Descrição para mecanismos de busca (SEO)<textarea style={{...input,minHeight:72}} maxLength={160} placeholder="Descrição curta para os resultados de busca" value={seoDescription} onChange={e=>setSeoDescription(e.target.value)}/><span style={{display:"block",fontWeight:400,color:"#777",fontSize:11,marginTop:5}}>{seoDescription.length}/160 caracteres recomendados</span></label>
           <label style={label}>Imagem de capa<input style={input} type="url" placeholder="https://..." value={image} onChange={e=>setImage(e.target.value)}/></label>
           <label style={{...label, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar capa<input aria-label="Enviar imagem de capa" type="file" accept="image/*" disabled={uploading==="cover"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setImage,"cover");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading==="cover"?"Enviando...":"Também é possível colar uma URL."}</span></label>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0"}}><strong>Estrutura da matéria</strong><button type="button" style={btn} onClick={addSection}>＋ Nova seção</button></div>
-          {sections.map((sec,si)=><section key={sec.id} style={{border:"1px solid #ddd",borderRadius:10,padding:12,marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><strong>Seção {si+1}</strong><span><button type="button" style={btn} disabled={si===0} onClick={()=>moveSection(si,-1)}>↑</button> <button type="button" style={btn} disabled={si===sections.length-1} onClick={()=>moveSection(si,1)}>↓</button> <button type="button" style={btn} disabled={sections.length===1} onClick={()=>removeSection(si)}>Remover</button></span></div><label style={label}>Título da seção<input style={input} value={sec.title} onChange={e=>setSections(cur=>cur.map((x,i)=>i===si?{...x,title:e.target.value}:x))} placeholder="Título opcional"/></label>
-          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>{(["paragraph","heading","quote","image","gallery","list","video","audio","link","divider"] as ArticleBlock["type"][]).map(t=><button key={t} type="button" style={btn} onClick={()=>addBlock(si,t)}>{({paragraph:"＋ Texto",heading:"Título",quote:"Citação",image:"Foto",gallery:"Grade de fotos",list:"Lista",video:"Vídeo",audio:"Áudio",link:"Link",divider:"Separador"} as any)[t]}</button>)}</div>
-          {sec.blocks.map((b,bi)=><div key={b.id} style={{borderTop:"1px solid #eee",padding:"12px 0"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><b>{b.type==="gallery"?"Grade de fotos":b.type==="list"?"Lista":b.type}</b><span><button type="button" style={btn} disabled={bi===0} onClick={()=>moveBlock(si,bi,-1)}>↑</button> <button type="button" style={btn} disabled={bi===sec.blocks.length-1} onClick={()=>moveBlock(si,bi,1)}>↓</button></span></div>
-          {b.type==="heading"&&<input style={input} value={b.title||""} placeholder="Título" onChange={e=>updateBlock(si,bi,{title:e.target.value})}/>}
-          {(b.type==="paragraph"||b.type==="quote")&&<RichTextEditor value={b.text||""} onChange={text=>updateBlock(si,bi,{text})} placeholder="Digite o conteúdo..."/>}
-          {b.type==="list"&&<textarea style={{...input,minHeight:90}} value={b.text||""} placeholder="Um item por linha" onChange={e=>updateBlock(si,bi,{text:e.target.value})}/>}
-          {["image","video","audio"].includes(b.type)&&<><input style={input} type="url" placeholder="URL do arquivo" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/><label style={label}><span style={{...btn,position:"relative"}}>Enviar arquivo<input type="file" accept={b.type==="image"?"image/*":b.type==="video"?"video/*":"audio/*"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,url=>updateBlock(si,bi,{url}),b.id);e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span></label><input style={input} placeholder="Legenda / texto alternativo" value={b.caption||""} onChange={e=>updateBlock(si,bi,{caption:e.target.value,alt:e.target.value})}/></>}
-          {b.type==="gallery"&&<><div style={{display:"flex",gap:8}}><label>Colunas<select style={input} value={b.columns||3} onChange={e=>updateBlock(si,bi,{columns:Number(e.target.value) as 2|3|4})}><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select></label><label>Layout<select style={input} value={b.layout||"grid"} onChange={e=>updateBlock(si,bi,{layout:e.target.value as "grid"|"feature"})}><option value="grid">Grade uniforme</option><option value="feature">Colagem</option></select></label></div><label style={label}><span style={{...btn,position:"relative"}}>Enviar várias imagens<input type="file" multiple accept="image/*" onChange={e=>{Array.from(e.target.files||[]).forEach(file=>void uploadFile(file,url=>appendGalleryImage(si,bi,url),b.id));e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span></label>{(b.items||[]).map((im,ii)=><div key={im.id} style={{display:"flex",gap:6,alignItems:"center"}}><input style={input} type="url" placeholder="URL da imagem" value={im.url} onChange={e=>updateBlock(si,bi,{items:(b.items||[]).map((x,j)=>j===ii?{...x,url:e.target.value}:x)})}/><button type="button" style={btn} onClick={()=>updateBlock(si,bi,{items:(b.items||[]).filter((_,j)=>j!==ii)})}>×</button></div>)}<button type="button" style={btn} onClick={()=>updateBlock(si,bi,{items:[...(b.items||[]),{id:uid(),url:""}]})}>＋ URL de imagem</button></>}
-          {b.type==="link"&&<><input style={input} placeholder="Texto do link" value={b.title||""} onChange={e=>updateBlock(si,bi,{title:e.target.value})}/><input style={input} type="url" placeholder="URL" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/></>}
-          {b.type==="divider"&&<hr/>}</div>)}</section>)}
+          <ArticleStructureEditor sections={sections} setSections={setSections} inputStyle={input} labelStyle={label} buttonStyle={btn} uploading={uploading} addSection={addSection} moveSection={moveSection} removeSection={removeSection} addBlock={addBlock} moveBlock={moveBlock} removeBlock={removeBlock} updateBlock={updateBlock} appendGalleryImage={appendGalleryImage} uploadFile={uploadFile} />
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginTop:20}}>
             <label style={label}>Editoria<select style={input} value={categoryId} onChange={e=>setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
             <label style={label}>Autor principal<select style={input} value={authorId} onChange={e=>setAuthorId(e.target.value)}><option value="">Autor não definido</option>{authors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
@@ -245,9 +201,7 @@ export default function AdminPage() {
         </form>
       </section>
       <aside style={{display:"grid",gap:18,alignSelf:"start"}}>
-        <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}><h2 style={{fontSize:20,margin:0}}><Newspaper size={19} style={{verticalAlign:"middle",marginRight:8,color:"#b90018"}}/>Notícias recentes</h2><button aria-label="Atualizar lista" onClick={()=>void load()} style={btn}><RefreshCw size={15}/></button></div>
-          <div style={{marginTop:12}}>{articles.length===0?<p style={{color:"#777"}}>Nenhuma notícia cadastrada.</p>:articles.map(a=><article key={a.id} style={{padding:"13px 0",borderBottom:"1px solid #eee"}}><strong>{a.title}</strong><p style={{color:"#777",fontSize:12,margin:"5px 0"}}>{a.category_name??"Sem editoria"} · {a.status==="published"?"Publicado":"Rascunho"}</p><div style={{display:"flex",gap:12,flexWrap:"wrap"}}>{a.status==="published"&&<a href={"/noticias/"+a.slug} target="_blank" rel="noreferrer" style={{color:"#b90018",fontSize:13}}>Ver ↗</a>}<button type="button" onClick={()=>editArticle(a)} style={{border:0,background:"transparent",padding:0,cursor:"pointer",display:"inline-flex",gap:4,alignItems:"center",fontSize:13}}><Pencil size={13}/> Editar</button><button type="button" disabled={busy} onClick={()=>void deleteArticle(a)} style={{border:0,background:"transparent",color:"#b90018",padding:0,cursor:"pointer",display:"inline-flex",gap:4,alignItems:"center",fontSize:13}}><Trash2 size={13}/> Excluir</button></div></article>)}</div>
-        </section>
+        <ArticleList articles={articles} authors={authors} busy={busy} onRefresh={()=>void load()} onEdit={editArticle} onDelete={(article)=>void deleteArticle(article)} />
         <section style={panel}><h2 style={{fontSize:20,margin:"0 0 12px"}}>Editorias</h2><div style={{display:"flex",gap:7,marginBottom:12}}><input style={{...input,marginTop:0}} placeholder="Nova editoria" value={categoryName} onChange={e=>setCategoryName(e.target.value)}/><button type="button" onClick={()=>void createCategory()} style={{...btn,color:"#b90018"}}>Adicionar</button></div>{categories.map(c=><div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #eee"}}><span>{c.name}</span><button type="button" style={{...btn,color:"#b90018",padding:6}} onClick={()=>void deleteCategory(c)} aria-label={"Excluir "+c.name}><Trash2 size={14}/></button></div>)}</section>
         <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:12}}><h2 style={{fontSize:20,margin:0}}>Autores</h2><button type="button" style={btn} onClick={()=>{setShowAuthors(v=>!v);resetAuthor();}}><UserRoundPlus size={15}/>{showAuthors?"Fechar":"Gerenciar"}</button></div>
           {showAuthors&&<form onSubmit={saveAuthor} style={{padding:12,background:"#fafafa",borderRadius:9,marginBottom:12}}><strong style={{display:"block",marginBottom:12}}>{editingAuthorId?"Editar autor":"Adicionar autor"}</strong><label style={label}>Nome<input required minLength={2} maxLength={120} style={input} value={authorName} onChange={e=>setAuthorName(e.target.value)}/></label><label style={label}>Biografia<textarea style={{...input,minHeight:70}} maxLength={2000} value={authorBio} onChange={e=>setAuthorBio(e.target.value)}/></label><label style={label}>URL da foto<input style={input} type="url" placeholder="https://..." value={authorAvatar} onChange={e=>setAuthorAvatar(e.target.value)}/></label><div style={{display:"flex",gap:8}}><button disabled={busy} style={{...btn,background:"#b90018",color:"#fff",border:0}}>{editingAuthorId?"Salvar autor":"Adicionar autor"}</button>{editingAuthorId&&<button type="button" style={btn} onClick={resetAuthor}>Cancelar</button>}</div></form>}
@@ -255,6 +209,6 @@ export default function AdminPage() {
         </section>
       </aside>
     </div>
-    <style>{'@media(max-width:850px){main>div{grid-template-columns:minmax(0,1fr)!important}}'}</style>
+    
   </main>;
 }
