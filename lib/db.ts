@@ -16,6 +16,7 @@ export type ArticleSummary = {
   is_featured: boolean;
   published_at: string | null;
   category_name: string | null;
+  category_slug: string | null;
   author_name: string | null;
 };
 
@@ -23,7 +24,7 @@ export async function getPublishedArticles(limit = 12): Promise<ArticleSummary[]
   const sql = getDb();
   return sql`
     SELECT a.id, a.title, a.slug, a.excerpt, a.featured_image_url, a.image_alt,
-      a.is_featured, a.published_at, c.name AS category_name, au.name AS author_name
+      a.is_featured, a.published_at, c.name AS category_name, c.slug AS category_slug, au.name AS author_name
     FROM articles a
     LEFT JOIN categories c ON c.id = a.category_id
     LEFT JOIN authors au ON au.id = a.author_id
