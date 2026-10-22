@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { getPublishedArticles } from "@/lib/db";
@@ -6,6 +7,7 @@ import { NewsSearch } from "@/components/news-search";
 import { StoryCard } from "@/components/news/story-card";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
   let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
