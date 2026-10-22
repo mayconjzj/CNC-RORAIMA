@@ -1,5 +1,5 @@
 import { ArrowRight, Clock3, Menu, Search, TrendingUp } from "lucide-react";
-import { getPublishedArticles } from "@/lib/db";
+import { getPublishedArticles, getPublishedCategories } from "@/lib/db";
 
 const imageUrl = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=85`;
 
@@ -13,7 +13,7 @@ function Brand() {
 function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
   return <article className={`story-card ${compact ? "compact" : ""}`}>
     <a className="story-image" href={`/noticias/${story.slug}`} style={{ backgroundImage: story.featured_image_url ? `url("${story.featured_image_url}")` : `url("${imageUrl("photo-1504711434969-e33886168f5c")}")` }} aria-label={story.title}>
-      <span className="category-tag">{story.category_name ?? "NOTÍCIAS"}</span>
+      {story.category_name && story.category_slug ? <span className="category-tag">{story.category_name}</span> : <span className="category-tag">NOTÍCIAS</span>}
     </a>
     <div className="story-copy">
       <h3><a href={`/noticias/${story.slug}`}>{story.title}</a></h3>
@@ -27,7 +27,10 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
   let databaseReady = true;
-  try { stories = await getPublishedArticles(12); } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias do banco", error); }
+  let categories: Awaited<ReturnType<typeof getPublishedCategories>> = [];
+  try {
+    [stories, categories] = await Promise.all([getPublishedArticles(12), getPublishedCategories()]);
+  } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
   return <main>
@@ -38,7 +41,7 @@ export default async function Home() {
       <div className="masthead-right"><span className="edition">NOTÍCIAS • ANÁLISES • COMUNIDADE</span><a className="search-button" href="#ultimas" aria-label="Ver notícias"><Search size={18}/><span>Notícias</span></a></div>
     </header>
     <nav className="nav-bar"><div className="wrap nav-inner">
-      <a className="nav-home" href="/">INÍCIO</a><a href="#ultimas">POLÍTICA</a><a href="#ultimas">CIDADES</a><a href="#ultimas">SEGURANÇA</a><a href="#ultimas">ECONOMIA</a><a href="#ultimas">EDUCAÇÃO</a><a href="#cnc">CNC</a>
+      <a className="nav-home" href="/">INÍCIO</a>{categories.map((category) => <a key={category.id} href={`/editorias/${category.slug}`}>{category.name.toLocaleUpperCase("pt-BR")}</a>)}<a href="#cnc">CNC</a>
       <span className="nav-live"><span/> RORAIMA AGORA</span>
     </div></nav>
     <section className="wrap lead-section">
