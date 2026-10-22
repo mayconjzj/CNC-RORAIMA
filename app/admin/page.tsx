@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [content, setContent] = useState("");
   const [image, setImage] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
   const [authorId, setAuthorId] = useState("");
   const [status, setStatus] = useState("draft");
   const [featured, setFeatured] = useState(false);
@@ -54,6 +56,24 @@ export default function AdminPage() {
     setMessage("Artigo salvo com sucesso."); setTitle(""); setExcerpt(""); setContent(""); setImage(""); setFeatured(false); await load();
   }
 
+  async function createCategory() {
+    const name = categoryName.trim();
+    if (name.length < 2) { setMessage("Digite um nome de editoria com pelo menos 2 caracteres."); return; }
+    setCreatingCategory(true); setMessage("");
+    try {
+      const response = await fetch("/api/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+      const data = await response.json();
+      if (!response.ok) { setMessage(data.error ?? "Não foi possível criar a editoria."); return; }
+      const category = data.category as Option;
+      setCategories(current => current.some(item => item.id === category.id) ? current : [...current, category].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setCategoryId(category.id);
+      setCategoryName("");
+      setMessage(data.existing ? "Essa editoria já existia e foi selecionada." : "Editoria criada e selecionada.");
+    } catch {
+      setMessage("Falha de conexão ao criar editoria.");
+    } finally { setCreatingCategory(false); }
+  }
+
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); setMessage("Sessão encerrada.");
   }
@@ -87,7 +107,11 @@ export default function AdminPage() {
           <label style={labelStyle}>Resumo<input style={inputStyle} maxLength={500} value={excerpt} onChange={e => setExcerpt(e.target.value)} /></label>
           <label style={labelStyle}>Texto da notícia<textarea style={{ ...inputStyle, minHeight: 180, resize: "vertical" }} minLength={20} required value={content} onChange={e => setContent(e.target.value)} /></label>
           <label style={labelStyle}>URL da imagem<input style={inputStyle} type="url" placeholder="https://..." value={image} onChange={e => setImage(e.target.value)} /></label>
-          <label style={labelStyle}>Editoria<select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+          <label style={labelStyle}>Editoria<select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">Selecione uma editoria</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8, alignItems: "end", margin: "-4px 0 18px" }}>
+            <label style={{ ...labelStyle, marginBottom: 0 }}>Adicionar nova editoria<input style={inputStyle} minLength={2} maxLength={60} placeholder="Ex.: Educação, Política, Cultura" value={categoryName} onChange={e => setCategoryName(e.target.value)} /></label>
+            <button type="button" disabled={creatingCategory || categoryName.trim().length < 2} onClick={() => void createCategory()} style={{ padding: "12px 14px", border: "1px solid #b90018", borderRadius: 8, background: "#fff", color: "#b90018", fontWeight: 800, cursor: "pointer", marginBottom: 0 }}>{creatingCategory ? "Criando..." : "Adicionar"}</button>
+          </div>
           <label style={labelStyle}>Autor<select style={inputStyle} value={authorId} onChange={e => setAuthorId(e.target.value)}><option value="">Autor não definido</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
           <label style={labelStyle}>Estado<select style={inputStyle} value={status} onChange={e => setStatus(e.target.value)}><option value="draft">Salvar como rascunho</option><option value="published">Publicar agora</option></select></label>
           <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 18 }}><input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)}/> Destacar na página inicial</label>
