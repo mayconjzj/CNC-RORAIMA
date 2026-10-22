@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const sql = getDb();
     const articles = await sql`
-      SELECT a.id, a.title, a.slug, a.status, a.is_featured, a.published_at, a.updated_at,
+      SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at,
         c.name AS category_name
       FROM articles a LEFT JOIN categories c ON c.id = a.category_id
       ORDER BY a.updated_at DESC LIMIT 100
