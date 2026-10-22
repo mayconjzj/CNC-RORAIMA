@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const sql = getDb();
     const [categories, authors] = await Promise.all([
-      sql`SELECT id, name, slug FROM categories ORDER BY name`,
+      sql`SELECT c.id, c.name, c.slug FROM categories c WHERE EXISTS (SELECT 1 FROM articles a WHERE a.category_id = c.id) ORDER BY c.name`,
       sql`SELECT id, name FROM authors ORDER BY name`,
     ]);
     return NextResponse.json({ categories, authors });
