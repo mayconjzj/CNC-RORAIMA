@@ -32,3 +32,23 @@ export async function getPublishedArticles(limit = 12): Promise<ArticleSummary[]
     LIMIT ${Math.min(Math.max(limit, 1), 50)}
   ` as unknown as ArticleSummary[];
 }
+
+
+export type CategorySummary = {
+  id: string;
+  name: string;
+  slug: string;
+  article_count: number;
+};
+
+export async function getPublishedCategories(): Promise<CategorySummary[]> {
+  const sql = getDb();
+  return sql`
+    SELECT c.id, c.name, c.slug, COUNT(a.id)::int AS article_count
+    FROM categories c
+    INNER JOIN articles a ON a.category_id = c.id
+    WHERE a.status = 'published' AND a.published_at <= NOW()
+    GROUP BY c.id, c.name, c.slug
+    ORDER BY c.name ASC
+  ` as unknown as CategorySummary[];
+}
