@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const sql = getDb();
     const [categories, authors] = await Promise.all([
-      sql`SELECT c.id, c.name, c.slug FROM categories c WHERE EXISTS (SELECT 1 FROM articles a WHERE a.category_id = c.id) ORDER BY c.name`,
+      sql`SELECT c.id, c.name, c.slug FROM categories c ORDER BY c.name`,
       sql`SELECT id, name FROM authors ORDER BY name`,
     ]);
     return NextResponse.json({ categories, authors });
@@ -39,5 +39,24 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Falha ao criar editoria", error);
     return NextResponse.json({ error: "Não foi possível criar a editoria." }, { status: 500 });
+  }
+}
+
+
+export async function DELETE(request: Request) {
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  try {
+    const body = await request.json();
+    const id = typeof body.id === "string" ? body.id : "";
+    if (!id) return NextResponse.json({ error: "Informe a editoria que deseja excluir." }, { status: 400 });
+    const sql = getDb();
+    const existing = await sql`SELECT id, name FROM categories WHERE id = ${id} LIMIT 1`;
+    if (!existing[0]) return NextResponse.json({ error: "Editoria não encontrada." }, { status: 404 });
+    await sql`UPDATE articles SET category_id = NULL WHERE category_id = ${id}`;
+    await sql`DELETE FROM categories WHERE id = ${id}`;
+    return NextResponse.json({ success: true, name: existing[0].name });
+  } catch (error) {
+    console.error("Falha ao excluir editoria", error);
+    return NextResponse.json({ error: "Não foi possível excluir a editoria." }, { status: 500 });
   }
 }
