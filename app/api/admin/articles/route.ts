@@ -6,17 +6,37 @@ import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   try {
+    const params = new URL(request.url).searchParams;
+    const query = (params.get("q") ?? "").trim().slice(0, 120);
+    const requestedStatus = params.get("status") ?? "all";
+    const status = ["published", "draft"].includes(requestedStatus) ? requestedStatus : "all";
     const sql = getDb();
-    const articles = await sql`
-      SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at, a.seo_title, a.seo_description,
-        c.name AS category_name
-      FROM articles a LEFT JOIN categories c ON c.id = a.category_id
-      ORDER BY a.updated_at DESC LIMIT 100
-    `;
-    return NextResponse.json({ articles });
+    const [articles, countRows] = await Promise.all([
+      sql`
+        SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured, a.category_id, a.author_id, a.published_at, a.updated_at, a.seo_title, a.seo_description,
+          c.name AS category_name
+        FROM articles a LEFT JOIN categories c ON c.id = a.category_id
+        WHERE (${query} = '' OR a.title ILIKE '%' || ${query} || '%' OR a.slug ILIKE '%' || ${query} || '%'
+          OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%')
+          AND (${status} = 'all' OR a.status = ${status})
+        ORDER BY a.updated_at DESC LIMIT 100
+      `,
+      sql`
+        SELECT COUNT(*)::int AS total
+        FROM articles a LEFT JOIN categories c ON c.id = a.category_id
+        WHERE (${query} = '' OR a.title ILIKE '%' || ${query} || '%' OR a.slug ILIKE '%' || ${query} || '%'
+          OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%')
+          AND (${status} = 'all' OR a.status = ${status})
+      `,
+    ]);
+    return NextResponse.json({ articles, total: Number(countRows[0]?.total ?? 0) });
   } catch (error) {
     console.error("Falha ao listar artigos", error);
     return NextResponse.json({ error: "Erro ao consultar artigos." }, { status: 500 });
