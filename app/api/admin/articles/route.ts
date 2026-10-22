@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { normalizeArticleSections } from "@/lib/article-content";
+import { parseArticleInput } from "@/lib/article-service";
 
 export const runtime = "nodejs";
 
