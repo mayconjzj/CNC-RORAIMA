@@ -7,7 +7,7 @@ type Article = { id: string; title: string; slug: string; excerpt: string | null
 type Option = { id: string; name: string };
 
 function contentToText(content: unknown): string {
-  if (typeof content === "string") { try { content = JSON.parse(content); } catch { return content; } }
+  if (typeof content === "string") { try { content = JSON.parse(content); } catch { return String(content); } }
   if (Array.isArray(content)) return content.map((block) => typeof block?.text === "string" ? block.text : typeof block?.title === "string" ? block.title : "").filter(Boolean).join("\n\n");
   return "";
 }
