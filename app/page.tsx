@@ -1,4 +1,5 @@
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
+import Image from "next/image";
 import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
@@ -21,7 +22,7 @@ export default async function Home() {
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
       <NewsSearch compact />
       {featured ? <div className="lead-grid">
-        <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} style={{ backgroundImage: featured.featured_image_url ? `linear-gradient(0deg,rgba(12,15,20,.9),transparent 75%),url("${featured.featured_image_url}")` : "linear-gradient(135deg,#26272c,#4b1c22)" }}>
+        <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} aria-label={featured.title}>{featured.featured_image_url ? <Image src={featured.featured_image_url} alt="" fill sizes="(max-width: 850px) 100vw, 65vw" priority unoptimized /> : <span className="hero-image-fallback" aria-hidden="true" />}<span className="hero-image-overlay" aria-hidden="true" />
           <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
         </a></article>
         <div className="side-stories">{sideStories.map((story)=><StoryCard key={story.id} story={story} compact/>)}</div>
