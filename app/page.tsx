@@ -1,6 +1,7 @@
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
+import { NewsSearch } from "@/components/news-search";
 
 function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
   return <article className={`story-card ${compact ? "compact" : ""}`}>
@@ -29,6 +30,7 @@ export default async function Home() {
 
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
+      <NewsSearch compact />
       {featured ? <div className="lead-grid">
         <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} style={{ backgroundImage: featured.featured_image_url ? `linear-gradient(0deg,rgba(12,15,20,.9),transparent 75%),url("${featured.featured_image_url}")` : "linear-gradient(135deg,#26272c,#4b1c22)" }}>
           <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
@@ -38,7 +40,7 @@ export default async function Home() {
     </section>
     <section className="ticker"><div className="wrap ticker-inner"><span className="ticker-label"><TrendingUp size={15}/> EM PAUTA</span><p>Acompanhe os fatos, as decisões e as histórias de Roraima.</p><a href="#ultimas">Ver notícias <ArrowRight size={15}/></a></div></section>
     <section className="wrap latest-section" id="ultimas">
-      <div className="section-title-row"><div><span className="eyebrow">INFORMAÇÃO EM TEMPO REAL</span><h2>Últimas notícias<span>.</span></h2></div><a className="text-link" href="#ultimas">Atualizadas pela redação <ArrowRight size={16}/></a></div>
+      <div className="section-title-row"><div><span className="eyebrow">INFORMAÇÃO EM TEMPO REAL</span><h2>Últimas notícias<span>.</span></h2></div><a className="text-link" href="/noticias">Ver todas as notícias <ArrowRight size={16}/></a></div>
       {stories.length ? <div className="news-grid">{stories.map((story)=><StoryCard key={story.id} story={story}/>)}</div> : <p style={{ color: "#777", padding: "20px 0" }}>Ainda não há notícias publicadas. As matérias aparecerão automaticamente após a publicação no painel.</p>}
     </section>
     <section className="cnc-band" id="cnc"><div className="wrap cnc-inner"><div className="cnc-symbol">CNC<span>+</span></div><div className="cnc-text"><span className="eyebrow gold">ALÉM DAS NOTÍCIAS</span><h2>A CNC também faz parte dessa história.</h2><p>Conheça as ações, os projetos e as iniciativas da CNC em Roraima.</p></div><a className="gold-button" href="/admin">Painel editorial <ArrowRight size={17}/></a></div></section>

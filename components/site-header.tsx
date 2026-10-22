@@ -29,7 +29,7 @@ export async function SiteHeader() {
         <Brand />
         <div className="masthead-right">
           <span className="edition">NOTÍCIAS • ANÁLISES • COMUNIDADE</span>
-          <a className="search-button" href="/#ultimas" aria-label="Ver notícias">
+          <a className="search-button" href="/noticias" aria-label="Pesquisar todas as notícias">
             <Search size={18} />
             <span>Notícias</span>
           </a>
