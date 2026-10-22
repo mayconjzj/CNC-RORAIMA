@@ -6,6 +6,7 @@ export const revalidate = 0;
 
 type ArticleSitemapRow = { slug: string; updated_at: string | Date | null; published_at: string | Date | null };
 type CategorySitemapRow = { slug: string; last_modified: string | Date | null };
+type LatestSitemapRow = { last_modified: string | Date | null };
 
 function getSiteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const sql = getDb();
-    const [articles, categories] = await Promise.all([
+    const [articles, categories, latestRows] = await Promise.all([
       sql`SELECT slug, updated_at, published_at
           FROM articles
           WHERE status = 'published' AND published_at IS NOT NULL AND published_at <= NOW()
@@ -33,11 +34,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           WHERE a.status = 'published' AND a.published_at IS NOT NULL AND a.published_at <= NOW()
           GROUP BY c.id, c.slug
           ORDER BY c.slug` as unknown as Promise<CategorySitemapRow[]>,
+      sql`SELECT MAX(COALESCE(updated_at, published_at)) AS last_modified FROM articles WHERE status = 'published' AND published_at IS NOT NULL AND published_at <= NOW()` as unknown as Promise<LatestSitemapRow[]>,
     ]);
 
     const staticRoutes: MetadataRoute.Sitemap = [
-      { url: baseUrl, lastModified: new Date(), changeFrequency: "hourly", priority: 1 },
-      { url: `${baseUrl}/noticias`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
+      { url: baseUrl, lastModified: asDate(latestRows[0]?.last_modified), changeFrequency: "hourly", priority: 1 },
+      { url: `${baseUrl}/noticias`, lastModified: asDate(latestRows[0]?.last_modified), changeFrequency: "hourly", priority: 0.9 },
     ];
 
     const articleRoutes: MetadataRoute.Sitemap = articles.map((article) => ({
