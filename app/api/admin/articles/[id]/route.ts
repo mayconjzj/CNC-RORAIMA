@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { parseArticleInput } from "@/lib/article-service";
+import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, context: Context) {
         seo_title = ${seoTitle || title}, seo_description = ${seoDescription || excerpt || title}, updated_at = NOW()
       WHERE id = ${id} RETURNING id, title, slug, status
     `;
+    revalidatePublishedContent();
     return NextResponse.json({ article: rows[0] });
   } catch (error) {
     console.error("Falha ao editar notícia", error);
@@ -39,6 +41,7 @@ export async function DELETE(_request: Request, context: Context) {
     const sql = getDb();
     const rows = await sql`DELETE FROM articles WHERE id = ${id} RETURNING id`;
     if (!rows.length) return NextResponse.json({ error: "Notícia não encontrada." }, { status: 404 });
+    revalidatePublishedContent();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Falha ao excluir notícia", error);
