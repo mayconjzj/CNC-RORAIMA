@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, Clock3 } from "lucide-react";
+import { ArrowUpRight, Clock3 } from "lucide-react";
 import { getDb } from "@/lib/db";
+import { SiteHeader } from "@/components/site-header";
 
 type Props = { params: Promise<{ slug: string }> };
 type Category = { id: string; name: string; slug: string; description: string | null };
@@ -58,15 +59,7 @@ export default async function CategoryPage({ params }: Props) {
   const [featured, ...rest] = page.articles;
 
   return <main className="editoria-page">
-    <header className="editoria-header">
-      <div className="editoria-header-inner">
-        <a href="/" className="editoria-brand" aria-label="CNC Roraima — página inicial">
-          <span className="editoria-brand-mark">CNC<span>.</span></span>
-          <span className="editoria-brand-copy"><strong>RORAIMA</strong><small>NOTÍCIAS • ANÁLISES • COMUNIDADE</small></span>
-        </a>
-        <a href="/" className="editoria-back"><ArrowLeft size={15} /> Página inicial</a>
-      </div>
-    </header>
+    <SiteHeader />
 
     <section className="editoria-content">
       <div className="editoria-intro">
