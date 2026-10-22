@@ -5,13 +5,16 @@ import type { FormEvent, CSSProperties, ReactNode } from "react";
 import { upload } from "@vercel/blob/client";
 import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Bold, Italic, Underline, Link2, ImagePlus, Video, Music, Heading2, Quote, Minus, Eye, Upload, UserRoundPlus } from "lucide-react";
 
-type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider"; text?: string; title?: string; url?: string; alt?: string; caption?: string };
+type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider" | "gallery" | "list"; text?: string; title?: string; url?: string; alt?: string; caption?: string; items?: {id:string;url:string;alt?:string;caption?:string}[]; columns?:2|3|4; layout?:"grid"|"feature" };
+type ArticleSection = {id:string; title:string; blocks:ArticleBlock[]};
 type Article = { id: string; title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
 type Option = { id: string; name: string };
 type Author = { id: string; name: string; bio: string | null; avatar_url: string | null };
 
 const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random());
-const blankBlock = (type: ArticleBlock["type"] = "paragraph"): ArticleBlock => ({ id: uid(), type, text: "", title: "", url: "", alt: "", caption: "" });
+const blankBlock = (type: ArticleBlock["type"] = "paragraph"): ArticleBlock => ({ id: uid(), type, text: "", title: "", url: "", alt: "", caption: "", items: [], columns: 3, layout: "grid" });
+const blankSection = (): ArticleSection => ({id:uid(),title:"",blocks:[blankBlock()]});
+function toSections(content: unknown): ArticleSection[] { let v=content; if(typeof v==="string"){try{v=JSON.parse(v)}catch{return [{...blankSection(),blocks:[{...blankBlock(),text:v as string}]}]}} if(!Array.isArray(v)||!v.length)return [blankSection()]; if(v.some((x:any)=>x&&Array.isArray(x.blocks)))return v.map((x:any)=>({id:uid(),title:x.title||"",blocks:(x.blocks||[]).map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))})); return [{...blankSection(),blocks:v.map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))}];}
 
 function toBlocks(content: unknown): ArticleBlock[] {
   let value = content;
@@ -58,7 +61,7 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
-  const [blocks, setBlocks] = useState<ArticleBlock[]>([blankBlock()]);
+  const [sections, setSections] = useState<ArticleSection[]>([blankSection()]);
   const [image, setImage] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("");
@@ -98,23 +101,20 @@ export default function AdminPage() {
   }
 
   function resetForm() {
-    setEditingId(null); setTitle(""); setExcerpt(""); setBlocks([blankBlock()]); setImage("");
+    setEditingId(null); setTitle(""); setExcerpt(""); setSections([blankSection()]); setImage("");
     setCategoryId(""); setAuthorId(""); setStatus("draft"); setFeatured(false); setShowPreview(false);
   }
   function editArticle(article: Article) {
     setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? "");
-    setBlocks(toBlocks(article.content)); setImage(article.featured_image_url ?? "");
+    setSections(toSections(article.content)); setImage(article.featured_image_url ?? "");
     setCategoryId(article.category_id ?? ""); setAuthorId(article.author_id ?? "");
     setStatus(article.status === "published" ? "published" : "draft"); setFeatured(article.is_featured);
     setMessage(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function updateBlock(index: number, changes: Partial<ArticleBlock>) {
-    setBlocks(current => current.map((block, i) => i === index ? { ...block, ...changes } : block));
-  }
-  function addBlock(type: ArticleBlock["type"]) { setBlocks(current => [...current, blankBlock(type)]); }
-  function moveBlock(index: number, direction: -1 | 1) {
-    setBlocks(current => { const next = [...current]; const target = index + direction; if (target < 0 || target >= next.length) return current; [next[index], next[target]] = [next[target], next[index]]; return next; });
-  }
+  function updateBlock(si:number,bi:number,changes:Partial<ArticleBlock>){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:sec.blocks.map((b,j)=>j===bi?{...b,...changes}:b)}:sec));}
+  function addSection(){setSections(cur=>[...cur,blankSection()]);}
+  function addBlock(si:number,type:ArticleBlock["type"]){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:[...sec.blocks,blankBlock(type)]}:sec));}
+  function moveBlock(si:number,bi:number,d:-1|1){setSections(cur=>cur.map((sec,i)=>{if(i!==si)return sec;const bs=[...sec.blocks],to=bi+d;if(to<0||to>=bs.length)return sec;[bs[bi],bs[to]]=[bs[to],bs[bi]];return {...sec,blocks:bs}}));}
   async function uploadFile(file: File, onSuccess: (url: string) => void, key: string) {
     setUploading(key); setMessage("");
     try {
@@ -132,7 +132,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, excerpt, content: blocks, image, categoryId, authorId, status, isFeatured: featured }),
+        body: JSON.stringify({ title, excerpt, content: sections, image, categoryId, authorId, status, isFeatured: featured }),
       });
       const data = await response.json();
       if (!response.ok) { setMessage(data.error ?? "Falha ao salvar."); return; }
@@ -219,33 +219,24 @@ export default function AdminPage() {
           <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:72}} maxLength={500} value={excerpt} onChange={e=>setExcerpt(e.target.value)}/></label>
           <label style={label}>Imagem de capa<input style={input} type="url" placeholder="https://..." value={image} onChange={e=>setImage(e.target.value)}/></label>
           <label style={{...label, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar capa<input aria-label="Enviar imagem de capa" type="file" accept="image/*" disabled={uploading==="cover"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setImage,"cover");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading==="cover"?"Enviando...":"Também é possível colar uma URL."}</span></label>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:7, margin:"8px 0 16px" }}>
-            <button type="button" style={btn} onClick={()=>addBlock("paragraph")}><PlusCircle size={15}/> Texto</button>
-            <button type="button" style={btn} onClick={()=>addBlock("heading")}><Heading2 size={15}/> Título de seção</button>
-            <button type="button" style={btn} onClick={()=>addBlock("quote")}><Quote size={15}/> Citação</button>
-            <button type="button" style={btn} onClick={()=>addBlock("image")}><ImagePlus size={15}/> Foto</button>
-            <button type="button" style={btn} onClick={()=>addBlock("video")}><Video size={15}/> Vídeo</button>
-            <button type="button" style={btn} onClick={()=>addBlock("audio")}><Music size={15}/> Áudio</button>
-            <button type="button" style={btn} onClick={()=>addBlock("link")}><Link2 size={15}/> Link</button>
-            <button type="button" style={btn} onClick={()=>addBlock("divider")}><Minus size={15}/> Separador</button>
-          </div>
-          <div style={{display:"grid",gap:12}}>
-            {blocks.map((block,index)=><section key={block.id} style={{border:"1px solid #e5e5e5",borderRadius:10,padding:14,background:"#fcfcfc"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:10}}><strong style={{fontSize:14}}>Bloco {index+1}: {{paragraph:"Texto",heading:"Título de seção",quote:"Citação",image:"Imagem",video:"Vídeo",audio:"Áudio",link:"Link",divider:"Separador"}[block.type]}</strong><div style={{display:"flex",gap:5}}><button type="button" style={btn} aria-label="Mover bloco para cima" disabled={index===0} onClick={()=>moveBlock(index,-1)}>↑</button><button type="button" style={btn} aria-label="Mover bloco para baixo" disabled={index===blocks.length-1} onClick={()=>moveBlock(index,1)}>↓</button><button type="button" style={{...btn,color:"#b90018"}} aria-label="Excluir bloco" onClick={()=>setBlocks(current=>current.filter((_,i)=>i!==index))}><Trash2 size={15}/></button></div></div>
-              {block.type==="heading" && <label style={label}>Título<input style={input} value={block.title||""} onChange={e=>updateBlock(index,{title:e.target.value})} placeholder="Título desta seção"/></label>}
-              {(block.type==="paragraph"||block.type==="quote") && <RichTextEditor value={block.text||""} onChange={text=>updateBlock(index,{text})} placeholder={block.type==="quote"?"Digite a citação...":"Escreva o texto da notícia..."}/>}
-              {["image","video","audio"].includes(block.type) && <><label style={label}>URL do arquivo<input style={input} type="url" placeholder="https://..." value={block.url||""} onChange={e=>updateBlock(index,{url:e.target.value})}/></label><label style={{...label,display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar {block.type==="image"?"foto":block.type==="video"?"vídeo":"áudio"}<input type="file" accept={block.type==="image"?"image/*":block.type==="video"?"video/mp4,video/webm": "audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm"} disabled={uploading===block.id} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,url=>updateBlock(index,{url}),block.id);e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading===block.id?"Enviando arquivo...":"Limite: 25 MB por arquivo"}</span></label>{block.type==="image"&&<label style={label}>Texto alternativo<input style={input} value={block.alt||""} onChange={e=>updateBlock(index,{alt:e.target.value})} placeholder="Descreva a imagem para acessibilidade"/></label>}<label style={label}>Legenda<input style={input} value={block.caption||""} onChange={e=>updateBlock(index,{caption:e.target.value})} placeholder="Legenda ou crédito (opcional)"/></label>{block.url&&block.type==="image"&&<img src={block.url} alt={block.alt||""} style={{maxWidth:"100%",maxHeight:220,borderRadius:8}}/>}</>}
-              {block.type==="link" && <><label style={label}>Texto do link<input style={input} value={block.title||""} onChange={e=>updateBlock(index,{title:e.target.value})} placeholder="Ex.: Leia o documento completo"/></label><label style={label}>Endereço<input style={input} type="url" value={block.url||""} onChange={e=>updateBlock(index,{url:e.target.value})} placeholder="https://..."/></label></>}
-              {block.type==="divider"&&<p style={{color:"#777",margin:0}}>Uma linha divisória será exibida no texto publicado.</p>}
-            </section>)}
-          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0"}}><strong>Estrutura da matéria</strong><button type="button" style={btn} onClick={addSection}>＋ Nova seção</button></div>
+          {sections.map((sec,si)=><section key={sec.id} style={{border:"1px solid #ddd",borderRadius:10,padding:12,marginBottom:14}}><label style={label}>Título da seção<input style={input} value={sec.title} onChange={e=>setSections(cur=>cur.map((x,i)=>i===si?{...x,title:e.target.value}:x))} placeholder="Título opcional"/></label>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>{(["paragraph","heading","quote","image","gallery","list","video","audio","link","divider"] as ArticleBlock["type"][]).map(t=><button key={t} type="button" style={btn} onClick={()=>addBlock(si,t)}>{({paragraph:"＋ Texto",heading:"Título",quote:"Citação",image:"Foto",gallery:"Grade de fotos",list:"Lista",video:"Vídeo",audio:"Áudio",link:"Link",divider:"Separador"} as any)[t]}</button>)}</div>
+          {sec.blocks.map((b,bi)=><div key={b.id} style={{borderTop:"1px solid #eee",padding:"12px 0"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><b>{b.type==="gallery"?"Grade de fotos":b.type==="list"?"Lista":b.type}</b><span><button type="button" style={btn} disabled={bi===0} onClick={()=>moveBlock(si,bi,-1)}>↑</button> <button type="button" style={btn} disabled={bi===sec.blocks.length-1} onClick={()=>moveBlock(si,bi,1)}>↓</button></span></div>
+          {b.type==="heading"&&<input style={input} value={b.title||""} placeholder="Título" onChange={e=>updateBlock(si,bi,{title:e.target.value})}/>}
+          {(b.type==="paragraph"||b.type==="quote")&&<RichTextEditor value={b.text||""} onChange={text=>updateBlock(si,bi,{text})} placeholder="Digite o conteúdo..."/>}
+          {b.type==="list"&&<textarea style={{...input,minHeight:90}} value={b.text||""} placeholder="Um item por linha" onChange={e=>updateBlock(si,bi,{text:e.target.value})}/>}
+          {["image","video","audio"].includes(b.type)&&<><input style={input} type="url" placeholder="URL do arquivo" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/><label style={label}><span style={{...btn,position:"relative"}}>Enviar arquivo<input type="file" accept={b.type==="image"?"image/*":b.type==="video"?"video/*":"audio/*"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,url=>updateBlock(si,bi,{url}),b.id);e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span></label><input style={input} placeholder="Legenda / texto alternativo" value={b.caption||""} onChange={e=>updateBlock(si,bi,{caption:e.target.value,alt:e.target.value})}/></>}
+          {b.type==="gallery"&&<><div style={{display:"flex",gap:8}}><label>Colunas<select style={input} value={b.columns||3} onChange={e=>updateBlock(si,bi,{columns:Number(e.target.value) as 2|3|4})}><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select></label><label>Layout<select style={input} value={b.layout||"grid"} onChange={e=>updateBlock(si,bi,{layout:e.target.value as "grid"|"feature"})}><option value="grid">Grade uniforme</option><option value="feature">Colagem</option></select></label></div><label style={label}><span style={{...btn,position:"relative"}}>Enviar várias imagens<input type="file" multiple accept="image/*" onChange={e=>{Array.from(e.target.files||[]).forEach(file=>void uploadFile(file,url=>updateBlock(si,bi,{items:[...(b.items||[]),{id:uid(),url}]}),b.id));e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span></label>{(b.items||[]).map((im,ii)=><div key={im.id} style={{display:"flex",gap:6,alignItems:"center"}}><input style={input} type="url" placeholder="URL da imagem" value={im.url} onChange={e=>updateBlock(si,bi,{items:(b.items||[]).map((x,j)=>j===ii?{...x,url:e.target.value}:x)})}/><button type="button" style={btn} onClick={()=>updateBlock(si,bi,{items:(b.items||[]).filter((_,j)=>j!==ii)})}>×</button></div>)}<button type="button" style={btn} onClick={()=>updateBlock(si,bi,{items:[...(b.items||[]),{id:uid(),url:""}]})}>＋ URL de imagem</button></>}
+          {b.type==="link"&&<><input style={input} placeholder="Texto do link" value={b.title||""} onChange={e=>updateBlock(si,bi,{title:e.target.value})}/><input style={input} type="url" placeholder="URL" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/></>}
+          {b.type==="divider"&&<hr/>}</div>)}</section>)}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginTop:20}}>
             <label style={label}>Editoria<select style={input} value={categoryId} onChange={e=>setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
             <label style={label}>Autor principal<select style={input} value={authorId} onChange={e=>setAuthorId(e.target.value)}><option value="">Autor não definido</option>{authors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
             <label style={label}>Publicação<select style={input} value={status} onChange={e=>setStatus(e.target.value)}><option value="draft">Salvar como rascunho</option><option value="published">Publicar agora</option></select></label>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:18,flexWrap:"wrap"}}><label style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}><input type="checkbox" checked={featured} onChange={e=>setFeatured(e.target.checked)}/> Destacar na página inicial</label><button type="button" style={{...btn,marginLeft:"auto"}} onClick={()=>setShowPreview(v=>!v)}><Eye size={15}/>{showPreview?"Ocultar prévia":"Pré-visualizar"}</button></div>
-          {showPreview&&<div style={{border:"1px dashed #c9a044",borderRadius:10,padding:18,marginBottom:18}}><p style={{color:"#b90018",fontWeight:800,fontSize:12}}>PRÉVIA DA NOTÍCIA</p><h2 style={{fontSize:28,lineHeight:1.2}}>{title||"Título da notícia"}</h2>{excerpt&&<p style={{color:"#666"}}>{excerpt}</p>}{image&&<img src={image} alt="" style={{width:"100%",maxHeight:300,objectFit:"cover",borderRadius:8}}/>}{blocks.map((b,i)=><div key={b.id||i} style={{margin:"14px 0"}}>{b.type==="heading"?<h3>{b.title}</h3>:b.type==="image"&&b.url?<img src={b.url} alt={b.alt||""} style={{maxWidth:"100%",maxHeight:300}}/>:b.type==="video"&&b.url?<video controls src={b.url} style={{maxWidth:"100%"}}/>:b.type==="audio"&&b.url?<audio controls src={b.url}/>:b.type==="link"&&b.url?<a href={b.url}>{b.title||b.url}</a>:b.type==="divider"?<hr/>:<div dangerouslySetInnerHTML={{__html:b.text||""}}/>}</div>)}</div>}
+          {showPreview&&<div style={{border:"1px dashed #c9a044",borderRadius:10,padding:18,marginBottom:18}}><h2>{title||"Título da notícia"}</h2>{sections.map((sec,i)=><section key={sec.id}><h3>{sec.title}</h3>{sec.blocks.map((b,j)=><div key={b.id||j} style={{margin:"12px 0"}}>{b.type==="gallery"?<div style={{display:"grid",gridTemplateColumns:`repeat(${b.columns||3},minmax(0,1fr))`,gap:8}}>{(b.items||[]).filter(x=>x.url).map((x,k)=><img key={x.id||k} src={x.url} alt={x.alt||""} style={{width:"100%",height:130,objectFit:"cover"}}/>)}</div>:b.type==="list"?<ul>{(b.text||"").split("\n").filter(Boolean).map((x,k)=><li key={k}>{x}</li>)}</ul>:b.type==="image"&&b.url?<img src={b.url} alt={b.alt||""} style={{maxWidth:"100%"}}/>:b.type==="video"&&b.url?<video controls src={b.url} style={{maxWidth:"100%"}}/>:b.type==="audio"&&b.url?<audio controls src={b.url}/>:b.type==="link"&&b.url?<a href={b.url}>{b.title||b.url}</a>:b.type==="heading"?<h3>{b.title}</h3>:b.type==="divider"?<hr/>:<div dangerouslySetInnerHTML={{__html:b.text||""}}/>}</div>)}</section>)}</div>}
           {message&&<p role="status" style={{color:"#b90018",fontSize:14}}>{message}</p>}
           <div style={{display:"flex",gap:10}}><button disabled={busy||uploading!==null} style={{flex:1,padding:13,border:0,borderRadius:8,background:"#b90018",color:"#fff",fontWeight:800,cursor:"pointer"}}>{busy?"Salvando...":editingId?"Salvar alterações":"Salvar notícia"}</button>{editingId&&<button type="button" onClick={resetForm} style={btn}><X size={16}/> Cancelar</button>}</div>
         </form>
