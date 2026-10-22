@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent, CSSProperties } from "react";
+import type { FormEvent, CSSProperties, ReactNode } from "react";
 import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Bold, Italic, Underline, Link2, ImagePlus, Video, Music, Heading2, Quote, Minus, Eye, Upload, UserRoundPlus } from "lucide-react";
 
 type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider"; text?: string; title?: string; url?: string; alt?: string; caption?: string };
@@ -32,7 +32,7 @@ function RichTextEditor({ value, onChange, placeholder }: { value: string; onCha
     const url = window.prompt("Cole o endereço do link (https://...)");
     if (url && /^https?:\/\//i.test(url)) command("createLink", url);
   }
-  const tool = (label: string, icon: React.ReactNode, action: () => void) => <button type="button" title={label} aria-label={label} onClick={action} style={{ padding: 8, border: "1px solid #e3e3e3", borderRadius: 6, background: "#fff", cursor: "pointer", display: "inline-flex" }}>{icon}</button>;
+  const tool = (label: string, icon: ReactNode, action: () => void) => <button type="button" title={label} aria-label={label} onClick={action} style={{ padding: 8, border: "1px solid #e3e3e3", borderRadius: 6, background: "#fff", cursor: "pointer", display: "inline-flex" }}>{icon}</button>;
   return <div style={{ marginTop: 8, border: "1px solid #ddd", borderRadius: 8, overflow: "hidden" }}>
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: 8, background: "#f8f8f8", borderBottom: "1px solid #e5e5e5" }}>
       {tool("Negrito", <Bold size={16}/>, () => command("bold"))}
