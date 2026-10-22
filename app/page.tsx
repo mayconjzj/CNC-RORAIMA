@@ -1,19 +1,8 @@
-import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
+import { ArrowRight, TrendingUp } from "lucide-react";
 import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
-
-function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
-  return <article className={`story-card ${compact ? "compact" : ""}`}>
-    <a className="story-image" href={`/noticias/${story.slug}`} style={story.featured_image_url ? { backgroundImage: `url("${story.featured_image_url}")` } : { background: "linear-gradient(135deg,#26272c,#4b1c22)" }} aria-label={story.title}>
-      {story.category_name && story.category_slug ? <span className="category-tag">{story.category_name}</span> : <span className="category-tag">NOTÍCIAS</span>}
-    </a>
-    <div className="story-copy">
-      <h3><a href={`/noticias/${story.slug}`}>{story.title}</a></h3>
-      <span className="story-time"><Clock3 size={13} /> {story.published_at ? new Date(story.published_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "Atualizado"}</span>
-    </div>
-  </article>;
-}
+import { StoryCard } from "@/components/news/story-card";
 
 export const dynamic = "force-dynamic";
 
