@@ -34,7 +34,9 @@ export async function GET(request: Request) {
         WHERE (${query} = '' OR a.title ILIKE '%' || ${query} || '%' OR a.slug ILIKE '%' || ${query} || '%'
           OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
-          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%')
+          OR COALESCE(a.seo_description, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%'
+          OR COALESCE(au.name, '') ILIKE '%' || ${query} || '%')
           AND (${status} = 'all' OR a.status = ${status})
       `,
     ]);
