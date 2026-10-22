@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) return NextResponse.json({ error: "Selecione um arquivo." }, { status: 400 });
     if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ error: "Formato não permitido. Use imagens, vídeo MP4/WebM ou áudio MP3/MP4/OGG/WAV/WebM." }, { status: 415 });
     if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: "O arquivo ultrapassa o limite de 25 MB." }, { status: 413 });
-    const safeName = file.name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "media";
+    const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "media";
     const pathname = `cnc-roraima/${crypto.randomUUID()}-${safeName}`;
     const upload = await fetch(`https://blob.vercel-storage.com/${pathname.split("/").map(encodeURIComponent).join("/")}`, {
       method: "PUT",
