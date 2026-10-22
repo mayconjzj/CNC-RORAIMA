@@ -12,12 +12,12 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
 type Props = { params: Promise<{ slug: string }> };
-type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
+type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; category_name: string | null; author_name: string | null };
 
 const findArticle = cache(unstable_cache(async function findArticle(slug: string): Promise<Article | null> {
   const sql = getDb();
   const rows = await sql`
-    SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.updated_at, a.seo_title, a.seo_description,
+    SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.updated_at,
       c.name AS category_name, au.name AS author_name
     FROM articles a LEFT JOIN categories c ON c.id = a.category_id LEFT JOIN authors au ON au.id = a.author_id
     WHERE a.slug = ${slug} AND a.status = 'published' AND a.published_at <= NOW() LIMIT 1
@@ -29,16 +29,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await findArticle(slug);
   if (!article) return { title: "Notícia não encontrada" };
-  const description = (article.seo_description || article.excerpt || article.title).slice(0, 160);
+  const description = (article.excerpt || article.title).slice(0, 160);
   return {
-    title: article.seo_title || article.title,
+    title: article.title,
     description,
     alternates: { canonical: `/noticias/${article.slug}` },
     openGraph: {
       type: "article",
       siteName: SITE_NAME,
       locale: "pt_BR",
-      title: article.seo_title || article.title,
+      title: article.title,
       description,
       url: `/noticias/${article.slug}`,
       publishedTime: article.published_at || undefined,
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: article.featured_image_url ? "summary_large_image" : "summary",
-      title: article.seo_title || article.title,
+      title: article.title,
       description,
       images: article.featured_image_url ? [article.featured_image_url] : [],
     },
@@ -65,7 +65,7 @@ export default async function ArticlePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
-    description: article.seo_description || article.excerpt || article.title,
+    description: article.excerpt || article.title,
     mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
     url: articleUrl,
     datePublished: article.published_at || undefined,
