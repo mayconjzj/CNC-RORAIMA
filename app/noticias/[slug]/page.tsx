@@ -26,15 +26,16 @@ const findArticle = cache(async function findArticle(slug: string): Promise<Arti
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await findArticle(slug);
-  if (!article) return { title: "Notícia não encontrada | CNC Roraima" };
+  if (!article) return { title: "Notícia não encontrada" };
+  const description = (article.seo_description || article.excerpt || article.title).slice(0, 160);
   return {
     title: article.seo_title || article.title,
-    description: article.seo_description || article.excerpt || article.title,
+    description,
     alternates: { canonical: `/noticias/${article.slug}` },
     openGraph: {
       type: "article",
       title: article.seo_title || article.title,
-      description: article.seo_description || article.excerpt || article.title,
+      description,
       url: `/noticias/${article.slug}`,
       publishedTime: article.published_at || undefined,
       modifiedTime: article.updated_at || article.published_at || undefined,
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: article.featured_image_url ? "summary_large_image" : "summary",
       title: article.seo_title || article.title,
-      description: article.seo_description || article.excerpt || article.title,
+      description,
       images: article.featured_image_url ? [article.featured_image_url] : [],
     },
   };
