@@ -41,7 +41,7 @@ export function toEditorSections(content: unknown): EditorSection[] {
     try {
       value = JSON.parse(value);
     } catch {
-      return [{ ...createBlankSection(), blocks: [{ ...createBlankBlock(), text: value }] }];
+      return [{ ...createBlankSection(), blocks: [{ ...createBlankBlock(), text: value as string }] }];
     }
   }
 
