@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
@@ -12,7 +13,7 @@ import { shouldOptimizeImage } from "@/lib/media";
 type Props = { params: Promise<{ slug: string }> };
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
 
-const findArticle = cache(async function findArticle(slug: string): Promise<Article | null> {
+const findArticle = cache(unstable_cache(async function findArticle(slug: string): Promise<Article | null> {
   const sql = getDb();
   const rows = await sql`
     SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.updated_at, a.seo_title, a.seo_description,
@@ -21,7 +22,7 @@ const findArticle = cache(async function findArticle(slug: string): Promise<Arti
     WHERE a.slug = ${slug} AND a.status = 'published' AND a.published_at <= NOW() LIMIT 1
   `;
   return (rows[0] as Article | undefined) ?? null;
-});
+}, ["published-article-by-slug"], { revalidate: 60, tags: ["published-articles"] }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
