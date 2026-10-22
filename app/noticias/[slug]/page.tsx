@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
+import { normalizeArticleBlocks } from "@/lib/article-content";
 import ArticleComments from "./comments";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -32,7 +33,7 @@ export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
   const article = await findArticle(slug);
   if (!article) notFound();
-  const blocks = Array.isArray(article.content) ? article.content as Array<{ type?: string; text?: string; title?: string; url?: string; alt?: string }> : [];
+  const blocks = normalizeArticleBlocks(article.content);
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
     <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 900px)/2))" }}><a href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA</a></header>
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
@@ -42,7 +43,19 @@ export default async function ArticlePage({ params }: Props) {
       {article.excerpt && <p style={{ fontSize: 21, lineHeight: 1.6, color: "#666" }}>{article.excerpt}</p>}
       <p style={{ color: "#777", fontSize: 13, margin: "20px 0 28px" }}>{article.author_name ? `Por ${article.author_name} · ` : ""}{article.published_at ? new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : ""}</p>
       {article.featured_image_url && <img src={article.featured_image_url} alt={article.image_alt || article.title} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
-      <div style={{ fontSize: 18, lineHeight: 1.9 }}>{blocks.map((block, i) => <p key={i} style={{ marginBottom: 22 }}>{block.text || block.title || ""}{block.url && <a href={block.url} rel="noopener noreferrer" target="_blank"> {block.url}</a>}</p>)}</div>
+      <div style={{ fontSize: 18, lineHeight: 1.85, overflowWrap: "anywhere" }}>
+        {blocks.map((block, i) => {
+          const richText = block.text ? { __html: block.text } : null;
+          if (block.type === "heading") return <h2 key={i} style={{ fontSize: 28, lineHeight: 1.25, margin: "34px 0 14px" }}>{block.title || <span dangerouslySetInnerHTML={richText!} />}</h2>;
+          if (block.type === "quote") return <blockquote key={i} style={{ borderLeft: "4px solid #c9a044", margin: "28px 0", padding: "8px 22px", color: "#555", fontSize: 21, fontStyle: "italic" }}><span dangerouslySetInnerHTML={richText!} /></blockquote>;
+          if (block.type === "image") return <figure key={i} style={{ margin: "30px 0" }}><img src={block.url} alt={block.alt || block.title || ""} loading="lazy" style={{ display: "block", width: "100%", borderRadius: 10, maxHeight: 680, objectFit: "contain" }} />{block.caption && <figcaption style={{ color: "#777", fontSize: 14, marginTop: 8, textAlign: "center" }}>{block.caption}</figcaption>}</figure>;
+          if (block.type === "video") return <figure key={i} style={{ margin: "30px 0" }}><video controls preload="metadata" src={block.url} style={{ width: "100%", borderRadius: 10, background: "#111" }}>{ "Seu navegador não suporta vídeo." }</video>{block.caption && <figcaption style={{ color: "#777", fontSize: 14, marginTop: 8 }}>{block.caption}</figcaption>}</figure>;
+          if (block.type === "audio") return <figure key={i} style={{ margin: "26px 0" }}><figcaption style={{ fontWeight: 700, marginBottom: 8 }}>{block.title || "Áudio"}</figcaption><audio controls preload="metadata" src={block.url} style={{ width: "100%" }} />{block.caption && <p style={{ color: "#777", fontSize: 14 }}>{block.caption}</p>}</figure>;
+          if (block.type === "link") return <p key={i} style={{ margin: "20px 0" }}><a href={block.url} target="_blank" rel="noopener noreferrer" style={{ color: "#b90018", textDecoration: "underline", fontWeight: 700 }}>{block.title || block.url}</a></p>;
+          if (block.type === "divider") return <hr key={i} style={{ border: 0, borderTop: "1px solid #ddd", margin: "32px 0" }} />;
+          return <div key={i} style={{ marginBottom: 22 }} dangerouslySetInnerHTML={richText ?? { __html: "" }} />;
+        })}
+      </div>
       <ArticleComments slug={article.slug} />
     </article>
     <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
