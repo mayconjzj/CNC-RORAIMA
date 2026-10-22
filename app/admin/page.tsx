@@ -177,7 +177,7 @@ export default function AdminPage() {
 
   return <main style={{ minHeight: "100vh", background: "#f7f7f8" }}>
     <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 1180px)/2))", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}><a href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA <span style={{ color: "#fff", fontWeight: 400 }}>/ Administração</span></a><button onClick={logout} style={{ ...btn, color: "#fff", background: "transparent", borderColor: "#777" }}><LogOut size={16}/> Sair</button></header>
-    <div style={{ width: "min(1180px, calc(100% - 28px))", margin: "26px auto", display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(300px,.8fr)", gap: 20 }}>
+    <div className="admin-layout-grid" style={{ width: "min(1180px, calc(100% - 28px))", margin: "26px auto", display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(300px,.8fr)", gap: 20 }}>
       <section style={panel}>
         <h1 style={{ fontSize: 24, margin: "0 0 5px" }}><PlusCircle size={22} style={{ verticalAlign: "middle", marginRight: 8, color: "#b90018" }}/>{editingId ? "Editar notícia" : "Nova notícia"}</h1>
         <p style={{ color: "#777", marginBottom: 22 }}>Monte a matéria por blocos: texto, títulos, citações, imagens, vídeos, áudios e links.</p>
@@ -209,6 +209,6 @@ export default function AdminPage() {
         </section>
       </aside>
     </div>
-    <style>{'@media(max-width:850px){main>div{grid-template-columns:minmax(0,1fr)!important}}'}</style>
+    
   </main>;
 }
