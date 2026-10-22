@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
+import ArticleComments from "./comments";
 
 type Props = { params: Promise<{ slug: string }> };
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
@@ -42,6 +43,7 @@ export default async function ArticlePage({ params }: Props) {
       <p style={{ color: "#777", fontSize: 13, margin: "20px 0 28px" }}>{article.author_name ? `Por ${article.author_name} · ` : ""}{article.published_at ? new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : ""}</p>
       {article.featured_image_url && <img src={article.featured_image_url} alt={article.image_alt || article.title} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <div style={{ fontSize: 18, lineHeight: 1.9 }}>{blocks.map((block, i) => <p key={i} style={{ marginBottom: 22 }}>{block.text || block.title || ""}{block.url && <a href={block.url} rel="noopener noreferrer" target="_blank"> {block.url}</a>}</p>)}</div>
+      <ArticleComments slug={article.slug} />
     </article>
     <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
   </main>;
