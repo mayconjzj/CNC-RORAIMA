@@ -29,6 +29,7 @@ export function ArticleStructureEditor({
   updateBlock, appendGalleryImage, uploadFile,
 }: Props) {
   return (
+    <>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0"}}><strong>Estrutura da matéria</strong><button type="button" style={buttonStyle} onClick={addSection}>＋ Nova seção</button></div>
           {sections.map((sec,si)=><section key={sec.id} style={{border:"1px solid #ddd",borderRadius:10,padding:12,marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><strong>Seção {si+1}</strong><span><button type="button" style={buttonStyle} disabled={si===0} onClick={()=>moveSection(si,-1)}>↑</button> <button type="button" style={buttonStyle} disabled={si===sections.length-1} onClick={()=>moveSection(si,1)}>↓</button> <button type="button" style={buttonStyle} disabled={sections.length===1} onClick={()=>removeSection(si)}>Remover</button></span></div><label style={labelStyle}>Título da seção<input style={inputStyle} value={sec.title} onChange={e=>setSections(cur=>cur.map((x,i)=>i===si?{...x,title:e.target.value}:x))} placeholder="Título opcional"/></label>
           <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>{(["paragraph","heading","quote","image","gallery","list","video","audio","link","divider"] as ArticleBlock["type"][]).map(t=><button key={t} type="button" style={buttonStyle} onClick={()=>addBlock(si,t)}>{({paragraph:"＋ Texto",heading:"Título",quote:"Citação",image:"Foto",gallery:"Grade de fotos",list:"Lista",video:"Vídeo",audio:"Áudio",link:"Link",divider:"Separador"} as any)[t]}</button>)}</div>
@@ -41,5 +42,6 @@ export function ArticleStructureEditor({
           {b.type==="link"&&<><input style={inputStyle} placeholder="Texto do link" value={b.title||""} onChange={e=>updateBlock(si,bi,{title:e.target.value})}/><input style={inputStyle} type="url" placeholder="URL" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/></>}
           {b.type==="divider"&&<hr/>}</div>)}</section>)}
           
+    </>
   );
 }
