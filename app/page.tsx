@@ -40,7 +40,7 @@ export default async function Home() {
     </section>
     <section className="ticker"><div className="wrap ticker-inner"><span className="ticker-label"><TrendingUp size={15}/> EM PAUTA</span><p>Acompanhe os fatos, as decisões e as histórias de Roraima.</p><a href="#ultimas">Ver notícias <ArrowRight size={15}/></a></div></section>
     <section className="wrap latest-section" id="ultimas">
-      <div className="section-title-row"><div><span className="eyebrow">INFORMAÇÃO EM TEMPO REAL</span><h2>Últimas notícias<span>.</span></h2></div><a className="text-link" href="#ultimas">Atualizadas pela redação <ArrowRight size={16}/></a></div>
+      <div className="section-title-row"><div><span className="eyebrow">INFORMAÇÃO EM TEMPO REAL</span><h2>Últimas notícias<span>.</span></h2></div><a className="text-link" href="/noticias">Ver todas as notícias <ArrowRight size={16}/></a></div>
       {stories.length ? <div className="news-grid">{stories.map((story)=><StoryCard key={story.id} story={story}/>)}</div> : <p style={{ color: "#777", padding: "20px 0" }}>Ainda não há notícias publicadas. As matérias aparecerão automaticamente após a publicação no painel.</p>}
     </section>
     <section className="cnc-band" id="cnc"><div className="wrap cnc-inner"><div className="cnc-symbol">CNC<span>+</span></div><div className="cnc-text"><span className="eyebrow gold">ALÉM DAS NOTÍCIAS</span><h2>A CNC também faz parte dessa história.</h2><p>Conheça as ações, os projetos e as iniciativas da CNC em Roraima.</p></div><a className="gold-button" href="/admin">Painel editorial <ArrowRight size={17}/></a></div></section>
