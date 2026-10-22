@@ -6,24 +6,12 @@ import { upload } from "@vercel/blob/client";
 import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 
-type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider" | "gallery" | "list"; text?: string; title?: string; url?: string; alt?: string; caption?: string; items?: {id:string;url:string;alt?:string;caption?:string}[]; columns?:2|3|4; layout?:"grid"|"feature" };
-type ArticleSection = {id:string; title:string; blocks:ArticleBlock[]};
+import { createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
+import type { EditorBlock as ArticleBlock, EditorSection as ArticleSection } from "@/lib/article-editor";
+
 type Article = { id: string; title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
 type Option = { id: string; name: string };
 type Author = { id: string; name: string; bio: string | null; avatar_url: string | null };
-
-const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random());
-const blankBlock = (type: ArticleBlock["type"] = "paragraph"): ArticleBlock => ({ id: uid(), type, text: "", title: "", url: "", alt: "", caption: "", items: [], columns: 3, layout: "grid" });
-const blankSection = (): ArticleSection => ({id:uid(),title:"",blocks:[blankBlock()]});
-function toSections(content: unknown): ArticleSection[] { let v=content; if(typeof v==="string"){try{v=JSON.parse(v)}catch{return [{...blankSection(),blocks:[{...blankBlock(),text:v as string}]}]}} if(!Array.isArray(v)||!v.length)return [blankSection()]; if(v.some((x:any)=>x&&Array.isArray(x.blocks)))return v.map((x:any)=>({id:uid(),title:x.title||"",blocks:(x.blocks||[]).map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))})); return [{...blankSection(),blocks:v.map((b:any)=>({...blankBlock(b.type),...b,id:uid()}))}];}
-
-function toBlocks(content: unknown): ArticleBlock[] {
-  let value = content;
-  if (typeof value === "string") { const raw = value; try { value = JSON.parse(raw); } catch { return [{ ...blankBlock(), text: raw }]; } }
-  if (!Array.isArray(value)) return [blankBlock()];
-  const blocks = value.map((item: Record<string, unknown>) => ({ ...blankBlock((item.type as ArticleBlock["type"]) || "paragraph"), ...item, id: uid() })) as ArticleBlock[];
-  return blocks.length ? blocks : [blankBlock()];
-}
 
 export default function AdminPage() {
   const [email, setEmail] = useState("");
