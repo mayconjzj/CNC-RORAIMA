@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 type Category = { id: string; slug: string; name: string };
 
@@ -10,28 +11,28 @@ export function SiteNavigation({ categories }: { categories: Category[] }) {
   return (
     <nav className="nav-bar" aria-label="Navegação principal">
       <div className="wrap nav-inner">
-        <a
+        <Link
           className={pathname === "/" ? "nav-home is-active" : "nav-home"}
           href="/"
           aria-current={pathname === "/" ? "page" : undefined}
         >
           INÍCIO
-        </a>
+        </Link>
         {categories.map((category) => {
           const href = `/editorias/${category.slug}`;
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
-            <a
+            <Link
               key={category.id}
               href={href}
               className={active ? "is-active" : undefined}
               aria-current={active ? "page" : undefined}
             >
               {category.name.toLocaleUpperCase("pt-BR")}
-            </a>
+            </Link>
           );
         })}
-        <a href="/#cnc">CNC</a>
+        <Link href="/#cnc">CNC</Link>
         <span className="nav-live"><span /> RORAIMA AGORA</span>
       </div>
     </nav>
