@@ -160,6 +160,46 @@ export default async function CategoryPage({ params }: Props) {
       .editoria-footer{min-height:68px;padding:18px max(20px,calc((100% - 1120px)/2));background:#202126;color:#c4c4c8;display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:11px}
       @media(max-width:760px){.editoria-content{padding-top:32px}.editoria-featured{grid-template-columns:1fr;gap:18px;padding:14px}.editoria-featured-media{aspect-ratio:16/9}.editoria-featured-copy{padding:0 4px 6px}.editoria-featured-copy h2{font-size:29px}.editoria-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.editoria-card-copy{padding:14px}.editoria-card-copy h3{font-size:16px}}
       @media(max-width:480px){.editoria-header-inner{width:calc(100% - 28px);min-height:70px}.editoria-brand-mark{font-size:33px}.editoria-brand-copy strong{font-size:12px}.editoria-brand-copy small{font-size:6px;letter-spacing:.07em}.editoria-back{font-size:0;gap:0}.editoria-back svg{width:20px;height:20px}.editoria-content{width:calc(100% - 28px);padding-bottom:48px}.editoria-intro h1{font-size:39px}.editoria-intro p{font-size:14px}.editoria-featured-copy h2{font-size:25px}.editoria-grid{grid-template-columns:1fr;gap:16px}.editoria-card{display:grid;grid-template-columns:38% minmax(0,1fr)}.editoria-card-link{display:grid;grid-template-columns:38% minmax(0,1fr)}.editoria-card-media{aspect-ratio:auto;height:100%;min-height:145px;border-bottom:0;border-right:1px solid #e8e8eb}.editoria-card-copy{padding:13px}.editoria-card-copy h3{font-size:15px;line-height:1.35;margin:7px 0}.editoria-card-copy>p{font-size:12px;line-height:1.5}.editoria-card-copy .editoria-date{font-size:10px;padding-top:10px}.editoria-footer{align-items:flex-start;flex-direction:column;gap:6px}}
+
+      /* Ajustes de responsividade para editorias */
+      @media(max-width:760px){
+        .editoria-content{width:min(100% - 32px,640px)}
+        .editoria-featured{grid-template-columns:minmax(0,1fr);padding:14px;gap:16px}
+        .editoria-featured-media{width:100%;aspect-ratio:16/9}
+        .editoria-featured-copy{padding:0 2px 4px;min-width:0}
+        .editoria-featured-copy h2{font-size:clamp(24px,5vw,30px);overflow-wrap:anywhere}
+        .editoria-featured-copy>p{font-size:14px}
+        .editoria-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+        .editoria-card,.editoria-card-link{min-width:0}
+        .editoria-card-copy{padding:13px}
+        .editoria-card-copy h3{font-size:15px;overflow-wrap:anywhere}
+      }
+      @media(max-width:520px){
+        .editoria-content{width:calc(100% - 28px);padding-top:26px;padding-bottom:42px}
+        .editoria-intro{margin-bottom:22px}
+        .editoria-intro h1{font-size:clamp(34px,10vw,42px);overflow-wrap:anywhere}
+        .editoria-intro p{font-size:14px;line-height:1.65}
+        .editoria-rule{margin-top:20px}
+        .editoria-featured{padding:11px;border-radius:6px}
+        .editoria-featured-media{aspect-ratio:16/10}
+        .editoria-featured-copy h2{font-size:25px;line-height:1.2}
+        .editoria-featured-copy>p{font-size:13px;line-height:1.6}
+        .editoria-read-more{margin-top:18px}
+        .editoria-latest{margin-top:32px}
+        .editoria-section-heading{align-items:flex-start;margin-bottom:15px}
+        .editoria-section-heading h2{font-size:24px}
+        .editoria-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+        .editoria-card{display:block}
+        .editoria-card-link{display:flex;flex-direction:column;height:100%}
+        .editoria-card-media{width:100%;height:auto;min-height:0;aspect-ratio:16/9;border-right:0;border-bottom:1px solid #e8e8eb}
+        .editoria-card-media img{width:100%;height:100%;object-fit:contain}
+        .editoria-card-copy{padding:15px;min-width:0}
+        .editoria-card-copy h3{font-size:17px;line-height:1.4;margin:8px 0}
+        .editoria-card-copy>p{font-size:13px;line-height:1.6}
+        .editoria-card-copy .editoria-date{margin-top:10px;padding-top:4px}
+        .editoria-end-note{font-size:12px}
+        .editoria-footer{padding:18px 14px;font-size:10px}
+      }
     `}</style>
   </main>;
 }
