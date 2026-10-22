@@ -12,7 +12,9 @@ export async function PATCH(request: Request, context: Context) {
     const { id } = await context.params;
     const body = await request.json();
     const title = typeof body.title === "string" ? body.title.trim() : "";
-    const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim() : "";
+    const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 500) : "";
+    const seoTitle = typeof body.seoTitle === "string" ? body.seoTitle.trim().slice(0, 70) : "";
+    const seoDescription = typeof body.seoDescription === "string" ? body.seoDescription.trim().slice(0, 160) : "";
     const image = typeof body.image === "string" ? body.image.trim() : "";
     const categoryId = typeof body.categoryId === "string" && body.categoryId ? body.categoryId : null;
     const authorId = typeof body.authorId === "string" && body.authorId ? body.authorId : null;
@@ -33,7 +35,7 @@ export async function PATCH(request: Request, context: Context) {
         image_alt = ${image ? title : null},
         status = ${status}, is_featured = ${isFeatured}, category_id = ${categoryId}, author_id = ${authorId},
         published_at = CASE WHEN ${status} = 'published' THEN COALESCE(published_at, NOW()) ELSE NULL END,
-        seo_title = ${title}, seo_description = ${excerpt || title}, updated_at = NOW()
+        seo_title = ${seoTitle || title}, seo_description = ${seoDescription || excerpt || title}, updated_at = NOW()
       WHERE id = ${id} RETURNING id, title, slug, status
     `;
     return NextResponse.json({ article: rows[0] });
