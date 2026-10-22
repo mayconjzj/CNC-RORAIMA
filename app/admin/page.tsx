@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, CSSProperties, ReactNode } from "react";
+import { upload } from "@vercel/blob/client";
 import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Bold, Italic, Underline, Link2, ImagePlus, Video, Music, Heading2, Quote, Minus, Eye, Upload, UserRoundPlus } from "lucide-react";
 
 type ArticleBlock = { id: string; type: "paragraph" | "heading" | "quote" | "image" | "video" | "audio" | "link" | "divider"; text?: string; title?: string; url?: string; alt?: string; caption?: string };
@@ -117,11 +118,12 @@ export default function AdminPage() {
   async function uploadFile(file: File, onSuccess: (url: string) => void, key: string) {
     setUploading(key); setMessage("");
     try {
-      const form = new FormData(); form.append("file", file);
-      const response = await fetch("/api/admin/media", { method: "POST", body: form });
-      const data = await response.json();
-      if (!response.ok) { setMessage(data.error ?? "Não foi possível enviar o arquivo."); return; }
-      onSuccess(data.url); setMessage("Arquivo enviado com sucesso.");
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/media",
+        clientPayload: JSON.stringify({ type: file.type }),
+      });
+      onSuccess(blob.url); setMessage("Arquivo enviado com sucesso.");
     } catch { setMessage("Falha de conexão ao enviar o arquivo."); }
     finally { setUploading(null); }
   }
