@@ -40,6 +40,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const author = p.author ?? "";
   const from = /^\d{4}-\d{2}-\d{2}$/.test(p.from ?? "") ? p.from! : "";
   const to = /^\d{4}-\d{2}-\d{2}$/.test(p.to ?? "") ? p.to! : "";
+  const fromDate = from || null;
+  const toDate = to || null;
   const sort = ["oldest", "title"].includes(p.sort ?? "") ? p.sort! : "newest";
   const category = await getCategory(slug);
   if (!category) notFound();
@@ -52,8 +54,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       WHERE c.id=${category.id} AND a.status='published' AND a.published_at<=NOW()
         AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%')
         AND (${author}='' OR a.author_id::text=${author})
-        AND (${from}='' OR a.published_at>=${from}::date)
-        AND (${to}='' OR a.published_at<(${to}::date + INTERVAL '1 day'))
+        AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date)
+        AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))
       ORDER BY CASE WHEN ${sort}='title' THEN a.title END ASC,
         CASE WHEN ${sort}='oldest' THEN a.published_at END ASC NULLS LAST,
         CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST
