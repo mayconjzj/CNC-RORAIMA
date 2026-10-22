@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { shouldOptimizeImage } from "@/lib/media";
-import { Clock3 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { NewsSearch } from "@/components/news-search";
+import { NewsList } from "@/components/news-list";
 
 type Filters = { q?: string; author?: string; from?: string; to?: string; sort?: string };
 type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<Filters> };
 type Category = { id: string; name: string; slug: string };
-type Article = { id: string; title: string; slug: string; excerpt: string | null; featured_image_url: string | null; published_at: string | null; category_name: string };
+type Article = { id: string; title: string; slug: string; excerpt: string | null; featured_image_url: string | null; published_at: string | null; category_name: string; category_slug: string; author_name: string | null };
 type Author = { id: string; name: string };
 
 const getCategory = cache(unstable_cache(async function getCategory(slug: string) {
@@ -28,10 +25,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 
-
-function dateLabel(value: string | null) {
-  return value ? new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "Data não informada";
-}
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
@@ -49,8 +42,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const [authors, articles] = await Promise.all([
     sql`SELECT au.id,au.name FROM authors au WHERE EXISTS (SELECT 1 FROM articles a WHERE a.author_id=au.id AND a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW()) ORDER BY au.name` as unknown as Promise<Author[]>,
     sql`
-      SELECT a.id,a.title,a.slug,a.excerpt,a.featured_image_url,a.published_at,c.name AS category_name
-      FROM articles a INNER JOIN categories c ON c.id=a.category_id
+      SELECT a.id,a.title,a.slug,a.excerpt,a.featured_image_url,a.published_at,c.name AS category_name,c.slug AS category_slug,au.name AS author_name
+      FROM articles a INNER JOIN categories c ON c.id=a.category_id LEFT JOIN authors au ON au.id=a.author_id
       WHERE c.id=${category.id} AND a.status='published' AND a.published_at<=NOW()
         AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%')
         AND (${author}='' OR a.author_id::text=${author})
@@ -68,10 +61,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{articles.length} {articles.length === 1 ? "notícia encontrada" : "notícias encontradas"}{articles.length === 100 ? " · limite de 100" : ""}</span></div>
-      {articles.length ? <div className="editoria-grid">{articles.map((article, index) => <article key={article.id} className={`editoria-card ${index === 0 && !q && !author && !from && !to ? "editoria-card-featured" : ""}`}>
-        <Link href={`/noticias/${article.slug}`} className="editoria-card-link"><div className="editoria-card-media">{article.featured_image_url ? <Image src={article.featured_image_url} alt="" width={900} height={506} sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw" priority={index === 0} unoptimized={!shouldOptimizeImage(article.featured_image_url)} /> : <div className="editoria-image-placeholder" />}</div>
-        <div className="editoria-card-copy"><span className="editoria-category-label">{article.category_name}</span><h3>{article.title}</h3>{article.excerpt && <p>{article.excerpt}</p>}<span className="editoria-date"><Clock3 size={14} aria-hidden="true" />{dateLabel(article.published_at)}</span></div></Link>
-      </article>)}</div> : <div className="editoria-empty"><h2>Nenhuma notícia encontrada</h2><p>Tente alterar os termos da busca ou remover algum filtro.</p><Link href={`/editorias/${slug}`}>Limpar filtros</Link></div>}
+      <NewsList articles={articles} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
     </section>
     <footer className="editoria-footer"><span>© {new Date().getFullYear()} CNC Roraima</span><span>Informação de credibilidade.</span></footer>
     
