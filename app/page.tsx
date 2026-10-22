@@ -5,6 +5,7 @@ import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 import { StoryCard } from "@/components/news/story-card";
+import { SITE_URL } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -17,7 +18,7 @@ export default async function Home() {
   } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
+  const siteUrl = SITE_URL;
   const websiteStructuredData = {
     "@context": "https://schema.org",
     "@graph": [
