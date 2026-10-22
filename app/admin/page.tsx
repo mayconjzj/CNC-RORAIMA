@@ -115,6 +115,29 @@ export default function AdminPage() {
     } finally { setCreatingCategory(false); }
   }
 
+
+  async function deleteCategory(category: Option) {
+    if (!window.confirm(`Excluir a editoria “${category.name}”? As notícias serão preservadas, mas ficarão sem editoria.`)) return;
+    setBusy(true); setMessage("");
+    try {
+      const response = await fetch("/api/admin/categories", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: category.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) { setMessage(data.error ?? "Não foi possível excluir a editoria."); return; }
+      setCategories(current => current.filter(item => item.id !== category.id));
+      if (categoryId === category.id) setCategoryId("");
+      setArticles(current => current.map(article => article.category_id === category.id
+        ? { ...article, category_id: null, category_name: null }
+        : article));
+      setMessage(`Editoria “${category.name}” excluída. As notícias foram preservadas.`);
+    } catch {
+      setMessage("Falha de conexão ao excluir a editoria.");
+    } finally { setBusy(false); }
+  }
+
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); setMessage("Sessão encerrada.");
   }
@@ -163,6 +186,14 @@ export default function AdminPage() {
       <section style={{ background: "#fff", padding: 24, borderRadius: 14, border: "1px solid #eee", alignSelf: "start" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><h2 style={{ fontSize: 22, margin: 0 }}><Newspaper size={21} style={{ verticalAlign: "middle", marginRight: 8, color: "#b90018" }}/>Artigos recentes</h2><button aria-label="Atualizar lista" onClick={() => void load()} style={{ border: "1px solid #ddd", background: "#fff", borderRadius: 8, padding: 8 }}><RefreshCw size={16}/></button></div>
         <div style={{ marginTop: 18 }}>{articles.length === 0 ? <p style={{ color: "#777" }}>Nenhuma notícia cadastrada ainda.</p> : articles.map(a => <article key={a.id} style={{ padding: "14px 0", borderBottom: "1px solid #eee" }}><strong>{a.title}</strong><p style={{ color: "#777", fontSize: 12, margin: "6px 0" }}>{a.category_name ?? "Sem editoria"} · {a.status === "published" ? "Publicado" : "Rascunho"}</p><div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>{a.status === "published" && <a href={"/noticias/" + a.slug} target="_blank" rel="noreferrer" style={{ color: "#b90018", fontSize: 13 }}>Ver notícia ↗</a>}<button type="button" onClick={() => editArticle(a)} style={{ border: 0, background: "transparent", color: "#333", padding: 0, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13 }}><Pencil size={14}/> Editar</button><button type="button" disabled={busy} onClick={() => void deleteArticle(a)} style={{ border: 0, background: "transparent", color: "#b90018", padding: 0, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13 }}><Trash2 size={14}/> Excluir</button></div></article>)}</div>
+        <div style={{ marginTop: 28, paddingTop: 20, borderTop: "2px solid #eee" }}>
+          <h2 style={{ fontSize: 20, margin: "0 0 6px" }}>Editorias</h2>
+          <p style={{ color: "#777", fontSize: 13, marginBottom: 12 }}>Exclua as editorias que não deseja mais usar. As notícias serão mantidas.</p>
+          {categories.length === 0 ? <p style={{ color: "#777", fontSize: 14 }}>Nenhuma editoria criada.</p> : categories.map(category => <div key={category.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 0", borderBottom: "1px solid #eee" }}>
+            <span>{category.name}</span>
+            <button type="button" disabled={busy} onClick={() => void deleteCategory(category)} aria-label={`Excluir editoria ${category.name}`} style={{ border: 0, background: "transparent", color: "#b90018", padding: 4, cursor: busy ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13 }}><Trash2 size={14}/> Excluir</button>
+          </div>)}
+        </div>
       </section>
     </div>
   </main>;
