@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const existing = await sql`SELECT id FROM admin_users LIMIT 1`;
     if (existing.length) return NextResponse.json({ error: "Já existe um administrador. A configuração inicial está bloqueada." }, { status: 409 });
     const passwordHash = await bcrypt.hash(password, 12);
-    const rows = await sql`INSERT INTO admin_users (email, password_hash, display_name) VALUES (${email}, ${passwordHash}, ${displayName}) RETURNING id`;
+    await sql`INSERT INTO admin_users (email, password_hash, display_name) VALUES (${email}, ${passwordHash}, ${displayName}) RETURNING id`;
     return NextResponse.json({ ok: true, message: "Administrador criado. Remova ADMIN_SETUP_TOKEN das variáveis da Vercel após o primeiro acesso." }, { status: 201 });
   } catch (error) {
     console.error("Falha na configuração inicial do administrador", error);
