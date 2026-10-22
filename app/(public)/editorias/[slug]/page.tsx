@@ -40,6 +40,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const author = p.author ?? "";
   const from = /^\d{4}-\d{2}-\d{2}$/.test(p.from ?? "") ? p.from! : "";
   const to = /^\d{4}-\d{2}-\d{2}$/.test(p.to ?? "") ? p.to! : "";
+  const fromDate = from || null;
+  const toDate = to || null;
   const sort = ["oldest", "title"].includes(p.sort ?? "") ? p.sort! : "newest";
   const category = await getCategory(slug);
   if (!category) notFound();
