@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { Newspaper, RefreshCw, Pencil, Trash2 } from "lucide-react";
 import type { AdminArticle, AdminAuthor } from "@/lib/admin-types";
@@ -17,24 +17,39 @@ type Props = {
 export function ArticleList({ articles, authors, busy, onRefresh, onEdit, onDelete }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [results, setResults] = useState<AdminArticle[]>(articles);
+  const [total, setTotal] = useState(articles.length);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const filteredArticles = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pt-BR");
-    return articles.filter((article) => {
-      const author = authors.find((item) => item.id === article.author_id)?.name ?? "";
-      const searchable = [
-        article.title,
-        article.slug,
-        article.excerpt ?? "",
-        article.category_name ?? "",
-        author,
-        article.status,
-      ].join(" ").toLocaleLowerCase("pt-BR");
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setLoading(true);
+      setError("");
+      const params = new URLSearchParams({ q: search.trim(), status: statusFilter });
 
-      return (!query || searchable.includes(query)) &&
-        (statusFilter === "all" || article.status === statusFilter);
-    });
-  }, [articles, authors, search, statusFilter]);
+      try {
+        const response = await fetch(`/api/admin/articles?${params.toString()}`, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) {
+          setError(data.error || "Não foi possível pesquisar as notícias.");
+          return;
+        }
+        setResults(data.articles ?? []);
+        setTotal(Number(data.total ?? 0));
+      } catch {
+        if (!controller.signal.aborted) setError("Falha de conexão ao pesquisar notícias.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [search, statusFilter, articles]);
 
   const panel: CSSProperties = { background: "#fff", padding: 22, borderRadius: 14, border: "1px solid #eee", minWidth: 0 };
   const input: CSSProperties = { width: "100%", padding: "11px 12px", border: "1px solid #ddd", borderRadius: 8, font: "inherit", background: "#fff", minWidth: 0 };
@@ -45,7 +60,7 @@ export function ArticleList({ articles, authors, busy, onRefresh, onEdit, onDele
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <h2 style={{ fontSize: 20, margin: 0 }}>
           <Newspaper size={19} style={{ verticalAlign: "middle", marginRight: 8, color: "#b90018" }} />
-          Notícias recentes
+          Notícias
         </h2>
         <button type="button" aria-label="Atualizar lista de notícias" onClick={onRefresh} style={button}>
           <RefreshCw size={15} />
@@ -74,15 +89,15 @@ export function ArticleList({ articles, authors, busy, onRefresh, onEdit, onDele
       </div>
 
       <p style={{ color: "#777", fontSize: 12, margin: "8px 0 0" }}>
-        {filteredArticles.length} de {articles.length} notícias
+        {loading ? "Pesquisando…" : `${results.length} de ${total} notícias`}
+        {!loading && total > results.length ? " · refine a busca para ver mais resultados" : ""}
       </p>
+      {error && <p role="alert" style={{ color: "#b90018", fontSize: 13 }}>{error}</p>}
 
       <div style={{ marginTop: 4 }}>
-        {articles.length === 0 ? (
-          <p style={{ color: "#777" }}>Nenhuma notícia cadastrada.</p>
-        ) : filteredArticles.length === 0 ? (
-          <p style={{ color: "#777" }}>Nenhuma notícia corresponde à busca.</p>
-        ) : filteredArticles.map((article) => (
+        {results.length === 0 && !loading ? (
+          <p style={{ color: "#777" }}>{search.trim() || statusFilter !== "all" ? "Nenhuma notícia corresponde aos filtros." : "Nenhuma notícia cadastrada."}</p>
+        ) : results.map((article) => (
           <article key={article.id} style={{ padding: "13px 0", borderBottom: "1px solid #eee" }}>
             <strong>{article.title}</strong>
             <p style={{ color: "#777", fontSize: 12, margin: "5px 0" }}>
