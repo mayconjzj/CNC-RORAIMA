@@ -5,7 +5,7 @@ import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 import { StoryCard } from "@/components/news/story-card";
-import { SITE_URL } from "@/lib/site-config";
+import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +23,11 @@ export default async function Home() {
   const websiteStructuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", "@id": `${siteUrl}/#organization`, name: "CNC Roraima", url: siteUrl },
+      { "@type": "Organization", "@id": `${siteUrl}/#organization`, name: SITE_NAME, url: siteUrl },
       {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
-        name: "CNC Roraima",
+        name: SITE_NAME,
         url: siteUrl,
         inLanguage: "pt-BR",
         potentialAction: {
