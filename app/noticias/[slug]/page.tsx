@@ -26,7 +26,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: article.seo_title || article.title,
     description: article.seo_description || article.excerpt || article.title,
-    openGraph: { title: article.seo_title || article.title, description: article.seo_description || article.excerpt || article.title, images: article.featured_image_url ? [article.featured_image_url] : [] },
+    alternates: { canonical: `/noticias/${article.slug}` },
+    openGraph: {
+      type: "article",
+      title: article.seo_title || article.title,
+      description: article.seo_description || article.excerpt || article.title,
+      url: `/noticias/${article.slug}`,
+      publishedTime: article.published_at || undefined,
+      images: article.featured_image_url ? [{ url: article.featured_image_url, alt: article.image_alt || article.title }] : [],
+    },
+    twitter: {
+      card: article.featured_image_url ? "summary_large_image" : "summary",
+      title: article.seo_title || article.title,
+      description: article.seo_description || article.excerpt || article.title,
+      images: article.featured_image_url ? [article.featured_image_url] : [],
+    },
   };
 }
 
@@ -35,8 +49,25 @@ export default async function ArticlePage({ params }: Props) {
   const article = await findArticle(slug);
   if (!article) notFound();
   const sections = normalizeArticleSections(article.content);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
+  const articleUrl = `${siteUrl}/noticias/${article.slug}`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: article.title,
+    description: article.seo_description || article.excerpt || article.title,
+    mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+    url: articleUrl,
+    datePublished: article.published_at || undefined,
+    dateModified: article.published_at || undefined,
+    author: article.author_name ? { "@type": "Person", name: article.author_name } : { "@type": "Organization", name: "CNC Roraima" },
+    publisher: { "@type": "Organization", name: "CNC Roraima", url: siteUrl },
+    image: article.featured_image_url ? [article.featured_image_url] : undefined,
+    inLanguage: "pt-BR",
+  };
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
     <SiteHeader />
+    <script type="application/ld+json">{JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
       <a href="/" style={{ color: "#b90018", fontWeight: 700, fontSize: 13 }}>← Voltar para a página inicial</a>
       <p style={{ color: "#b90018", textTransform: "uppercase", letterSpacing: 1.5, fontSize: 12, fontWeight: 800, marginTop: 28 }}>{article.category_name ?? "Notícias de Roraima"}</p>
