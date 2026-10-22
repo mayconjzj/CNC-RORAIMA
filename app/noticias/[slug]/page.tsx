@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
@@ -6,18 +8,18 @@ import ArticleComments from "./comments";
 import { SiteHeader } from "@/components/site-header";
 
 type Props = { params: Promise<{ slug: string }> };
-type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
+type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
 
-async function findArticle(slug: string): Promise<Article | null> {
+const findArticle = cache(async function findArticle(slug: string): Promise<Article | null> {
   const sql = getDb();
   const rows = await sql`
-    SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.seo_title, a.seo_description,
+    SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.updated_at, a.seo_title, a.seo_description,
       c.name AS category_name, au.name AS author_name
     FROM articles a LEFT JOIN categories c ON c.id = a.category_id LEFT JOIN authors au ON au.id = a.author_id
     WHERE a.slug = ${slug} AND a.status = 'published' AND a.published_at <= NOW() LIMIT 1
   `;
   return (rows[0] as Article | undefined) ?? null;
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: article.seo_description || article.excerpt || article.title,
       url: `/noticias/${article.slug}`,
       publishedTime: article.published_at || undefined,
+      modifiedTime: article.updated_at || article.published_at || undefined,
       images: article.featured_image_url ? [{ url: article.featured_image_url, alt: article.image_alt || article.title }] : [],
     },
     twitter: {
@@ -59,7 +62,7 @@ export default async function ArticlePage({ params }: Props) {
     mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
     url: articleUrl,
     datePublished: article.published_at || undefined,
-    dateModified: article.published_at || undefined,
+    dateModified: article.updated_at || article.published_at || undefined,
     author: article.author_name ? { "@type": "Person", name: article.author_name } : { "@type": "Organization", name: "CNC Roraima" },
     publisher: { "@type": "Organization", name: "CNC Roraima", url: siteUrl },
     image: article.featured_image_url ? [article.featured_image_url] : undefined,
@@ -74,7 +77,7 @@ export default async function ArticlePage({ params }: Props) {
       <h1 style={{ fontSize: "clamp(32px, 6vw, 54px)", lineHeight: 1.08, margin: "12px 0 18px" }}>{article.title}</h1>
       {article.excerpt && <p style={{ fontSize: 21, lineHeight: 1.6, color: "#666" }}>{article.excerpt}</p>}
       <p style={{ color: "#777", fontSize: 13, margin: "20px 0 28px" }}>{article.author_name ? `Por ${article.author_name} · ` : ""}{article.published_at ? new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : ""}</p>
-      {article.featured_image_url && <img src={article.featured_image_url} alt={article.image_alt || article.title} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
+      {article.featured_image_url && <Image src={article.featured_image_url} alt={article.image_alt || article.title} width={1200} height={520} sizes="(max-width: 900px) 100vw, 900px" priority unoptimized style={{ width: "100%", height: "auto", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <div style={{ fontSize: 18, lineHeight: 1.85, overflowWrap: "anywhere" }}>
         {sections.map((section, si) => <section key={si} style={{marginBottom:34}}>
           {section.title && <h2 style={{fontSize:30,lineHeight:1.2,margin:"30px 0 18px"}}>{section.title}</h2>}
