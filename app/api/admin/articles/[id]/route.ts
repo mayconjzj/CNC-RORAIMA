@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { normalizeArticleBlocks } from "@/lib/article-content";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -12,19 +13,19 @@ export async function PATCH(request: Request, context: Context) {
     const body = await request.json();
     const title = typeof body.title === "string" ? body.title.trim() : "";
     const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim() : "";
-    const contentText = typeof body.content === "string" ? body.content.trim() : "";
     const image = typeof body.image === "string" ? body.image.trim() : "";
     const categoryId = typeof body.categoryId === "string" && body.categoryId ? body.categoryId : null;
     const authorId = typeof body.authorId === "string" && body.authorId ? body.authorId : null;
     const status = body.status === "published" ? "published" : "draft";
     const isFeatured = body.isFeatured === true;
+    const blocks = normalizeArticleBlocks(body.content);
+    const plainText = blocks.map(block => [block.title, block.text?.replace(/<[^>]*>/g, " "), block.caption].filter(Boolean).join(" ")).join(" ").trim();
     if (title.length < 5 || title.length > 180) return NextResponse.json({ error: "O título deve ter entre 5 e 180 caracteres." }, { status: 400 });
-    if (contentText.length < 20 || contentText.length > 100000) return NextResponse.json({ error: "O texto deve ter entre 20 e 100.000 caracteres." }, { status: 400 });
-    if (image && !/^https?:\/\//i.test(image)) return NextResponse.json({ error: "A imagem deve usar uma URL http ou https válida." }, { status: 400 });
+    if (!blocks.length || plainText.length < 20 || plainText.length > 150000) return NextResponse.json({ error: "Adicione conteúdo à notícia (pelo menos 20 caracteres e no máximo 150.000)." }, { status: 400 });
+    if (image && !/^https?:\\/\\//i.test(image)) return NextResponse.json({ error: "A imagem de capa deve usar uma URL http ou https válida." }, { status: 400 });
     const sql = getDb();
     const current = await sql`SELECT id FROM articles WHERE id = ${id} LIMIT 1`;
     if (!current.length) return NextResponse.json({ error: "Notícia não encontrada." }, { status: 404 });
-    const blocks = [{ type: "paragraph", text: contentText }];
     const rows = await sql`
       UPDATE articles SET title = ${title}, excerpt = ${excerpt || null},
         content = ${JSON.stringify(blocks)}::jsonb, featured_image_url = ${image || null},
