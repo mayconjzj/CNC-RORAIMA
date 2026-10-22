@@ -17,8 +17,28 @@ export default async function Home() {
   } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
+  const websiteStructuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", "@id": `${siteUrl}/#organization`, name: "CNC Roraima", url: siteUrl },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        name: "CNC Roraima",
+        url: siteUrl,
+        inLanguage: "pt-BR",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${siteUrl}/noticias?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
   return <main>
     <SiteHeader />
+    <script type="application/ld+json">{JSON.stringify(websiteStructuredData).replace(/</g, "\\u003c")}</script>
 
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
