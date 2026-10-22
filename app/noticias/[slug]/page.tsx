@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
 import ArticleComments from "./comments";
 import { SiteHeader } from "@/components/site-header";
+import { SITE_URL } from "@/lib/site-config";
 
 type Props = { params: Promise<{ slug: string }> };
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
@@ -52,7 +53,7 @@ export default async function ArticlePage({ params }: Props) {
   const article = await findArticle(slug);
   if (!article) notFound();
   const sections = normalizeArticleSections(article.content);
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
+  const siteUrl = SITE_URL;
   const articleUrl = `${siteUrl}/noticias/${article.slug}`;
   const structuredData = {
     "@context": "https://schema.org",
