@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { parseArticleInput } from "@/lib/article-service";
+import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       VALUES (${title}, ${slug}, ${excerpt || null}, ${JSON.stringify(sections)}::jsonb, ${image || null}, ${image ? title : null}, ${status}, ${isFeatured}, ${categoryId}, ${authorId}, CASE WHEN ${status} = 'published' THEN NOW() ELSE NULL END, ${seoTitle || title}, ${seoDescription || excerpt || title})
       RETURNING id, title, slug, status
     `;
+    revalidatePublishedContent();
     return NextResponse.json({ article: rows[0] }, { status: 201 });
   } catch (error) {
     console.error("Falha ao criar artigo", error);
