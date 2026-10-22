@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
 import ArticleComments from "./comments";
+import { SiteHeader } from "@/components/site-header";
 
 type Props = { params: Promise<{ slug: string }> };
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; seo_title: string | null; seo_description: string | null; category_name: string | null; author_name: string | null };
@@ -35,7 +36,7 @@ export default async function ArticlePage({ params }: Props) {
   if (!article) notFound();
   const sections = normalizeArticleSections(article.content);
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
-    <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 900px)/2))" }}><a href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA</a></header>
+    <SiteHeader />
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
       <a href="/" style={{ color: "#b90018", fontWeight: 700, fontSize: 13 }}>← Voltar para a página inicial</a>
       <p style={{ color: "#b90018", textTransform: "uppercase", letterSpacing: 1.5, fontSize: 12, fontWeight: 800, marginTop: 28 }}>{article.category_name ?? "Notícias de Roraima"}</p>
