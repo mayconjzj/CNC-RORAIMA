@@ -100,7 +100,7 @@ export default async function ArticlePage({ params }: Props) {
           })}
         </section>)}
       </div>
-      <style>{'@media(max-width:700px){.article-gallery{grid-template-columns:repeat(2,minmax(0,1fr))!important}.article-gallery-feature>figure:first-child{grid-column:span 2}.article-gallery img{min-height:120px!important}}@media(max-width:420px){.article-gallery{grid-template-columns:1fr!important}.article-gallery-feature>figure:first-child{grid-column:span 1}}'}</style>
+      
       <ArticleComments slug={article.slug} />
     </article>
     <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
