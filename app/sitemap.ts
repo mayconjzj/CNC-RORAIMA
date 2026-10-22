@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
+import { SITE_URL } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,10 +9,6 @@ type ArticleSitemapRow = { slug: string; updated_at: string | Date | null; publi
 type CategorySitemapRow = { slug: string; last_modified: string | Date | null };
 type LatestSitemapRow = { last_modified: string | Date | null };
 
-function getSiteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
-}
-
 function asDate(value: string | Date | null | undefined): Date {
   if (!value) return new Date();
   const date = value instanceof Date ? value : new Date(value);
@@ -19,7 +16,7 @@ function asDate(value: string | Date | null | undefined): Date {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = getSiteUrl();
+  const baseUrl = SITE_URL;
 
   try {
     const sql = getDb();
