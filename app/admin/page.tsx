@@ -15,7 +15,7 @@ const blankBlock = (type: ArticleBlock["type"] = "paragraph"): ArticleBlock => (
 
 function toBlocks(content: unknown): ArticleBlock[] {
   let value = content;
-  if (typeof value === "string") { try { value = JSON.parse(value); } catch { return [{ ...blankBlock(), text: value }]; } }
+  if (typeof value === "string") { const raw = value; try { value = JSON.parse(raw); } catch { return [{ ...blankBlock(), text: raw }]; } }
   if (!Array.isArray(value)) return [blankBlock()];
   const blocks = value.map((item: Record<string, unknown>) => ({ ...blankBlock((item.type as ArticleBlock["type"]) || "paragraph"), ...item, id: uid() })) as ArticleBlock[];
   return blocks.length ? blocks : [blankBlock()];
