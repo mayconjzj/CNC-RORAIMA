@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import type { FormEvent, CSSProperties } from "react";
 import { upload } from "@vercel/blob/client";
-import { LogOut, Newspaper, PlusCircle, RefreshCw, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
+import { LogOut, PlusCircle, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { ArticleList } from "@/components/admin/article-list";
 
 import { createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock as ArticleBlock, EditorSection as ArticleSection } from "@/lib/article-editor";
@@ -42,8 +43,6 @@ export default function AdminPage() {
   const [editingAuthorId, setEditingAuthorId] = useState<string | null>(null);
   const [showAuthors, setShowAuthors] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [articleSearch, setArticleSearch] = useState("");
-  const [articleStatusFilter, setArticleStatusFilter] = useState("all");
 
   async function load() {
     const [a, c, au] = await Promise.all([fetch("/api/admin/articles"), fetch("/api/admin/categories"), fetch("/api/admin/authors")]);
@@ -171,12 +170,6 @@ export default function AdminPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); setMessage("Sessão encerrada."); }
 
-  const filteredArticles = articles.filter(article => {
-    const query = articleSearch.trim().toLocaleLowerCase("pt-BR");
-    const author = authors.find(item => item.id === article.author_id)?.name ?? "";
-    const searchable = [article.title, article.slug, article.excerpt ?? "", article.category_name ?? "", author, article.status].join(" ").toLocaleLowerCase("pt-BR");
-    return (!query || searchable.includes(query)) && (articleStatusFilter === "all" || article.status === articleStatusFilter);
-  });
   const input: CSSProperties = { width: "100%", padding: "11px 12px", border: "1px solid #ddd", borderRadius: 8, font: "inherit", marginTop: 6, background: "#fff" };
   const label: CSSProperties = { display: "block", fontSize: 13, fontWeight: 700, marginBottom: 16 };
   const btn: CSSProperties = { border: "1px solid #ddd", background: "#fff", borderRadius: 8, padding: "9px 11px", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 };
@@ -221,9 +214,7 @@ export default function AdminPage() {
         </form>
       </section>
       <aside style={{display:"grid",gap:18,alignSelf:"start"}}>
-        <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}><h2 style={{fontSize:20,margin:0}}><Newspaper size={19} style={{verticalAlign:"middle",marginRight:8,color:"#b90018"}}/>Notícias recentes</h2><button aria-label="Atualizar lista" onClick={()=>void load()} style={btn}><RefreshCw size={15}/></button></div>
-          <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 130px",gap:8,marginTop:14}}><input aria-label="Buscar notícias no painel" style={{...input,marginTop:0}} type="search" placeholder="Buscar por título, resumo, editoria ou autor..." value={articleSearch} onChange={e=>setArticleSearch(e.target.value)}/><select aria-label="Filtrar notícias por status" style={{...input,marginTop:0}} value={articleStatusFilter} onChange={e=>setArticleStatusFilter(e.target.value)}><option value="all">Todos os status</option><option value="published">Publicadas</option><option value="draft">Rascunhos</option></select></div><p style={{color:"#777",fontSize:12,margin:"8px 0 0"}}>{filteredArticles.length} de {articles.length} notícias</p><div style={{marginTop:4}}>{articles.length===0?<p style={{color:"#777"}}>Nenhuma notícia cadastrada.</p>:filteredArticles.length===0?<p style={{color:"#777"}}>Nenhuma notícia corresponde à busca.</p>:filteredArticles.map(a=><article key={a.id} style={{padding:"13px 0",borderBottom:"1px solid #eee"}}><strong>{a.title}</strong><p style={{color:"#777",fontSize:12,margin:"5px 0"}}>{a.category_name??"Sem editoria"} · {authors.find(item=>item.id===a.author_id)?.name??"Autor não definido"} · {a.status==="published"?"Publicado":"Rascunho"}</p><div style={{display:"flex",gap:12,flexWrap:"wrap"}}>{a.status==="published"&&<a href={"/noticias/"+a.slug} target="_blank" rel="noreferrer" style={{color:"#b90018",fontSize:13}}>Ver ↗</a>}<button type="button" onClick={()=>editArticle(a)} style={{border:0,background:"transparent",padding:0,cursor:"pointer",display:"inline-flex",gap:4,alignItems:"center",fontSize:13}}><Pencil size={13}/> Editar</button><button type="button" disabled={busy} onClick={()=>void deleteArticle(a)} style={{border:0,background:"transparent",color:"#b90018",padding:0,cursor:"pointer",display:"inline-flex",gap:4,alignItems:"center",fontSize:13}}><Trash2 size={13}/> Excluir</button></div></article>)}</div>
-        </section>
+        <ArticleList articles={articles} authors={authors} busy={busy} onRefresh={()=>void load()} onEdit={editArticle} onDelete={(article)=>void deleteArticle(article)} />
         <section style={panel}><h2 style={{fontSize:20,margin:"0 0 12px"}}>Editorias</h2><div style={{display:"flex",gap:7,marginBottom:12}}><input style={{...input,marginTop:0}} placeholder="Nova editoria" value={categoryName} onChange={e=>setCategoryName(e.target.value)}/><button type="button" onClick={()=>void createCategory()} style={{...btn,color:"#b90018"}}>Adicionar</button></div>{categories.map(c=><div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #eee"}}><span>{c.name}</span><button type="button" style={{...btn,color:"#b90018",padding:6}} onClick={()=>void deleteCategory(c)} aria-label={"Excluir "+c.name}><Trash2 size={14}/></button></div>)}</section>
         <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:12}}><h2 style={{fontSize:20,margin:0}}>Autores</h2><button type="button" style={btn} onClick={()=>{setShowAuthors(v=>!v);resetAuthor();}}><UserRoundPlus size={15}/>{showAuthors?"Fechar":"Gerenciar"}</button></div>
           {showAuthors&&<form onSubmit={saveAuthor} style={{padding:12,background:"#fafafa",borderRadius:9,marginBottom:12}}><strong style={{display:"block",marginBottom:12}}>{editingAuthorId?"Editar autor":"Adicionar autor"}</strong><label style={label}>Nome<input required minLength={2} maxLength={120} style={input} value={authorName} onChange={e=>setAuthorName(e.target.value)}/></label><label style={label}>Biografia<textarea style={{...input,minHeight:70}} maxLength={2000} value={authorBio} onChange={e=>setAuthorBio(e.target.value)}/></label><label style={label}>URL da foto<input style={input} type="url" placeholder="https://..." value={authorAvatar} onChange={e=>setAuthorAvatar(e.target.value)}/></label><div style={{display:"flex",gap:8}}><button disabled={busy} style={{...btn,background:"#b90018",color:"#fff",border:0}}>{editingAuthorId?"Salvar autor":"Adicionar autor"}</button>{editingAuthorId&&<button type="button" style={btn} onClick={resetAuthor}>Cancelar</button>}</div></form>}
