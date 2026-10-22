@@ -5,13 +5,13 @@ import "./globals.css";
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
 const playfairDisplay = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair-display", display: "swap" });
 
-import { SITE_URL } from "@/lib/site-config";
+import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 
 const siteUrl = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  applicationName: "CNC Roraima",
+  applicationName: SITE_NAME,
   title: {
     default: "CNC Roraima | Informação de Credibilidade",
     template: "%s | CNC Roraima",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
   openGraph: {
     type: "website",
-    siteName: "CNC Roraima",
+    siteName: SITE_NAME,
     title: "CNC Roraima — Informação de Credibilidade",
     description: "As notícias de Roraima com informação, contexto e credibilidade.",
     url: siteUrl,
