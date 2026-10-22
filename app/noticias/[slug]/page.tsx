@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
 import ArticleComments from "./comments";
 import { SiteHeader } from "@/components/site-header";
-import { SITE_URL } from "@/lib/site-config";
+import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -65,7 +65,7 @@ export default async function ArticlePage({ params }: Props) {
     url: articleUrl,
     datePublished: article.published_at || undefined,
     dateModified: article.updated_at || article.published_at || undefined,
-    author: article.author_name ? { "@type": "Person", name: article.author_name } : { "@type": "Organization", name: "CNC Roraima" },
+    author: article.author_name ? { "@type": "Person", name: article.author_name } : { "@type": "Organization", name: SITE_NAME },
     publisher: { "@type": "Organization", name: "CNC Roraima", url: siteUrl },
     image: article.featured_image_url ? [article.featured_image_url] : undefined,
     inLanguage: "pt-BR",
