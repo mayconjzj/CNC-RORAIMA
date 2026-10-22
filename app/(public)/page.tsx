@@ -3,13 +3,13 @@ import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { getPublishedArticles } from "@/lib/db";
-import { Brand, SiteHeader } from "@/components/site-header";
+import { Brand } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 import { StoryCard } from "@/components/news/story-card";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
@@ -40,7 +40,6 @@ export default async function Home() {
     ],
   };
   return <main>
-    <SiteHeader />
     <script type="application/ld+json">{JSON.stringify(websiteStructuredData).replace(/</g, "\\u003c")}</script>
 
     <section className="wrap lead-section">

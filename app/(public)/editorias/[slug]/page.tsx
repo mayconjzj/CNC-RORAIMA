@@ -7,7 +7,6 @@ import { shouldOptimizeImage } from "@/lib/media";
 import { Clock3 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { SiteHeader } from "@/components/site-header";
 import { NewsSearch } from "@/components/news-search";
 
 type Filters = { q?: string; author?: string; from?: string; to?: string; sort?: string };
@@ -28,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return category ? { title: category.name, description: `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: `/editorias/${category.slug}`, title: `${category.name} | CNC Roraima`, description: `Últimas notícias de ${category.name} em Roraima.` }, twitter: { card: "summary", title: `${category.name} | CNC Roraima`, description: `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada", robots: { index: false, follow: false } };
 }
 
-export const dynamic = "force-dynamic";
+
 
 function dateLabel(value: string | null) {
   return value ? new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "Data não informada";
@@ -62,7 +61,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     ` as unknown as Promise<Article[]>
   ]);
   const values = { q, author, from, to, sort };
-  return <main className="editoria-page"><SiteHeader />
+  return <main className="editoria-page">
     <section className="editoria-content">
       <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
