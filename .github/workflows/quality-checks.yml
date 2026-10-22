@@ -1,0 +1,32 @@
+name: Quality checks
+
+on:
+  push:
+    branches:
+      - work/cnc-portal-improvements
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run lint and TypeScript checks
+        run: npm run check
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://cnc-roraima.vercel.app
