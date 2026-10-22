@@ -20,7 +20,7 @@ async function getCategory(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategory(slug);
-  return category ? { title: `${category.name} | CNC Roraima`, description: category.description || `Últimas notícias de ${category.name} em Roraima.` } : { title: "Editoria não encontrada | CNC Roraima" };
+  return category ? { title: category.name, description: category.description || `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", url: `/editorias/${category.slug}`, title: `${category.name} | CNC Roraima`, description: category.description || `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada" };
 }
 
 export const dynamic = "force-dynamic";
