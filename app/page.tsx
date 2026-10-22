@@ -1,8 +1,6 @@
 import { ArrowRight, Clock3, Menu, Search, TrendingUp } from "lucide-react";
 import { getPublishedArticles, getPublishedCategories } from "@/lib/db";
 
-const imageUrl = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=85`;
-
 function Brand() {
   return <a className="brand" href="/" aria-label="CNC Roraima - página inicial">
     <span className="brand-mark">C<span>N</span>C</span>
@@ -12,7 +10,7 @@ function Brand() {
 
 function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
   return <article className={`story-card ${compact ? "compact" : ""}`}>
-    <a className="story-image" href={`/noticias/${story.slug}`} style={{ backgroundImage: story.featured_image_url ? `url("${story.featured_image_url}")` : `url("${imageUrl("photo-1504711434969-e33886168f5c")}")` }} aria-label={story.title}>
+    <a className="story-image" href={`/noticias/${story.slug}`} style={story.featured_image_url ? { backgroundImage: `url("${story.featured_image_url}")` } : { background: "linear-gradient(135deg,#26272c,#4b1c22)" }} aria-label={story.title}>
       {story.category_name && story.category_slug ? <span className="category-tag">{story.category_name}</span> : <span className="category-tag">NOTÍCIAS</span>}
     </a>
     <div className="story-copy">
@@ -47,7 +45,7 @@ export default async function Home() {
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
       {featured ? <div className="lead-grid">
-        <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} style={{ backgroundImage: `linear-gradient(0deg,rgba(12,15,20,.9),transparent 75%),url("${featured.featured_image_url || imageUrl("photo-1519608487953-e999c86e7455")}")` }}>
+        <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} style={{ backgroundImage: featured.featured_image_url ? `linear-gradient(0deg,rgba(12,15,20,.9),transparent 75%),url("${featured.featured_image_url}")` : "linear-gradient(135deg,#26272c,#4b1c22)" }}>
           <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
         </a></article>
         <div className="side-stories">{sideStories.map((story)=><StoryCard key={story.id} story={story} compact/>)}</div>
