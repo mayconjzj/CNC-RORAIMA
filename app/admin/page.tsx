@@ -9,10 +9,7 @@ import { ArticleList } from "@/components/admin/article-list";
 
 import { createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock as ArticleBlock, EditorSection as ArticleSection } from "@/lib/article-editor";
-
-type Article = { id: string; title: string; slug: string; excerpt: string | null; seo_title: string | null; seo_description: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
-type Option = { id: string; name: string };
-type Author = { id: string; name: string; bio: string | null; avatar_url: string | null };
+import type { AdminArticle as Article, AdminOption as Option, AdminAuthor as Author } from "@/lib/admin-types";
 
 export default function AdminPage() {
   const [email, setEmail] = useState("");
