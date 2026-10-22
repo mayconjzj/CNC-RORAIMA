@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Clock3 } from "lucide-react";
 import type { ArticleSummary } from "@/lib/db";
+import { shouldOptimizeImage } from "@/lib/media";
 
 type StoryCardProps = {
   story: ArticleSummary;
@@ -28,7 +29,7 @@ export function StoryCard({ story, compact = false }: StoryCardProps) {
             alt=""
             fill
             sizes={compact ? "(max-width: 850px) 50vw, 25vw" : "(max-width: 560px) 100vw, (max-width: 850px) 50vw, 25vw"}
-            unoptimized
+            unoptimized={!shouldOptimizeImage(story.featured_image_url)}
             priority={!compact && story.is_featured}
           />
         ) : <span className="story-image-fallback" aria-hidden="true" />}
