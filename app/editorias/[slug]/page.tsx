@@ -12,20 +12,20 @@ import { NewsSearch } from "@/components/news-search";
 
 type Filters = { q?: string; author?: string; from?: string; to?: string; sort?: string };
 type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<Filters> };
-type Category = { id: string; name: string; slug: string; description: string | null };
+type Category = { id: string; name: string; slug: string };
 type Article = { id: string; title: string; slug: string; excerpt: string | null; featured_image_url: string | null; published_at: string | null; category_name: string };
 type Author = { id: string; name: string };
 
 const getCategory = cache(unstable_cache(async function getCategory(slug: string) {
   const sql = getDb();
-  const rows = await sql`SELECT c.id,c.name,c.slug,c.description FROM categories c WHERE c.slug=${slug} AND EXISTS (SELECT 1 FROM articles a WHERE a.category_id=c.id AND a.status='published' AND a.published_at<=NOW()) LIMIT 1`;
+  const rows = await sql`SELECT c.id,c.name,c.slug FROM categories c WHERE c.slug=${slug} AND EXISTS (SELECT 1 FROM articles a WHERE a.category_id=c.id AND a.status='published' AND a.published_at<=NOW()) LIMIT 1`;
   return rows[0] as Category | undefined;
 }, ["published-category-by-slug"], { revalidate: 60, tags: ["published-categories", "published-articles"] }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategory(slug);
-  return category ? { title: category.name, description: category.description || `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: `/editorias/${category.slug}`, title: `${category.name} | CNC Roraima`, description: category.description || `Últimas notícias de ${category.name} em Roraima.` }, twitter: { card: "summary", title: `${category.name} | CNC Roraima`, description: category.description || `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada", robots: { index: false, follow: false } };
+  return category ? { title: category.name, description: `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: `/editorias/${category.slug}`, title: `${category.name} | CNC Roraima`, description: `Últimas notícias de ${category.name} em Roraima.` }, twitter: { card: "summary", title: `${category.name} | CNC Roraima`, description: `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada", robots: { index: false, follow: false } };
 }
 
 export const dynamic = "force-dynamic";
@@ -64,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const values = { q, author, from, to, sort };
   return <main className="editoria-page"><SiteHeader />
     <section className="editoria-content">
-      <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{category.description || `Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
+      <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{articles.length} {articles.length === 1 ? "notícia encontrada" : "notícias encontradas"}{articles.length === 100 ? " · limite de 100" : ""}</span></div>
       {articles.length ? <div className="editoria-grid">{articles.map((article, index) => <article key={article.id} className={`editoria-card ${index === 0 && !q && !author && !from && !to ? "editoria-card-featured" : ""}`}>
