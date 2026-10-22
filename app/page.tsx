@@ -30,6 +30,7 @@ export default async function Home() {
 
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
+      <NewsSearch compact />
       {featured ? <div className="lead-grid">
         <article className="hero-story"><a className="hero-image" href={`/noticias/${featured.slug}`} style={{ backgroundImage: featured.featured_image_url ? `linear-gradient(0deg,rgba(12,15,20,.9),transparent 75%),url("${featured.featured_image_url}")` : "linear-gradient(135deg,#26272c,#4b1c22)" }}>
           <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
