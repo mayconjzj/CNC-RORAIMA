@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     const plainText = blocks.map(block => [block.title, block.text?.replace(/<[^>]*>/g, " "), block.caption].filter(Boolean).join(" ")).join(" ").trim();
     if (title.length < 5 || title.length > 180) return NextResponse.json({ error: "O título deve ter entre 5 e 180 caracteres." }, { status: 400 });
     if (!blocks.length || plainText.length < 20 || plainText.length > 150000) return NextResponse.json({ error: "Adicione conteúdo à notícia (pelo menos 20 caracteres e no máximo 150.000)." }, { status: 400 });
-    if (image && !/^https?:\\/\\//i.test(image)) return NextResponse.json({ error: "A imagem de capa deve usar uma URL http ou https válida." }, { status: 400 });
-    const slug = title.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 160) + "-" + crypto.randomUUID().slice(0, 6);
+    if (image && !/^https?:\/\//i.test(image)) return NextResponse.json({ error: "A imagem de capa deve usar uma URL http ou https válida." }, { status: 400 });
+    const slug = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 160) + "-" + crypto.randomUUID().slice(0, 6);
     const sql = getDb();
     const rows = await sql`
       INSERT INTO articles (title, slug, excerpt, content, featured_image_url, image_alt, status, is_featured, category_id, author_id, published_at, seo_title, seo_description)
