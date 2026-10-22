@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Clock3 } from "lucide-react";
 import type { ArticleSummary } from "@/lib/db";
 import { shouldOptimizeImage } from "@/lib/media";
@@ -22,7 +23,7 @@ export function StoryCard({ story, compact = false }: StoryCardProps) {
 
   return (
     <article className={`story-card${compact ? " compact" : ""}`}>
-      <a className="story-image" href={`/noticias/${story.slug}`} aria-label={story.title}>
+      <Link className="story-image" href={`/noticias/${story.slug}`} aria-label={story.title}>
         {story.featured_image_url ? (
           <Image
             src={story.featured_image_url}
@@ -34,9 +35,9 @@ export function StoryCard({ story, compact = false }: StoryCardProps) {
           />
         ) : <span className="story-image-fallback" aria-hidden="true" />}
         <span className="category-tag">{category}</span>
-      </a>
+      </Link>
       <div className="story-copy">
-        <h3><a href={`/noticias/${story.slug}`}>{story.title}</a></h3>
+        <h3><Link href={`/noticias/${story.slug}`}>{story.title}</Link></h3>
         <span className="story-time"><Clock3 size={13} aria-hidden="true" /> {formatPublishedDate(story.published_at)}</span>
       </div>
     </article>
