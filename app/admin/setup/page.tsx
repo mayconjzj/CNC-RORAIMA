@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function AdminSetupPage() {
   const [token, setToken] = useState("");
@@ -22,10 +23,10 @@ export default function AdminSetupPage() {
   const label: React.CSSProperties = { display: "block", marginBottom: 16, fontSize: 13, fontWeight: 700 };
   return <main style={{ minHeight: "100vh", background: "#f5f5f6", display: "grid", placeItems: "center", padding: 20 }}>
     <form onSubmit={submit} style={{ width: "min(460px, 100%)", background: "#fff", padding: 30, borderRadius: 16, boxShadow: "0 12px 40px #00000012" }}>
-      <a href="/" style={{ color: "#b90018", fontWeight: 800, letterSpacing: 2 }}>CNC RORAIMA</a>
+      <Link href="/" style={{ color: "#b90018", fontWeight: 800, letterSpacing: 2 }}>CNC RORAIMA</Link>
       <h1 style={{ margin: "18px 0 8px", fontSize: 27 }}>Configuração inicial</h1>
       <p style={{ color: "#666", lineHeight: 1.6 }}>Crie a conta privada do administrador. Este formulário só funciona enquanto não existir nenhum usuário administrador.</p>
-      {done ? <><p role="status" style={{ color: "#187448" }}>{message}</p><a href="/admin" style={{ display: "inline-block", marginTop: 12, background: "#b90018", color: "#fff", borderRadius: 8, padding: "12px 18px" }}>Ir para o login</a></> : <>
+      {done ? <><p role="status" style={{ color: "#187448" }}>{message}</p><Link href="/admin" style={{ display: "inline-block", marginTop: 12, background: "#b90018", color: "#fff", borderRadius: 8, padding: "12px 18px" }}>Ir para o login</Link></> : <>
         <label style={label}>Token de configuração<input style={input} required value={token} onChange={e => setToken(e.target.value)} autoComplete="off" /></label>
         <label style={label}>Nome de exibição<input style={input} required maxLength={100} value={displayName} onChange={e => setDisplayName(e.target.value)} /></label>
         <label style={label}>E-mail administrativo<input style={input} type="email" required value={email} onChange={e => setEmail(e.target.value)} autoComplete="username" /></label>
