@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { shouldOptimizeImage } from "@/lib/media";
 import { Clock3 } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -14,11 +15,11 @@ type Category = { id: string; name: string; slug: string; description: string | 
 type Article = { id: string; title: string; slug: string; excerpt: string | null; featured_image_url: string | null; published_at: string | null; category_name: string };
 type Author = { id: string; name: string };
 
-const getCategory = cache(async function getCategory(slug: string) {
+const getCategory = cache(unstable_cache(async function getCategory(slug: string) {
   const sql = getDb();
   const rows = await sql`SELECT c.id,c.name,c.slug,c.description FROM categories c WHERE c.slug=${slug} AND EXISTS (SELECT 1 FROM articles a WHERE a.category_id=c.id AND a.status='published' AND a.published_at<=NOW()) LIMIT 1`;
   return rows[0] as Category | undefined;
-});
+}, ["published-category-by-slug"], { revalidate: 60, tags: ["published-categories", "published-articles"] }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
