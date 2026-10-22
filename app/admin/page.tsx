@@ -9,7 +9,7 @@ import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock as ArticleBlock, EditorSection as ArticleSection } from "@/lib/article-editor";
 
-type Article = { id: string; title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
+type Article = { id: string; title: string; slug: string; excerpt: string | null; seo_title: string | null; seo_description: string | null; content: unknown; featured_image_url: string | null; status: string; is_featured: boolean; category_id: string | null; author_id: string | null; category_name: string | null; updated_at: string };
 type Option = { id: string; name: string };
 type Author = { id: string; name: string; bio: string | null; avatar_url: string | null };
 
@@ -24,6 +24,8 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
   const [sections, setSections] = useState<ArticleSection[]>([blankSection()]);
   const [image, setImage] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -66,11 +68,11 @@ export default function AdminPage() {
   }
 
   function resetForm() {
-    setEditingId(null); setTitle(""); setExcerpt(""); setSections([blankSection()]); setImage("");
+    setEditingId(null); setTitle(""); setExcerpt(""); setSeoTitle(""); setSeoDescription(""); setSections([blankSection()]); setImage("");
     setCategoryId(""); setAuthorId(""); setStatus("draft"); setFeatured(false); setShowPreview(false);
   }
   function editArticle(article: Article) {
-    setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? "");
+    setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? ""); setSeoTitle(article.seo_title ?? ""); setSeoDescription(article.seo_description ?? "");
     setSections(toSections(article.content)); setImage(article.featured_image_url ?? "");
     setCategoryId(article.category_id ?? ""); setAuthorId(article.author_id ?? "");
     setStatus(article.status === "published" ? "published" : "draft"); setFeatured(article.is_featured);
@@ -101,7 +103,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, excerpt, content: sections, image, categoryId, authorId, status, isFeatured: featured }),
+        body: JSON.stringify({ title, excerpt, seoTitle, seoDescription, content: sections, image, categoryId, authorId, status, isFeatured: featured }),
       });
       const data = await response.json();
       if (!response.ok) { setMessage(data.error ?? "Falha ao salvar."); return; }
@@ -192,6 +194,8 @@ export default function AdminPage() {
         <form onSubmit={save}>
           <label style={label}>Título da notícia<input style={input} minLength={5} maxLength={180} required value={title} onChange={e=>setTitle(e.target.value)}/></label>
           <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:72}} maxLength={500} value={excerpt} onChange={e=>setExcerpt(e.target.value)}/></label>
+          <label style={label}>Título para mecanismos de busca (SEO)<input style={input} maxLength={70} placeholder="Se vazio, será usado o título da notícia" value={seoTitle} onChange={e=>setSeoTitle(e.target.value)}/><span style={{display:"block",fontWeight:400,color:"#777",fontSize:11,marginTop:5}}>{seoTitle.length}/70 caracteres recomendados</span></label>
+          <label style={label}>Descrição para mecanismos de busca (SEO)<textarea style={{...input,minHeight:72}} maxLength={160} placeholder="Descrição curta para os resultados de busca" value={seoDescription} onChange={e=>setSeoDescription(e.target.value)}/><span style={{display:"block",fontWeight:400,color:"#777",fontSize:11,marginTop:5}}>{seoDescription.length}/160 caracteres recomendados</span></label>
           <label style={label}>Imagem de capa<input style={input} type="url" placeholder="https://..." value={image} onChange={e=>setImage(e.target.value)}/></label>
           <label style={{...label, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar capa<input aria-label="Enviar imagem de capa" type="file" accept="image/*" disabled={uploading==="cover"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setImage,"cover");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading==="cover"?"Enviando...":"Também é possível colar uma URL."}</span></label>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0"}}><strong>Estrutura da matéria</strong><button type="button" style={btn} onClick={addSection}>＋ Nova seção</button></div>
