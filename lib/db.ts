@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { cache } from "react";
 
 export function getDb() {
   const url = process.env.DATABASE_URL;
@@ -20,7 +21,7 @@ export type ArticleSummary = {
   author_name: string | null;
 };
 
-export async function getPublishedArticles(limit = 12): Promise<ArticleSummary[]> {
+export const getPublishedArticles = cache(async function getPublishedArticles(limit = 12): Promise<ArticleSummary[]> {
   const sql = getDb();
   return sql`
     SELECT a.id, a.title, a.slug, a.excerpt, a.featured_image_url, a.image_alt,
@@ -32,7 +33,7 @@ export async function getPublishedArticles(limit = 12): Promise<ArticleSummary[]
     ORDER BY a.is_featured DESC, a.published_at DESC NULLS LAST
     LIMIT ${Math.min(Math.max(limit, 1), 50)}
   ` as unknown as ArticleSummary[];
-}
+});
 
 
 export type CategorySummary = {
@@ -42,7 +43,7 @@ export type CategorySummary = {
   article_count: number;
 };
 
-export async function getPublishedCategories(): Promise<CategorySummary[]> {
+export const getPublishedCategories = cache(async function getPublishedCategories(): Promise<CategorySummary[]> {
   const sql = getDb();
   return sql`
     SELECT c.id, c.name, c.slug, COUNT(a.id)::int AS article_count
@@ -52,4 +53,4 @@ export async function getPublishedCategories(): Promise<CategorySummary[]> {
     GROUP BY c.id, c.name, c.slug
     ORDER BY c.name ASC
   ` as unknown as CategorySummary[];
-}
+});
