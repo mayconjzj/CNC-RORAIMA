@@ -1,6 +1,7 @@
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import { getPublishedArticles } from "@/lib/db";
 import { Brand, SiteHeader } from "@/components/site-header";
+import { NewsSearch } from "@/components/news-search";
 
 function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
   return <article className={`story-card ${compact ? "compact" : ""}`}>
