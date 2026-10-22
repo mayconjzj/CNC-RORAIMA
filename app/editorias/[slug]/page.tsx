@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { shouldOptimizeImage } from "@/lib/media";
@@ -67,9 +68,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{articles.length} {articles.length === 1 ? "notícia encontrada" : "notícias encontradas"}{articles.length === 100 ? " · limite de 100" : ""}</span></div>
       {articles.length ? <div className="editoria-grid">{articles.map((article, index) => <article key={article.id} className={`editoria-card ${index === 0 && !q && !author && !from && !to ? "editoria-card-featured" : ""}`}>
-        <a href={`/noticias/${article.slug}`} className="editoria-card-link"><div className="editoria-card-media">{article.featured_image_url ? <Image src={article.featured_image_url} alt="" width={900} height={506} sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw" priority={index === 0} unoptimized={!shouldOptimizeImage(article.featured_image_url)} /> : <div className="editoria-image-placeholder" />}</div>
-        <div className="editoria-card-copy"><span className="editoria-category-label">{article.category_name}</span><h3>{article.title}</h3>{article.excerpt && <p>{article.excerpt}</p>}<span className="editoria-date"><Clock3 size={14} aria-hidden="true" />{dateLabel(article.published_at)}</span></div></a>
-      </article>)}</div> : <div className="editoria-empty"><h2>Nenhuma notícia encontrada</h2><p>Tente alterar os termos da busca ou remover algum filtro.</p><a href={`/editorias/${slug}`}>Limpar filtros</a></div>}
+        <Link href={`/noticias/${article.slug}`} className="editoria-card-link"><div className="editoria-card-media">{article.featured_image_url ? <Image src={article.featured_image_url} alt="" width={900} height={506} sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw" priority={index === 0} unoptimized={!shouldOptimizeImage(article.featured_image_url)} /> : <div className="editoria-image-placeholder" />}</div>
+        <div className="editoria-card-copy"><span className="editoria-category-label">{article.category_name}</span><h3>{article.title}</h3>{article.excerpt && <p>{article.excerpt}</p>}<span className="editoria-date"><Clock3 size={14} aria-hidden="true" />{dateLabel(article.published_at)}</span></div></Link>
+      </article>)}</div> : <div className="editoria-empty"><h2>Nenhuma notícia encontrada</h2><p>Tente alterar os termos da busca ou remover algum filtro.</p><Link href={`/editorias/${slug}`}>Limpar filtros</Link></div>}
     </section>
     <footer className="editoria-footer"><span>© {new Date().getFullYear()} CNC Roraima</span><span>Informação de credibilidade.</span></footer>
     
