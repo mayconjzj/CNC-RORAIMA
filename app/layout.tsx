@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import "@vercel/analytics";
 import "./globals.css";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://cnc-roraima.vercel.app").replace(/\/$/, "");
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
     template: "%s | CNC Roraima",
   },
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: "CNC Roraima",
