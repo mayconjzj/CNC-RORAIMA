@@ -1,12 +1,6 @@
-import { ArrowRight, Clock3, Menu, Search, TrendingUp } from "lucide-react";
-import { getPublishedArticles, getPublishedCategories } from "@/lib/db";
-
-function Brand() {
-  return <a className="brand" href="/" aria-label="CNC Roraima - página inicial">
-    <span className="brand-mark">C<span>N</span>C</span>
-    <span className="brand-copy"><strong>CRISTHIAN CRUZ <i>NEWS</i></strong><small>INFORMAÇÃO DE CREDIBILIDADE</small></span>
-  </a>;
-}
+import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
+import { getPublishedArticles } from "@/lib/db";
+import { Brand, SiteHeader } from "@/components/site-header";
 
 function StoryCard({ story, compact = false }: { story: Awaited<ReturnType<typeof getPublishedArticles>>[number]; compact?: boolean }) {
   return <article className={`story-card ${compact ? "compact" : ""}`}>
@@ -25,23 +19,14 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
   let databaseReady = true;
-  let categories: Awaited<ReturnType<typeof getPublishedCategories>> = [];
   try {
-    [stories, categories] = await Promise.all([getPublishedArticles(12), getPublishedCategories()]);
+    stories = await getPublishedArticles(12);
   } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
   return <main>
-    <div className="topline"><div className="wrap top-inner"><span>RORAIMA • JORNALISMO LOCAL</span><span>Informação de credibilidade, todos os dias.</span></div></div>
-    <header className="masthead wrap">
-      <button className="icon-button mobile-menu" aria-label="Menu"><Menu size={22}/></button>
-      <Brand />
-      <div className="masthead-right"><span className="edition">NOTÍCIAS • ANÁLISES • COMUNIDADE</span><a className="search-button" href="#ultimas" aria-label="Ver notícias"><Search size={18}/><span>Notícias</span></a></div>
-    </header>
-    <nav className="nav-bar"><div className="wrap nav-inner">
-      <a className="nav-home" href="/">INÍCIO</a>{categories.map((category) => <a key={category.id} href={`/editorias/${category.slug}`}>{category.name.toLocaleUpperCase("pt-BR")}</a>)}<a href="#cnc">CNC</a>
-      <span className="nav-live"><span/> RORAIMA AGORA</span>
-    </div></nav>
+    <SiteHeader />
+
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
       {featured ? <div className="lead-grid">
