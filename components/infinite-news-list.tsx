@@ -92,15 +92,23 @@ export function InfiniteNewsList({
     let attempts = 0;
     let frame = 0;
     const restoreScroll = () => {
-      window.scrollTo({ top: targetY, left: 0, behavior: "instant" });
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       attempts += 1;
 
-      if (window.scrollY >= Math.min(targetY, maxScroll) - 2 || attempts >= 30) {
-        pendingScrollYRef.current = null;
+      // Wait for the restored infinite-list items to render before animating.
+      if (maxScroll < targetY - 2 && attempts < 30) {
+        frame = requestAnimationFrame(restoreScroll);
         return;
       }
-      frame = requestAnimationFrame(restoreScroll);
+
+      pendingScrollYRef.current = null;
+      window.scrollTo({
+        top: Math.min(targetY, Math.max(0, maxScroll)),
+        left: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
     };
 
     frame = requestAnimationFrame(() => {
