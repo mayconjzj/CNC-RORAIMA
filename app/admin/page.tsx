@@ -90,13 +90,14 @@ export default function AdminPage() {
     try {
       const blob = await upload(file.name, file, {
         access: "public",
+        addRandomSuffix: true,
         handleUploadUrl: "/api/admin/media",
         clientPayload: JSON.stringify({ type: file.type }),
       });
       onSuccess(blob.url); setMessage("Arquivo enviado com sucesso.");
     } catch (error) {
       console.error("Falha ao enviar arquivo de mídia", error);
-      setMessage(error instanceof Error ? `Não foi possível enviar a imagem: ${error.message}` : "Não foi possível enviar a imagem. Tente novamente.");
+      setMessage(error instanceof Error ? `Não foi possível enviar o arquivo: ${error.message}` : "Não foi possível enviar o arquivo. Tente novamente.");
     } finally { setUploading(null); }
   }
   async function save(event: FormEvent) {
@@ -211,7 +212,7 @@ export default function AdminPage() {
                   <label style={label}>Título da notícia<input style={input} minLength={5} maxLength={180} required value={title} onChange={e=>setTitle(e.target.value)}/></label>
                   <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:72}} maxLength={500} value={excerpt} onChange={e=>setExcerpt(e.target.value)}/></label>
                   <label style={label}>Imagem de capa<input style={input} type="url" placeholder="https://..." value={image} onChange={e=>setImage(e.target.value)}/></label>
-                  <label style={{...label, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar capa<input aria-label="Enviar imagem de capa" type="file" accept="image/*" disabled={uploading==="cover"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setImage,"cover");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading==="cover"?"Enviando...":"Também é possível colar uma URL."}</span></label>
+                  <label style={{...label, display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/> Enviar capa<input aria-label="Enviar imagem de capa" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading==="cover"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setImage,"cover");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>{uploading==="cover"?"Enviando...":"Também é possível colar uma URL."}</span></label>
                   <ArticleStructureEditor sections={sections} setSections={setSections} inputStyle={input} labelStyle={label} buttonStyle={btn} uploading={uploading} addSection={addSection} moveSection={moveSection} removeSection={removeSection} addBlock={addBlock} moveBlock={moveBlock} removeBlock={removeBlock} updateBlock={updateBlock} appendGalleryImage={appendGalleryImage} uploadFile={uploadFile} />
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginTop:20}}>
                     <label style={label}>Editoria<select style={input} value={categoryId} onChange={e=>setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
