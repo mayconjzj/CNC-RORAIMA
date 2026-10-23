@@ -19,5 +19,5 @@ export default function PoliticaEditorialPage() {
     <section><h2>Opinião, publicidade e conteúdo patrocinado</h2><p>Conteúdo opinativo, publicidade e material patrocinado devem ser distinguidos do conteúdo informativo quando esses formatos forem publicados. A apresentação não deve induzir o leitor a confundir anúncio com reportagem.</p></section>
     <section><h2>Respeito e responsabilidade</h2><p>O conteúdo deve evitar exposição desnecessária de dados pessoais, linguagem discriminatória e afirmações não sustentadas por evidências. O interesse público deve ser considerado na abordagem de temas sensíveis.</p></section>
     <section><h2>Transparência</h2><p>O portal busca identificar a origem das informações e corrigir imprecisões quando detectadas. Estes princípios podem ser atualizados conforme os processos editoriais evoluam.</p></section>
-  </article><footer className="institutional-footer">© {new Date().getFullYear()} CNC Roraima — Cristhian Cruz News.</footer></main>;
+  </article></main>;
 }
