@@ -20,7 +20,7 @@ export function NewsSearch({ action = "/noticias", categories = [], authors = []
         <input type="search" name="q" defaultValue={values.q ?? ""} placeholder="Buscar por título, assunto ou palavra-chave..." aria-label="Buscar notícias" />
         <button type="submit">Buscar</button>
       </div>
-      <details className="news-search-advanced" open={!compact}>
+      <details className="news-search-advanced">
         <summary><SlidersHorizontal size={15} /> Filtros avançados</summary>
         <div className="news-search-fields">
           {showCategory && <label>Editoria<select name="category" defaultValue={values.category ?? ""}><option value="">Todas as editorias</option>{categories.map((item) => <option key={item.slug ?? item.id} value={item.slug}>{item.name}</option>)}</select></label>}
