@@ -54,6 +54,7 @@ export function NewsList({
                 width={800}
                 height={450}
                 sizes="(max-width: 520px) 38vw, (max-width: 760px) 50vw, 33vw"
+                loading="lazy"
                 unoptimized={!shouldOptimizeImage(article.featured_image_url)}
               />
             ) : (
