@@ -6,6 +6,7 @@ import { getPublishedArticles } from "@/lib/db";
 import { StoryCard } from "@/components/news/story-card";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
+import { formatNewsDate } from "@/lib/news-date";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -44,7 +45,7 @@ export default async function Home() {
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
       {featured ? <div className="lead-grid">
         <article className="hero-story"><Link className="hero-image" href={`/noticias/${featured.slug}`} aria-label={featured.title}>{featured.featured_image_url ? <Image src={featured.featured_image_url} alt="" fill sizes="(max-width: 850px) 100vw, 65vw" priority unoptimized={!shouldOptimizeImage(featured.featured_image_url)} /> : <span className="hero-image-fallback" />}<span className="hero-image-overlay" />
-          <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
+          <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? formatNewsDate(featured.published_at) : "Última notícia"} <ArrowRight size={16}/></span></div>
         </Link></article>
         <div className="side-stories">{sideStories.map((story)=><StoryCard key={story.id} story={story} compact/>)}</div>
       </div> : <div style={{ padding: "42px 28px", background: "#f7f7f8", borderRadius: 12, marginTop: 26 }}><h2 style={{ marginTop: 0 }}>{databaseReady ? "Estamos preparando as primeiras notícias." : "Estamos conectando o portal."}</h2><p>{databaseReady ? "As notícias publicadas pela redação aparecerão aqui." : "O portal não conseguiu consultar o banco de dados. Confira as variáveis de ambiente da hospedagem."}</p></div>}
