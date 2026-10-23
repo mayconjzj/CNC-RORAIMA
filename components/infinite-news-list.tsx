@@ -52,6 +52,7 @@ export function InfiniteNewsList({
 
   const listRef = useRef<HTMLDivElement>(null);
   const restoredRef = useRef(false);
+  const skipSaveRef = useRef(false);
   const cacheKey = `cnc-news-list:${JSON.stringify(filters)}`;
   const returnKey = `${cacheKey}:return`;
 
@@ -73,6 +74,7 @@ export function InfiniteNewsList({
       };
       if (!Array.isArray(saved.articles)) return;
 
+      skipSaveRef.current = true;
       setArticles(saved.articles);
       setHasMore(Boolean(saved.hasMore));
       offsetRef.current = typeof saved.offset === "number" ? saved.offset : saved.articles.length;
@@ -84,6 +86,10 @@ export function InfiniteNewsList({
 
   useEffect(() => {
     if (!restoredRef.current) return;
+    if (skipSaveRef.current) {
+      skipSaveRef.current = false;
+      return;
+    }
     try {
       sessionStorage.setItem(cacheKey, JSON.stringify({
         articles,
