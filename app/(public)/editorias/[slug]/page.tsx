@@ -63,7 +63,5 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{articles.length} {articles.length === 1 ? "notícia encontrada" : "notícias encontradas"}{articles.length === 100 ? " · limite de 100" : ""}</span></div>
       <NewsList articles={articles} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
     </section>
-    <footer className="editoria-footer"><span>© {new Date().getFullYear()} CNC Roraima</span><span>Informação de credibilidade.</span></footer>
-    
   </main>;
 }
