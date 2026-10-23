@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     template: "%s | CNC Roraima",
   },
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
+  verification: {
+    google: "TxSfWovss5wRRrEt5OcWFHccbCtavJrUE9BnnYbOPzw",
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
