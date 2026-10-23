@@ -203,7 +203,6 @@ export default function AdminPage() {
 
   return <main className={styles.shell} style={{ minHeight: "100vh", background: "#f7f7f8" }}>
     <AdminSidebar onLogout={() => void logout()} />
-    <header style={{ background: "#202126", color: "#fff", padding: "18px max(20px, calc((100% - 1180px)/2))", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}><Link href="/" style={{ color: "#e0bd6b", fontWeight: 800, letterSpacing: 1 }}>CNC RORAIMA <span style={{ color: "#fff", fontWeight: 400 }}>/ Administração</span></Link><Link href="/" style={{ ...btn, color: "#fff", background: "transparent", borderColor: "#777" }}>Ver portal</Link></header>
     <div style={{width:"min(1180px, calc(100% - 28px))",margin:"28px auto 48px"}}>
       <div id="admin-overview" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",marginBottom:22,scrollMarginTop:24}}>
         <div><h1 style={{fontSize:28,margin:"0 0 5px",color:"#202126"}}>Painel editorial</h1><p style={{margin:0,color:"#777"}}>Gerencie notícias, editorias e autores em um só lugar.</p></div>
