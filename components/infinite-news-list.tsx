@@ -27,6 +27,7 @@ type Filters = {
 type Props = {
   initialArticles: Article[];
   hasMore: boolean;
+  totalArticles: number;
   filters: Filters;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -37,6 +38,7 @@ type Props = {
 export function InfiniteNewsList({
   initialArticles,
   hasMore: initiallyHasMore,
+  totalArticles,
   filters,
   emptyTitle,
   emptyDescription,
@@ -55,7 +57,7 @@ export function InfiniteNewsList({
   const restoredRef = useRef(false);
   const skipSaveRef = useRef(false);
   const pendingScrollYRef = useRef<number | null>(null);
-  const cacheKey = `cnc-news-list:${JSON.stringify(filters)}`;
+  const cacheKey = `cnc-news-list:${totalArticles}:${JSON.stringify(filters)}`;
   const returnKey = `${cacheKey}:return`;
 
   useEffect(() => {
@@ -79,12 +81,12 @@ export function InfiniteNewsList({
       skipSaveRef.current = true;
       pendingScrollYRef.current = Math.max(0, saved.scrollY ?? 0);
       setArticles(saved.articles);
-      setHasMore(Boolean(saved.hasMore));
-      offsetRef.current = typeof saved.offset === "number" ? saved.offset : saved.articles.length;
+      setHasMore(saved.articles.length < totalArticles);
+      offsetRef.current = saved.articles.length;
     } catch {
       sessionStorage.removeItem(returnKey);
     }
-  }, [cacheKey, returnKey]);
+  }, [cacheKey, returnKey, totalArticles]);
 
   useEffect(() => {
     const targetY = pendingScrollYRef.current;
@@ -228,7 +230,8 @@ export function InfiniteNewsList({
           <button type="button" onClick={() => void loadMore()} style={{ border: "1px solid #ccc", borderRadius: 8, padding: "10px 16px", background: "#fff", cursor: "pointer" }}>Tentar novamente</button>
         </div>
       )}
-      {!hasMore && articles.length > 0 && <p style={{ textAlign: "center", padding: "20px", color: "#777" }}>Você chegou ao fim das notícias.</p>}
+      {hasMore && <div style={{ textAlign: "center", padding: "20px" }}><button type="button" onClick={() => void loadMore()} disabled={loading} style={{ border: "1px solid #b90018", borderRadius: 8, padding: "12px 20px", background: loading ? "#f5f5f5" : "#fff", color: "#b90018", fontWeight: 700, cursor: loading ? "wait" : "pointer" }}>{loading ? "Carregando…" : "Carregar mais notícias"}</button><p style={{ color: "#777", fontSize: 13, marginTop: 8 }}>{articles.length} de {totalArticles} notícias</p></div>}
+      {!hasMore && articles.length > 0 && <p style={{ textAlign: "center", padding: "20px", color: "#777" }}>Você chegou ao fim das notícias. ({articles.length} de {totalArticles})</p>}
     </>
   );
 }
