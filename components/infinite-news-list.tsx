@@ -236,7 +236,7 @@ export function InfiniteNewsList({
           <button type="button" onClick={() => void loadMore()} style={{ border: "1px solid #ccc", borderRadius: 8, padding: "10px 16px", background: "#fff", cursor: "pointer" }}>Tentar novamente</button>
         </div>
       )}
-      {hasMore && <div style={{ textAlign: "center", padding: "20px" }}><button type="button" onClick={() => void loadMore()} disabled={loading} style={{ border: "1px solid #b90018", borderRadius: 8, padding: "12px 20px", background: loading ? "#f5f5f5" : "#fff", color: "#b90018", fontWeight: 700, cursor: loading ? "wait" : "pointer" }}>{loading ? "Carregando…" : "Carregar mais notícias"}</button><p style={{ color: "#777", fontSize: 13, marginTop: 8 }}>{articles.length} de {totalArticles} notícias</p></div>}
+      {hasMore && <div style={{ textAlign: "center", padding: "20px" }}><p style={{ color: "#777", fontSize: 13, margin: 0 }}>{articles.length} de {totalArticles} notícias</p></div>}
       {!hasMore && articles.length > 0 && <p style={{ textAlign: "center", padding: "20px", color: "#777" }}>Você chegou ao fim das notícias. ({articles.length} de {totalArticles})</p>}
     </>
   );
