@@ -62,7 +62,7 @@
 /* Main portal footer redesign */
 .site-footer{margin-top:28px;background:#19191d;color:#f7f5f1;border-top:3px solid #b90018}
 .site-footer-main{padding:46px 0 40px;background:radial-gradient(ellipse at 8% 0%,#292327 0%,#19191d 48%)}
-.site-footer-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(130px,.7fr) minmax(170px,.9fr);gap:clamp(28px,6vw,84px)}
+.site-footer-grid{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(115px,.7fr));gap:clamp(22px,4vw,54px)}
 .site-footer-brand{max-width:390px}
 .site-footer-brand .brand{display:inline-flex;color:#fff}
 .site-footer-brand .brand-mark{font-size:43px;color:#fff}
@@ -81,3 +81,17 @@
 @media(max-width:420px){.site-footer-grid{grid-template-columns:1fr 1fr;gap:26px 16px}.site-footer-brand .brand-mark{font-size:38px}.site-footer-brand .brand-copy strong{font-size:12px}.site-footer-column a{font-size:11px}.site-footer .footer-bottom{font-size:9px}}
 
 @media(max-width:560px){.admin-block-delete{padding:7px!important;min-width:32px;min-height:32px}.admin-block-delete-text{display:none}}
+
+
+/* Contact and social buttons */
+.contact-social-section{margin:28px 0 34px;padding:22px;border:1px solid #e9e9eb;border-radius:10px;background:#fafafa}
+.contact-social-section h2{margin:0 0 8px!important}
+.contact-social-section>p{margin-bottom:14px!important}
+.contact-social-buttons{display:flex;flex-wrap:wrap;gap:10px}
+.contact-social-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 16px;border:1px solid transparent;border-radius:7px;color:#fff!important;text-decoration:none!important;font-size:13px;font-weight:800;transition:transform .15s,filter .15s}
+.contact-social-button:hover{transform:translateY(-1px);filter:brightness(.96)}
+.contact-whatsapp{background:#168447}
+.contact-instagram{background:linear-gradient(110deg,#833ab4,#c13584,#e1306c,#f77737)}
+.contact-email{background:#202126}
+.contact-social-note{margin:14px 0 0!important;color:#777982!important;font-size:12px!important;line-height:1.6!important}
+@media(max-width:700px){.site-footer-grid{grid-template-columns:1fr 1fr;gap:30px 22px}}
