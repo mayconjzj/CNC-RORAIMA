@@ -64,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}</span></div>
-      <InfiniteNewsList key={JSON.stringify({ ...values, category: slug })} initialArticles={articles} hasMore={total > articles.length} filters={{ ...values, category: slug }} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
+      <InfiniteNewsList key={JSON.stringify({ ...values, category: slug })} initialArticles={articles} hasMore={total > articles.length} totalArticles={total} filters={{ ...values, category: slug }} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
     </section>
   </main>;
 }
