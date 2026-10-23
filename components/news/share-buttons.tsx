@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FacebookIcon, WhatsappIcon, XIcon } from "react-share";
-import { Link2, Share2 } from "lucide-react";
+import { Instagram, Link2, Share2 } from "lucide-react";
 
 type ShareButtonsProps = { title: string; url: string };
 
@@ -21,6 +21,21 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
       return;
     }
     await copyLink();
+  }
+
+  async function shareInstagram() {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title, text: title, url });
+        return;
+      } catch {
+        // The visitor may dismiss the native share sheet.
+        return;
+      }
+    }
+
+    await copyLink();
+    window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
   }
 
   async function copyLink() {
@@ -80,6 +95,15 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
       >
         <XIcon size={28} aria-hidden="true" />
       </a>
+      <button
+        type="button"
+        onClick={shareInstagram}
+        aria-label="Compartilhar no Instagram"
+        title="Instagram"
+        style={iconButtonStyle}
+      >
+        <Instagram size={20} color="#C13584" aria-hidden="true" />
+      </button>
       <button
         type="button"
         onClick={shareMore}
