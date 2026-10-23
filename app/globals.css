@@ -34,3 +34,26 @@
 
 /* Administrative panel responsive layout */
 @media(max-width:850px){.admin-layout-grid{grid-template-columns:minmax(0,1fr)!important}}
+
+
+/* Institutional pages */
+.institutional-page{min-height:100vh;background:#fff;color:#202126;display:flex;flex-direction:column}
+.institutional-content{width:min(820px,calc(100% - 40px));margin:0 auto;padding:48px 0 76px;flex:1}
+.institutional-eyebrow{font-size:10px;letter-spacing:.16em;font-weight:800;color:#b90018}
+.institutional-content>h1{font-family:var(--font-playfair-display),Georgia,serif;font-size:clamp(38px,6vw,58px);line-height:1.08;letter-spacing:-.04em;margin:14px 0}
+.institutional-content>h1 span{color:#b90018}
+.institutional-lead{font-size:18px;line-height:1.65;color:#696a71;margin:0}
+.institutional-rule{height:3px;width:76px;background:#c9a044;margin:28px 0 32px}
+.institutional-content section{margin:0 0 30px}
+.institutional-content section h2{font-family:var(--font-playfair-display),Georgia,serif;font-size:25px;line-height:1.25;margin:0 0 12px}
+.institutional-content section p,.institutional-content section li{font-size:15px;line-height:1.85;color:#4f5057}
+.institutional-content section p{margin:0 0 12px}
+.institutional-content section ul{padding-left:24px}
+.institutional-content a:not(.institutional-button){color:#b90018;text-decoration:underline;text-underline-offset:3px}
+.institutional-button{display:inline-flex;align-items:center;justify-content:center;background:#b90018;color:#fff;padding:12px 17px;border-radius:5px;font-size:13px;font-weight:800;margin-top:8px}
+.institutional-notice{background:#faf7ef;border:1px solid #eadbb5;border-radius:8px;padding:18px;margin-top:18px}
+.institutional-notice p{margin:8px 0 0!important}
+.institutional-contact{padding:14px 16px;background:#f7f7f8;border-radius:7px}
+.institutional-updated{font-size:12px;color:#777982;margin:-12px 0 28px}
+.institutional-footer{background:#202126;color:#c4c4c8;padding:22px max(20px,calc((100% - 820px)/2));font-size:11px}
+@media(max-width:560px){.institutional-content{width:calc(100% - 32px);padding:32px 0 52px}.institutional-content>h1{font-size:40px}.institutional-lead{font-size:16px}.institutional-content section h2{font-size:23px}.institutional-content section p,.institutional-content section li{font-size:14px}.institutional-footer{padding:20px 16px}}
