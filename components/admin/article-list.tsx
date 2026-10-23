@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Newspaper, RefreshCw, Pencil, Trash2, Search, ChevronDown } from "lucide-react";
+import { Newspaper, RefreshCw, Pencil, Trash2, Search } from "lucide-react";
 import type { AdminArticle, AdminAuthor, AdminOption } from "@/lib/admin-types";
 
 type Props = {
@@ -27,9 +27,13 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
+    loadingRef.current = true;
     const timeoutId = window.setTimeout(async () => {
       setLoading(true);
       setError("");
@@ -60,7 +64,10 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
       } catch {
         if (!controller.signal.aborted) setError("Falha de conexão ao pesquisar notícias.");
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          loadingRef.current = false;
+          setLoading(false);
+        }
       }
     }, 250);
 
@@ -75,6 +82,23 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
   const button: CSSProperties = { border: "1px solid #ddd", background: "#fff", borderRadius: 8, padding: "9px 11px", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 };
   const filtersChanged = () => setOffset(0);
   const hasMore = results.length < total;
+
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    const sentinel = loadMoreSentinelRef.current;
+    if (!root || !sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting) && !loadingRef.current) {
+          setOffset((current) => current + PAGE_SIZE);
+        }
+      },
+      { root, rootMargin: "180px 0px" },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, results.length]);
 
   return (
     <section style={panel}>
@@ -137,7 +161,7 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
       </div>
       {error && <p role="alert" style={{ color: "#b90018", fontSize: 13 }}>{error}</p>}
 
-      <div style={{ marginTop: 4, maxHeight: 560, overflowY: "auto", overscrollBehavior: "contain", borderTop: "1px solid #eee", borderBottom: "1px solid #eee", paddingRight: 5 }}>
+      <div ref={scrollContainerRef} style={{ marginTop: 4, maxHeight: 560, overflowY: "auto", overscrollBehavior: "contain", borderTop: "1px solid #eee", borderBottom: "1px solid #eee", paddingRight: 5 }}>
         {results.length === 0 && !loading ? (
           <p style={{ color: "#777", padding: "12px 0" }}>{search.trim() || statusFilter !== "all" || categoryFilter !== "all" || authorFilter !== "all" ? "Nenhuma notícia corresponde aos filtros." : "Nenhuma notícia cadastrada."}</p>
         ) : results.map((article) => (
@@ -160,10 +184,10 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
           </article>
         ))}
         {results.length === 0 && loading && <p style={{ color: "#777", padding: "12px 0" }}>Carregando notícias…</p>}
+        <div ref={loadMoreSentinelRef} aria-hidden="true" style={{ height: 1 }} />
+        {loading && results.length > 0 && <p role="status" style={{ color: "#777", fontSize: 12, textAlign: "center", padding: "10px 0" }}>Carregando mais notícias…</p>}
+        {!hasMore && results.length > 0 && <p style={{ color: "#777", fontSize: 12, textAlign: "center", padding: "10px 0" }}>Fim da lista.</p>}
       </div>
-      {hasMore && <button type="button" disabled={loading} onClick={() => setOffset((current) => current + PAGE_SIZE)} style={{ ...button, width: "100%", marginTop: 10, padding: 11, color: "#b90018", fontWeight: 700 }}>
-        <ChevronDown size={16} /> {loading ? "Carregando…" : `Carregar mais notícias (${total - results.length} restantes)`}
-      </button>}
     </section>
   );
 }
