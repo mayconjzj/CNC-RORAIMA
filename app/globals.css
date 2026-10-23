@@ -95,3 +95,14 @@
 .contact-email{background:#202126}
 .contact-social-note{margin:14px 0 0!important;color:#777982!important;font-size:12px!important;line-height:1.6!important}
 @media(max-width:700px){.site-footer-grid{grid-template-columns:1fr 1fr;gap:30px 22px}}
+
+
+/* Responsive controls for article sections in the admin editor */
+.admin-section-remove-icon{display:none}
+.admin-section-remove{color:#b90018!important;border-color:#e7a6ad!important;background:#fff1f2!important}
+.admin-section-remove:hover{background:#ffe3e6!important}
+@media(max-width:560px){
+  .admin-section-toggle-label,.admin-section-remove-label{display:none}
+  .admin-section-toggle,.admin-section-remove{min-width:36px;min-height:36px;padding:7px!important}
+  .admin-section-remove-icon{display:inline;line-height:1;font-size:16px}
+}
