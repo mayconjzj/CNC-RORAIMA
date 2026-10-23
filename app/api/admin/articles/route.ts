@@ -35,7 +35,7 @@ export async function GET(request: Request) {
           AND (${status} = 'all' OR a.status = ${status})
           AND (${category} = 'all' OR (${category} = 'none' AND a.category_id IS NULL) OR a.category_id::text = ${category})
           AND (${author} = 'all' OR (${author} = 'none' AND a.author_id IS NULL) OR a.author_id::text = ${author})
-        ORDER BY a.updated_at DESC LIMIT ${limit} OFFSET ${offset}
+        ORDER BY a.updated_at DESC NULLS LAST, a.id DESC LIMIT ${limit} OFFSET ${offset}
       `,
       sql`
         SELECT COUNT(*)::int AS total
