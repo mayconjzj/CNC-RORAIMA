@@ -30,6 +30,7 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
+  const previousArticlesRef = useRef(articles);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,6 +75,9 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
     return () => {
       window.clearTimeout(timeoutId);
       controller.abort();
+      // Release the lock when filters or the requested page change, including
+      // aborted requests whose finally block intentionally does not run state updates.
+      loadingRef.current = false;
     };
   }, [search, statusFilter, categoryFilter, authorFilter, offset, articles]);
 
@@ -84,6 +88,14 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
   const hasMore = results.length < total;
 
   useEffect(() => {
+    if (previousArticlesRef.current === articles) return;
+    previousArticlesRef.current = articles;
+    setOffset(0);
+    setResults([]);
+    setTotal(0);
+  }, [articles]);
+
+  useEffect(() => {
     const root = scrollContainerRef.current;
     const sentinel = loadMoreSentinelRef.current;
     if (!root || !sentinel || !hasMore) return;
@@ -91,6 +103,9 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting) && !loadingRef.current) {
+          // Lock synchronously: IntersectionObserver can fire more than once
+          // before React applies the offset update.
+          loadingRef.current = true;
           setOffset((current) => current + PAGE_SIZE);
         }
       },
