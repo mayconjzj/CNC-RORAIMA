@@ -2,9 +2,6 @@ import { createHash } from "node:crypto";
 import { getDb } from "@/lib/db";
 
 const MAX_ATTEMPTS = 5;
-const WINDOW_MINUTES = 15;
-const BLOCK_MINUTES = 15;
-
 let tableReady: Promise<void> | null = null;
 
 async function ensureTable() {
@@ -31,7 +28,7 @@ async function ensureTable() {
 function getClientKey(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
-  const ip = forwardedFor?.split(",")[0]?.trim() || realIp?.trim() || "unknown";
+  const ip = realIp?.trim() || forwardedFor?.split(",")[0]?.trim() || "unknown";
   return createHash("sha256").update(ip).digest("hex");
 }
 
