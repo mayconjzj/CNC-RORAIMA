@@ -13,6 +13,12 @@ export async function GET(request: Request) {
     const query = (params.get("q") ?? "").trim().slice(0, 120);
     const requestedStatus = params.get("status") ?? "all";
     const status = ["published", "draft"].includes(requestedStatus) ? requestedStatus : "all";
+    const category = (params.get("category") ?? "all").slice(0, 120);
+    const author = (params.get("author") ?? "all").slice(0, 120);
+    const requestedLimit = Number.parseInt(params.get("limit") ?? "50", 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, requestedLimit)) : 50;
+    const requestedOffset = Number.parseInt(params.get("offset") ?? "0", 10);
+    const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
     const sql = getDb();
     const [articles, countRows] = await Promise.all([
       sql`
@@ -23,10 +29,13 @@ export async function GET(request: Request) {
           OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_description, '') ILIKE '%' || ${query} || '%'
+          OR a.content::text ILIKE '%' || ${query} || '%'
           OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(au.name, '') ILIKE '%' || ${query} || '%')
           AND (${status} = 'all' OR a.status = ${status})
-        ORDER BY a.updated_at DESC LIMIT 100
+          AND (${category} = 'all' OR (${category} = 'none' AND a.category_id IS NULL) OR a.category_id::text = ${category})
+          AND (${author} = 'all' OR (${author} = 'none' AND a.author_id IS NULL) OR a.author_id::text = ${author})
+        ORDER BY a.updated_at DESC LIMIT ${limit} OFFSET ${offset}
       `,
       sql`
         SELECT COUNT(*)::int AS total
@@ -35,9 +44,12 @@ export async function GET(request: Request) {
           OR COALESCE(a.excerpt, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_title, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(a.seo_description, '') ILIKE '%' || ${query} || '%'
+          OR a.content::text ILIKE '%' || ${query} || '%'
           OR COALESCE(c.name, '') ILIKE '%' || ${query} || '%'
           OR COALESCE(au.name, '') ILIKE '%' || ${query} || '%')
           AND (${status} = 'all' OR a.status = ${status})
+          AND (${category} = 'all' OR (${category} = 'none' AND a.category_id IS NULL) OR a.category_id::text = ${category})
+          AND (${author} = 'all' OR (${author} = 'none' AND a.author_id IS NULL) OR a.author_id::text = ${author})
       `,
     ]);
     return NextResponse.json({ articles, total: Number(countRows[0]?.total ?? 0) });
