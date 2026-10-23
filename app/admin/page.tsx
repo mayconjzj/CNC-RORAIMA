@@ -198,6 +198,7 @@ export default function AdminPage() {
           </section>
         </aside>
       </div>
+    </div>
     {showArticleForm&&<div role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy&&uploading===null)resetForm();}} style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(18,19,22,.68)",padding:"max(12px, 3vh) 12px",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <section role="dialog" aria-modal="true" aria-labelledby="article-form-title" style={{width:"min(1000px,100%)",maxHeight:"94vh",overflowY:"auto",background:"#f7f7f8",borderRadius:16,boxShadow:"0 24px 80px rgba(0,0,0,.28)",padding:"clamp(16px,3vw,28px)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:18}}>
