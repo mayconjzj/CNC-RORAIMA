@@ -86,11 +86,28 @@ export default function AdminPage() {
   function moveBlock(si:number,bi:number,d:-1|1){setSections(cur=>cur.map((sec,i)=>{if(i!==si)return sec;const bs=[...sec.blocks],to=bi+d;if(to<0||to>=bs.length)return sec;[bs[bi],bs[to]]=[bs[to],bs[bi]];return {...sec,blocks:bs}}));}
   function removeBlock(si:number,bi:number){setSections(cur=>cur.map((sec,i)=>i===si?{...sec,blocks:sec.blocks.filter((_,j)=>j!==bi)}:sec));}
   async function uploadFile(file: File, onSuccess: (url: string) => void, key: string) {
+    const allowedTypes = [
+      "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif",
+      "video/mp4", "video/webm",
+      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      setMessage("Formato não suportado. Use uma imagem JPG, PNG, WebP, GIF ou AVIF; vídeo MP4/WebM; ou áudio MP3, MP4, OGG, WAV/WebM.");
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      setMessage("O arquivo ultrapassa o limite de 25 MB. Reduza o tamanho e tente novamente.");
+      return;
+    }
+
     setUploading(key); setMessage("");
     try {
-      const blob = await upload(file.name, file, {
+      // Unique path prevents collisions even when users upload files with the same name.
+      const safeFileName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const uniqueFileName = `${uid()}-${safeFileName || "arquivo"}`;
+      const blob = await upload(uniqueFileName, file, {
         access: "public",
-        addRandomSuffix: true,
+        contentType: file.type,
         handleUploadUrl: "/api/admin/media",
         clientPayload: JSON.stringify({ type: file.type }),
       });
