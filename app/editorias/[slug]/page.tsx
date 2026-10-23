@@ -8,7 +8,6 @@ import { Clock3 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { NewsSearch } from "@/components/news-search";
 
 type Filters = { q?: string; author?: string; from?: string; to?: string; sort?: string };
@@ -73,7 +72,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <div className="editoria-card-copy"><span className="editoria-category-label">{article.category_name}</span><h3>{article.title}</h3>{article.excerpt && <p>{article.excerpt}</p>}<span className="editoria-date"><Clock3 size={14} aria-hidden="true" />{dateLabel(article.published_at)}</span></div></Link>
       </article>)}</div> : <div className="editoria-empty"><h2>Nenhuma notícia encontrada</h2><p>Tente alterar os termos da busca ou remover algum filtro.</p><Link href={`/editorias/${slug}`}>Limpar filtros</Link></div>}
     </section>
-    <SiteFooter />
     
   </main>;
 }
