@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Brand } from "@/components/site-header";
 
 export function SiteFooter() {
+  const whatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL?.trim() || "https://wa.me/";
+  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || "https://www.instagram.com/";
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "contato@cnc-roraima.com.br";
   return (
     <footer className="site-footer">
       <div className="site-footer-main">
@@ -23,6 +26,12 @@ export function SiteFooter() {
             <Link href="/contato">Fale conosco</Link>
             <Link href="/politica-editorial">Política editorial</Link>
             <Link href="/privacidade">Política de privacidade</Link>
+          </div>
+          <div className="site-footer-column">
+            <h2>Contato e redes</h2>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer">📷 Instagram</a>
+            <a href={`mailto:${contactEmail}`}>✉️ E-mail</a>
           </div>
         </div>
       </div>
