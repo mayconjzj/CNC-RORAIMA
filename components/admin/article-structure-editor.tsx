@@ -5,7 +5,33 @@ import { Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { createEditorId } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type PreviewType = "image" | "video" | "audio";
+
+function MediaPreview({ type, url, alt, compact = false }: { type: PreviewType; url: string; alt?: string; compact?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [url]);
+
+  if (!url) return null;
+  if (failed) {
+    return <p role="alert" style={{ color: "#b90018", fontSize: 12, margin: "8px 0" }}>
+      Não foi possível carregar esta prévia. Confira a URL ou envie o arquivo novamente.
+    </p>;
+  }
+  if (type === "image") {
+    return <img src={url} alt={alt || "Prévia da imagem"} onError={() => setFailed(true)}
+      style={compact
+        ? { width: 58, height: 58, objectFit: "cover", borderRadius: 6, flexShrink: 0 }
+        : { display: "block", maxWidth: "100%", maxHeight: 220, objectFit: "contain", margin: "8px 0", borderRadius: 8 }} />;
+  }
+  if (type === "video") {
+    return <video controls preload="metadata" src={url} onError={() => setFailed(true)}
+      style={{ display: "block", width: "100%", maxHeight: 240, margin: "8px 0", background: "#111", borderRadius: 8 }} />;
+  }
+  return <audio controls preload="metadata" src={url} onError={() => setFailed(true)}
+    style={{ display: "block", width: "100%", margin: "8px 0" }} />;
+}
 
 type Props = {
   sections: EditorSection[];
@@ -42,8 +68,8 @@ export function ArticleStructureEditor({
           {b.type==="heading"&&<input style={inputStyle} value={b.title||""} placeholder="Título" onChange={e=>updateBlock(si,bi,{title:e.target.value})}/>}
           {(b.type==="paragraph"||b.type==="quote")&&<RichTextEditor value={b.text||""} onChange={text=>updateBlock(si,bi,{text})} placeholder="Digite o conteúdo..."/>}
           {b.type==="list"&&<textarea style={{...inputStyle,minHeight:90}} value={b.text||""} placeholder="Um item por linha" onChange={e=>updateBlock(si,bi,{text:e.target.value})}/>}
-          {["image","video","audio"].includes(b.type)&&<><input style={inputStyle} type="url" placeholder="URL do arquivo" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/><label style={labelStyle}><span style={{...buttonStyle,position:"relative"}}>Enviar arquivo<input type="file" accept={b.type==="image"?"image/jpeg,image/png,image/webp,image/gif,image/avif":b.type==="video"?"video/mp4,video/webm":"audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm"} disabled={uploading===b.id} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,url=>updateBlock(si,bi,{url}),b.id);e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span>{uploading===b.id&&<span role="status" style={{fontSize:12,color:"#777",marginLeft:8}}>Enviando arquivo…</span>}</label>{b.url&&b.type==="image"&&<img src={b.url} alt={b.alt||b.caption||"Prévia da imagem"} onError={e=>{e.currentTarget.style.display="none";}} style={{display:"block",maxWidth:"100%",maxHeight:220,objectFit:"contain",margin:"8px 0",borderRadius:8}}/>}{b.url&&b.type==="video"&&<video controls preload="metadata" src={b.url} style={{display:"block",width:"100%",maxHeight:240,margin:"8px 0",background:"#111",borderRadius:8}}/>}{b.url&&b.type==="audio"&&<audio controls preload="metadata" src={b.url} style={{display:"block",width:"100%",margin:"8px 0"}}/>}<input style={inputStyle} placeholder="Legenda / texto alternativo" value={b.caption||""} onChange={e=>updateBlock(si,bi,{caption:e.target.value,alt:e.target.value})}/></>}
-          {b.type==="gallery"&&<><div style={{display:"flex",gap:8}}><label>Colunas<select style={inputStyle} value={b.columns||3} onChange={e=>updateBlock(si,bi,{columns:Number(e.target.value) as 2|3|4})}><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select></label><label>Layout<select style={inputStyle} value={b.layout||"grid"} onChange={e=>updateBlock(si,bi,{layout:e.target.value as "grid"|"feature"})}><option value="grid">Grade uniforme</option><option value="feature">Colagem</option></select></label></div><label style={labelStyle}><span style={{...buttonStyle,position:"relative"}}>Enviar várias imagens<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={e=>{Array.from(e.target.files||[]).forEach(file=>void uploadFile(file,url=>appendGalleryImage(si,bi,url),b.id));e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span></label>{(b.items||[]).map((im,ii)=><div key={im.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>{im.url&&<img src={im.url} alt={im.alt||"Prévia da imagem da galeria"} onError={e=>{e.currentTarget.style.display="none";}} style={{width:58,height:58,objectFit:"cover",borderRadius:6,flexShrink:0}}/>}<input style={inputStyle} type="url" placeholder="URL da imagem" value={im.url} onChange={e=>updateBlock(si,bi,{items:(b.items||[]).map((x,j)=>j===ii?{...x,url:e.target.value}:x)})}/><button type="button" style={buttonStyle} onClick={()=>updateBlock(si,bi,{items:(b.items||[]).filter((_,j)=>j!==ii)})}>×</button></div>)}<button type="button" style={buttonStyle} onClick={()=>updateBlock(si,bi,{items:[...(b.items||[]),{id:createEditorId(),url:""}]})}>＋ URL de imagem</button></>}
+          {["image","video","audio"].includes(b.type)&&<><input style={inputStyle} type="url" placeholder="URL do arquivo" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/><label style={labelStyle}><span style={{...buttonStyle,position:"relative"}}>Enviar arquivo<input type="file" accept={b.type==="image"?"image/jpeg,image/png,image/webp,image/gif,image/avif":b.type==="video"?"video/mp4,video/webm":"audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm"} disabled={uploading!==null} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,url=>updateBlock(si,bi,{url}),b.id);e.currentTarget.value=""}} style={{position:"absolute",inset:0,opacity:0}}/></span>{uploading===b.id&&<span role="status" style={{fontSize:12,color:"#777",marginLeft:8}}>Enviando arquivo…</span>}</label>{b.url&&<MediaPreview type={b.type as PreviewType} url={b.url} alt={b.alt||b.caption||"Prévia da imagem"}/>}}<input style={inputStyle} placeholder="Legenda / texto alternativo" value={b.caption||""} onChange={e=>updateBlock(si,bi,{caption:e.target.value,alt:e.target.value})}/></>}
+          {b.type==="gallery"&&<><div style={{display:"flex",gap:8}}><label>Colunas<select style={inputStyle} value={b.columns||3} onChange={e=>updateBlock(si,bi,{columns:Number(e.target.value) as 2|3|4})}><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select></label><label>Layout<select style={inputStyle} value={b.layout||"grid"} onChange={e=>updateBlock(si,bi,{layout:e.target.value as "grid"|"feature"})}><option value="grid">Grade uniforme</option><option value="feature">Colagem</option></select></label></div><label style={labelStyle}><span style={{...buttonStyle,position:"relative"}}>Enviar várias imagens<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading!==null} onChange={e=>{const files=Array.from(e.target.files||[]);e.currentTarget.value="";void (async()=>{for(const file of files){await uploadFile(file,url=>appendGalleryImage(si,bi,url),b.id);}})()}} style={{position:"absolute",inset:0,opacity:0}}/></span></label>{(b.items||[]).map((im,ii)=><div key={im.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>{im.url&&<MediaPreview type="image" url={im.url} alt={im.alt||"Prévia da imagem da galeria"} compact/>}<input style={inputStyle} type="url" placeholder="URL da imagem" value={im.url} onChange={e=>updateBlock(si,bi,{items:(b.items||[]).map((x,j)=>j===ii?{...x,url:e.target.value}:x)})}/><button type="button" style={buttonStyle} onClick={()=>updateBlock(si,bi,{items:(b.items||[]).filter((_,j)=>j!==ii)})}>×</button></div>)}<button type="button" style={buttonStyle} onClick={()=>updateBlock(si,bi,{items:[...(b.items||[]),{id:createEditorId(),url:""}]})}>＋ URL de imagem</button></>}
           {b.type==="link"&&<><input style={inputStyle} placeholder="Texto do link" value={b.title||""} onChange={e=>updateBlock(si,bi,{title:e.target.value})}/><input style={inputStyle} type="url" placeholder="URL" value={b.url||""} onChange={e=>updateBlock(si,bi,{url:e.target.value})}/></>}
           {b.type==="divider"&&<hr/>}</div>)}</>}</section>)}
           
