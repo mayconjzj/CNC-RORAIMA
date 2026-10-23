@@ -51,7 +51,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))
       ORDER BY CASE WHEN ${sort}='title' THEN a.title END ASC,
         CASE WHEN ${sort}='oldest' THEN a.published_at END ASC NULLS LAST,
-        CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST
+        CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST,
+        a.id ASC
       LIMIT 9
     ` as unknown as Promise<Article[]>,
     sql`SELECT COUNT(*)::int AS total FROM articles a WHERE a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW() AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%') AND (${author}='' OR a.author_id::text=${author}) AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date) AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))` as unknown as Promise<{ total: number }[]>
@@ -63,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
       <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}</span></div>
-      <InfiniteNewsList initialArticles={articles} hasMore={total > articles.length} filters={{ ...values, category: slug }} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
+      <InfiniteNewsList key={JSON.stringify({ ...values, category: slug })} initialArticles={articles} hasMore={total > articles.length} filters={{ ...values, category: slug }} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
     </section>
   </main>;
 }
