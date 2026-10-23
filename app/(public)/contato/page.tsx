@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Instagram, Mail, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Contato",
@@ -21,9 +22,9 @@ export default function ContatoPage() {
       <h2>Fale com a CNC Roraima</h2>
       <p>Escolha um canal para entrar em contato ou acompanhar o portal.</p>
       <div className="contact-social-buttons">
-        <a className="contact-social-button contact-whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><span aria-hidden="true">💬</span> WhatsApp</a>
-        <a className="contact-social-button contact-instagram" href={instagramUrl} target="_blank" rel="noopener noreferrer"><span aria-hidden="true">📷</span> Instagram</a>
-        <a className="contact-social-button contact-email" href={`mailto:${email || placeholderEmail}`}><span aria-hidden="true">✉️</span> E-mail</a>
+        <a className="contact-social-button contact-whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} aria-hidden="true" /> WhatsApp</a>
+        <a className="contact-social-button contact-instagram" href={instagramUrl} target="_blank" rel="noopener noreferrer"><Instagram size={18} aria-hidden="true" /> Instagram</a>
+        <a className="contact-social-button contact-email" href={`mailto:${email || placeholderEmail}`}><Mail size={18} aria-hidden="true" /> E-mail</a>
       </div>
       {(!email || !process.env.NEXT_PUBLIC_WHATSAPP_URL || !process.env.NEXT_PUBLIC_INSTAGRAM_URL) && <p className="contact-social-note">Os links oficiais precisam ser configurados nas variáveis NEXT_PUBLIC_WHATSAPP_URL, NEXT_PUBLIC_INSTAGRAM_URL e NEXT_PUBLIC_CONTACT_EMAIL da Vercel. Sem essa configuração, os botões usam destinos genéricos ou o e-mail provisório.</p>}
     </section>
