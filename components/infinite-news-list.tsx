@@ -53,6 +53,7 @@ export function InfiniteNewsList({
   const listRef = useRef<HTMLDivElement>(null);
   const restoredRef = useRef(false);
   const skipSaveRef = useRef(false);
+  const pendingScrollYRef = useRef<number | null>(null);
   const cacheKey = `cnc-news-list:${JSON.stringify(filters)}`;
   const returnKey = `${cacheKey}:return`;
 
@@ -75,14 +76,38 @@ export function InfiniteNewsList({
       if (!Array.isArray(saved.articles)) return;
 
       skipSaveRef.current = true;
+      pendingScrollYRef.current = Math.max(0, saved.scrollY ?? 0);
       setArticles(saved.articles);
       setHasMore(Boolean(saved.hasMore));
       offsetRef.current = typeof saved.offset === "number" ? saved.offset : saved.articles.length;
-      requestAnimationFrame(() => window.scrollTo(0, Math.max(0, saved.scrollY ?? 0)));
     } catch {
       sessionStorage.removeItem(returnKey);
     }
   }, [cacheKey, returnKey]);
+
+  useEffect(() => {
+    const targetY = pendingScrollYRef.current;
+    if (targetY === null) return;
+
+    let attempts = 0;
+    let frame = 0;
+    const restoreScroll = () => {
+      window.scrollTo({ top: targetY, left: 0, behavior: "instant" });
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      attempts += 1;
+
+      if (window.scrollY >= Math.min(targetY, maxScroll) - 2 || attempts >= 30) {
+        pendingScrollYRef.current = null;
+        return;
+      }
+      frame = requestAnimationFrame(restoreScroll);
+    };
+
+    frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(restoreScroll);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [articles]);
 
   useEffect(() => {
     if (!restoredRef.current) return;
