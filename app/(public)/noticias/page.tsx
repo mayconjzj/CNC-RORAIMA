@@ -53,7 +53,7 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
       <p className="all-news-intro">Encontre matérias por assunto, editoria, autor ou período de publicação.</p>
       <NewsSearch categories={categories} authors={authors} values={values} />
       <div className="all-news-heading"><h2>{q ? <>Resultados para “{q}”</> : "Arquivo de notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}</span></div>
-      <InfiniteNewsList key={JSON.stringify(values)} initialArticles={articles} hasMore={total > articles.length} filters={values} />
+      <InfiniteNewsList key={JSON.stringify(values)} initialArticles={articles} hasMore={total > articles.length} totalArticles={total} filters={values} />
     </section>
   </main>;
 }
