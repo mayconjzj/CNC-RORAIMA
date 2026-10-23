@@ -54,7 +54,5 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
       <div className="all-news-heading"><h2>{q ? <>Resultados para “{q}”</> : "Arquivo de notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}{total > 100 ? " · exibindo as 100 mais relevantes" : ""}</span></div>
       <NewsList articles={articles} />
     </section>
-    <footer className="all-news-footer">© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
-    
   </main>;
 }
