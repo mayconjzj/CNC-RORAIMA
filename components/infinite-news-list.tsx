@@ -158,6 +158,10 @@ export function InfiniteNewsList({
 
       const fetched = data.articles;
       if (fetched.length === 0) {
+        // Do not silently stop before the server-reported total is reached.
+        if (offsetRef.current < totalArticles) {
+          throw new Error("A listagem retornou uma página vazia antes do fim das notícias.");
+        }
         setHasMore(false);
         return;
       }
@@ -168,7 +172,9 @@ export function InfiniteNewsList({
         return uniqueFetched.length ? [...current, ...uniqueFetched] : current;
       });
       offsetRef.current += fetched.length;
-      setHasMore(Boolean(data.hasMore));
+      // The initial COUNT(*) is the authoritative total. This avoids ending
+      // pagination early if an API response reports hasMore incorrectly.
+      setHasMore(offsetRef.current < totalArticles);
     } catch {
       setError(true);
     } finally {
