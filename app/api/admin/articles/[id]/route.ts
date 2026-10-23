@@ -45,6 +45,6 @@ export async function DELETE(_request: Request, context: Context) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Falha ao excluir notícia", error);
-    return NextResponse.json({ error: "Não foi possível excluir a notícia. Verifique se há comentários vinculados." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível excluir a notícia." }, { status: 500 });
   }
 }
