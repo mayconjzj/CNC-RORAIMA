@@ -65,8 +65,10 @@ export async function DELETE(request: Request) {
     const id = typeof body.id === "string" ? body.id : "";
     if (!id) return NextResponse.json({ error: "Autor inválido." }, { status: 400 });
     const sql = getDb();
+    const existing = await sql`SELECT id, name FROM authors WHERE id = ${id} LIMIT 1`;
+    if (!existing.length) return NextResponse.json({ error: "Autor não encontrado." }, { status: 404 });
+    await sql`UPDATE articles SET author_id = NULL WHERE author_id = ${id}`;
     const rows = await sql`DELETE FROM authors WHERE id = ${id} RETURNING id, name`;
-    if (!rows.length) return NextResponse.json({ error: "Autor não encontrado." }, { status: 404 });
     revalidatePublishedContent();
     return NextResponse.json({ success: true, author: rows[0] });
   } catch (error) {
