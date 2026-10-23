@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { FormEvent, CSSProperties } from "react";
 import { upload } from "@vercel/blob/client";
-import { LogOut, PlusCircle, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, X, Eye, Upload, UserRoundPlus } from "lucide-react";
 import { ArticleList } from "@/components/admin/article-list";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import styles from "@/components/admin/admin-sidebar.module.css";
