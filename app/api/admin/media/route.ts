@@ -23,7 +23,9 @@ export async function POST(request: Request) {
         }
         if (!ALLOWED_TYPES.includes(requestedType)) throw new Error("Formato de arquivo não permitido.");
         return {
-          allowedContentTypes: ALLOWED_TYPES,
+          // Configure suffixing server-side; client uploads cannot set this option.
+          addRandomSuffix: true,
+          allowedContentTypes: [requestedType],
           maximumSizeInBytes: MAX_FILE_SIZE,
           tokenPayload: JSON.stringify({ requestedType }),
         };
