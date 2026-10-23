@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Instagram, Mail, MessageCircle } from "lucide-react";
 import { Brand } from "@/components/site-header";
 
 export function SiteFooter() {
@@ -29,9 +30,9 @@ export function SiteFooter() {
           </div>
           <div className="site-footer-column">
             <h2>Contato e redes</h2>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
-            <a href={instagramUrl} target="_blank" rel="noopener noreferrer">📷 Instagram</a>
-            <a href={`mailto:${contactEmail}`}>✉️ E-mail</a>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} aria-hidden="true" /> WhatsApp</a>
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer"><Instagram size={16} aria-hidden="true" /> Instagram</a>
+            <a href={`mailto:${contactEmail}`}><Mail size={16} aria-hidden="true" /> E-mail</a>
           </div>
         </div>
       </div>
