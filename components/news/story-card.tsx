@@ -24,6 +24,7 @@ export function StoryCard({ story, compact = false }: StoryCardProps) {
             sizes={compact ? "(max-width: 850px) 50vw, 25vw" : "(max-width: 560px) 100vw, (max-width: 850px) 50vw, 25vw"}
             unoptimized={!shouldOptimizeImage(story.featured_image_url)}
             priority={!compact && story.is_featured}
+            loading={!compact && story.is_featured ? undefined : "lazy"}
           />
         ) : <span className="story-image-fallback" aria-hidden="true" />}
         <span className="category-tag">{category}</span>
