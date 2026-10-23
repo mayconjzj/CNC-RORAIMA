@@ -6,18 +6,7 @@ export default function ArticleBackLink() {
   const router = useRouter();
 
   function goBack() {
-    const hasInternalReferrer = (() => {
-      try {
-        return Boolean(
-          document.referrer &&
-            new URL(document.referrer).origin === window.location.origin,
-        );
-      } catch {
-        return false;
-      }
-    })();
-
-    if (window.history.length > 1 && hasInternalReferrer) {
+    if (window.history.length > 1) {
       router.back();
       return;
     }
