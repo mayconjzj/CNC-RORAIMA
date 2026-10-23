@@ -20,5 +20,5 @@ export default function PrivacidadePage() {
     <section><h2>5. Segurança e retenção</h2><p>São adotadas medidas técnicas compatíveis com a operação do portal. Nenhum sistema conectado à internet pode garantir segurança absoluta. Os prazos de retenção dependem da finalidade, das necessidades operacionais e das obrigações legais aplicáveis.</p></section>
     <section><h2>6. Direitos dos titulares</h2><p>Nos termos da legislação aplicável, inclusive a Lei Geral de Proteção de Dados (LGPD), você pode solicitar informações sobre o tratamento de seus dados e exercer os direitos pertinentes. A solicitação deve ser encaminhada pelo canal indicado na página de contato.</p></section>
     <section><h2>7. Atualizações e contato</h2><p>Esta política poderá ser atualizada quando houver mudanças no portal ou nos requisitos legais. Para dúvidas ou solicitações, consulte a página de contato.</p></section>
-  </article><footer className="institutional-footer">© {new Date().getFullYear()} CNC Roraima — Cristhian Cruz News.</footer></main>;
+  </article></main>;
 }
