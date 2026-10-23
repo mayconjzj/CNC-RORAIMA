@@ -46,6 +46,7 @@ export function InfiniteNewsList({
   const [articles, setArticles] = useState(initialArticles);
   const [hasMore, setHasMore] = useState(initiallyHasMore);
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [error, setError] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(initialArticles.length);
@@ -136,7 +137,9 @@ export function InfiniteNewsList({
   }, [articles, hasMore, cacheKey]);
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    // A ref blocks simultaneous observer callbacks before React can rerender.
+    if (loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(false);
     try {
@@ -146,18 +149,31 @@ export function InfiniteNewsList({
       });
       params.set("offset", String(offsetRef.current));
       params.set("limit", "9");
-      const response = await fetch(`/api/news?${params.toString()}`);
+      const response = await fetch(`/api/news?${params.toString()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Não foi possível carregar as notícias.");
-      const data = (await response.json()) as { articles: Article[]; hasMore: boolean };
-      setArticles((current) => [...current, ...data.articles]);
-      offsetRef.current += data.articles.length;
-      setHasMore(data.hasMore);
+      const data = (await response.json()) as { articles?: Article[]; hasMore?: boolean };
+      if (!Array.isArray(data.articles)) throw new Error("A resposta da listagem está inválida.");
+
+      const fetched = data.articles;
+      if (fetched.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setArticles((current) => {
+        const knownIds = new Set(current.map((article) => article.id));
+        const uniqueFetched = fetched.filter((article) => !knownIds.has(article.id));
+        return uniqueFetched.length ? [...current, ...uniqueFetched] : current;
+      });
+      offsetRef.current += fetched.length;
+      setHasMore(Boolean(data.hasMore));
     } catch {
       setError(true);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [filters, hasMore, loading]);
+  }, [filters, hasMore]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
