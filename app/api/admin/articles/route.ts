@@ -15,6 +15,8 @@ export async function GET(request: Request) {
     const status = ["published", "draft"].includes(requestedStatus) ? requestedStatus : "all";
     const category = (params.get("category") ?? "all").slice(0, 120);
     const author = (params.get("author") ?? "all").slice(0, 120);
+    const requestedSort = params.get("sort") ?? "updated_desc";
+    const sort = ["updated_desc", "published_desc", "published_asc", "title_asc", "title_desc"].includes(requestedSort) ? requestedSort : "updated_desc";
     const requestedLimit = Number.parseInt(params.get("limit") ?? "50", 10);
     const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, requestedLimit)) : 50;
     const requestedOffset = Number.parseInt(params.get("offset") ?? "0", 10);
@@ -35,7 +37,13 @@ export async function GET(request: Request) {
           AND (${status} = 'all' OR a.status = ${status})
           AND (${category} = 'all' OR (${category} = 'none' AND a.category_id IS NULL) OR a.category_id::text = ${category})
           AND (${author} = 'all' OR (${author} = 'none' AND a.author_id IS NULL) OR a.author_id::text = ${author})
-        ORDER BY a.updated_at DESC NULLS LAST, a.id DESC LIMIT ${limit} OFFSET ${offset}
+        ORDER BY
+          CASE WHEN ${sort} = 'published_asc' THEN a.published_at END ASC NULLS LAST,
+          CASE WHEN ${sort} = 'published_desc' THEN a.published_at END DESC NULLS LAST,
+          CASE WHEN ${sort} = 'title_asc' THEN LOWER(a.title) END ASC NULLS LAST,
+          CASE WHEN ${sort} = 'title_desc' THEN LOWER(a.title) END DESC NULLS LAST,
+          CASE WHEN ${sort} = 'updated_desc' THEN a.updated_at END DESC NULLS LAST,
+          a.updated_at DESC NULLS LAST, a.id DESC LIMIT ${limit} OFFSET ${offset}
       `,
       sql`
         SELECT COUNT(*)::int AS total
