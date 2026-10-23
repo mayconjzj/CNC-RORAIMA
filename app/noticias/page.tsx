@@ -5,6 +5,7 @@ import { shouldOptimizeImage } from "@/lib/media";
 import { Clock3, Search } from "lucide-react";
 import { getDb } from "@/lib/db";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { NewsSearch } from "@/components/news-search";
 
 export const dynamic = "force-dynamic";
@@ -61,7 +62,7 @@ export default async function AllNewsPage({ searchParams }: { searchParams: Para
         <div className="all-news-card-copy"><Link className="all-news-category" href={article.category_slug ? `/editorias/${article.category_slug}` : "/noticias"}>{article.category_name ?? "Notícias"}</Link><h3><Link href={`/noticias/${article.slug}`}>{article.title}</Link></h3>{article.excerpt && <p>{article.excerpt}</p>}<div className="all-news-meta">{article.author_name && <span>Por {article.author_name}</span>}<span><Clock3 size={13}/>{dateLabel(article.published_at)}</span></div></div>
       </article>)}</div> : <div className="all-news-empty"><Search size={24}/><h2>Nenhuma notícia encontrada</h2><p>Tente mudar as palavras-chave ou remover algum filtro.</p><Link href="/noticias">Limpar busca e filtros</Link></div>}
     </section>
-    <footer className="all-news-footer">© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
+    <SiteFooter />
     
   </main>;
 }
