@@ -13,9 +13,6 @@ export function SiteFooter() {
         <nav aria-label="Links institucionais">
           <Link href="/">Início</Link>
           <Link href="/noticias">Todas as notícias</Link>
-          <Link href="/sobre">Sobre</Link>
-          <Link href="/contato">Contato</Link>
-          <Link href="/privacidade">Privacidade</Link>
         </nav>
         <small>© {new Date().getFullYear()} CNC Roraima. Todos os direitos reservados.</small>
       </div>
