@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { FormEvent, CSSProperties } from "react";
 import { upload } from "@vercel/blob/client";
@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [authorName, setAuthorName] = useState("");
   const [authorBio, setAuthorBio] = useState("");
   const [authorAvatar, setAuthorAvatar] = useState("");
+  const authorAvatarInput = useRef<HTMLInputElement>(null);
   const [editingAuthorId, setEditingAuthorId] = useState<string | null>(null);
   const [showAuthors, setShowAuthors] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -92,8 +93,10 @@ export default function AdminPage() {
         clientPayload: JSON.stringify({ type: file.type }),
       });
       onSuccess(blob.url); setMessage("Arquivo enviado com sucesso.");
-    } catch { setMessage("Falha de conexão ao enviar o arquivo."); }
-    finally { setUploading(null); }
+    } catch (error) {
+      console.error("Falha ao enviar arquivo de mídia", error);
+      setMessage(error instanceof Error ? `Não foi possível enviar a imagem: ${error.message}` : "Não foi possível enviar a imagem. Tente novamente.");
+    } finally { setUploading(null); }
   }
   async function save(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
@@ -203,7 +206,7 @@ export default function AdminPage() {
         <ArticleList articles={articles} authors={authors} busy={busy} onRefresh={()=>void load()} onEdit={editArticle} onDelete={(article)=>void deleteArticle(article)} />
         <section style={panel}><h2 style={{fontSize:20,margin:"0 0 12px"}}>Editorias</h2><div style={{display:"flex",gap:7,marginBottom:12}}><input style={{...input,marginTop:0}} placeholder="Nova editoria" value={categoryName} onChange={e=>setCategoryName(e.target.value)}/><button type="button" onClick={()=>void createCategory()} style={{...btn,color:"#b90018"}}>Adicionar</button></div>{categories.map(c=><div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #eee"}}><span>{c.name}</span><button type="button" style={{...btn,color:"#b90018",padding:6}} onClick={()=>void deleteCategory(c)} aria-label={"Excluir "+c.name}><Trash2 size={14}/></button></div>)}</section>
         <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:12}}><h2 style={{fontSize:20,margin:0}}>Autores</h2><button type="button" style={btn} onClick={()=>{setShowAuthors(v=>!v);resetAuthor();}}><UserRoundPlus size={15}/>{showAuthors?"Fechar":"Gerenciar"}</button></div>
-          {showAuthors&&<form onSubmit={saveAuthor} style={{padding:12,background:"#fafafa",borderRadius:9,marginBottom:12}}><strong style={{display:"block",marginBottom:12}}>{editingAuthorId?"Editar autor":"Adicionar autor"}</strong><label style={label}>Nome<input required minLength={2} maxLength={120} style={input} value={authorName} onChange={e=>setAuthorName(e.target.value)}/></label><label style={label}>Biografia<textarea style={{...input,minHeight:70}} maxLength={2000} value={authorBio} onChange={e=>setAuthorBio(e.target.value)}/></label><label style={label}>URL da foto<input style={input} type="url" placeholder="https://..." value={authorAvatar} onChange={e=>setAuthorAvatar(e.target.value)}/></label><label style={{...label,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{...btn,position:"relative",overflow:"hidden"}}><Upload size={15}/>{uploading==="author-avatar"?"Enviando foto...":"Escolher foto do dispositivo"}<input aria-label="Enviar foto do autor" type="file" accept="image/*" disabled={uploading==="author-avatar"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setAuthorAvatar,"author-avatar");e.currentTarget.value="";}} style={{position:"absolute",inset:0,opacity:0,width:"100%",cursor:"pointer"}}/></span><span style={{fontWeight:400,color:"#777"}}>Selecione uma imagem do celular ou computador.</span></label>{authorAvatar&&<img src={authorAvatar} alt="Prévia da foto do autor" style={{width:76,height:76,objectFit:"cover",borderRadius:"50%",marginBottom:12}}/>}<div style={{display:"flex",gap:8}}><button disabled={busy} style={{...btn,background:"#b90018",color:"#fff",border:0}}>{editingAuthorId?"Salvar autor":"Adicionar autor"}</button>{editingAuthorId&&<button type="button" style={btn} onClick={resetAuthor}>Cancelar</button>}</div></form>}
+          {showAuthors&&<form onSubmit={saveAuthor} style={{padding:12,background:"#fafafa",borderRadius:9,marginBottom:12}}><strong style={{display:"block",marginBottom:12}}>{editingAuthorId?"Editar autor":"Adicionar autor"}</strong><label style={label}>Nome<input required minLength={2} maxLength={120} style={input} value={authorName} onChange={e=>setAuthorName(e.target.value)}/></label><label style={label}>Biografia<textarea style={{...input,minHeight:70}} maxLength={2000} value={authorBio} onChange={e=>setAuthorBio(e.target.value)}/></label><label style={label}>URL da foto<input style={input} type="url" placeholder="https://..." value={authorAvatar} onChange={e=>setAuthorAvatar(e.target.value)}/></label><div style={{...label,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><button type="button" style={btn} onClick={()=>authorAvatarInput.current?.click()} disabled={uploading==="author-avatar"}><Upload size={15}/>{uploading==="author-avatar"?"Enviando foto...":"Escolher foto do dispositivo"}</button><input ref={authorAvatarInput} aria-label="Enviar foto do autor" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading==="author-avatar"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setAuthorAvatar,"author-avatar");e.currentTarget.value="";}} style={{display:"none"}}/><span style={{fontWeight:400,color:"#777"}}>Selecione uma imagem do celular ou computador.</span></div>{authorAvatar&&<img src={authorAvatar} alt="Prévia da foto do autor" style={{width:76,height:76,objectFit:"cover",borderRadius:"50%",marginBottom:12}}/>}<div style={{display:"flex",gap:8}}><button disabled={busy} style={{...btn,background:"#b90018",color:"#fff",border:0}}>{editingAuthorId?"Salvar autor":"Adicionar autor"}</button>{editingAuthorId&&<button type="button" style={btn} onClick={resetAuthor}>Cancelar</button>}</div></form>}
           {authors.length===0?<p style={{color:"#777",fontSize:14}}>Nenhum autor cadastrado.</p>:authors.map(a=><div key={a.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"1px solid #eee"}}><div><strong>{a.name}</strong>{a.bio&&<p style={{color:"#777",fontSize:12,margin:"3px 0"}}>{a.bio}</p>}</div><div style={{display:"flex",gap:5}}><button type="button" style={btn} aria-label={"Editar "+a.name} onClick={()=>{setShowAuthors(true);editAuthor(a);}}><Pencil size={13}/></button><button type="button" style={{...btn,color:"#b90018"}} aria-label={"Excluir "+a.name} onClick={()=>void deleteAuthor(a)}><Trash2 size={13}/></button></div></div>)}
         </section>
       </aside>
