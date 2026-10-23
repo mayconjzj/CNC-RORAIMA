@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
     ORDER BY
       CASE WHEN ${sort} = 'title' THEN a.title END ASC,
       CASE WHEN ${sort} = 'oldest' THEN a.published_at END ASC NULLS LAST,
-      CASE WHEN ${sort} = 'newest' THEN a.published_at END DESC NULLS LAST
+      CASE WHEN ${sort} = 'newest' THEN a.published_at END DESC NULLS LAST,
+      a.id ASC
     LIMIT ${limit + 1} OFFSET ${offset}
   ` as unknown as Article[];
 
