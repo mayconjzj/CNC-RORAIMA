@@ -58,7 +58,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
         title="WhatsApp"
         style={iconButtonStyle}
       >
-        <WhatsappIcon size={28} round aria-hidden="true" />
+        <WhatsappIcon size={28} aria-hidden="true" />
       </a>
       <a
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
@@ -68,7 +68,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
         title="Facebook"
         style={iconButtonStyle}
       >
-        <FacebookIcon size={28} round aria-hidden="true" />
+        <FacebookIcon size={28} aria-hidden="true" />
       </a>
       <a
         href={`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`}
@@ -78,7 +78,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
         title="X"
         style={iconButtonStyle}
       >
-        <XIcon size={28} round aria-hidden="true" />
+        <XIcon size={28} aria-hidden="true" />
       </a>
       <button
         type="button"
