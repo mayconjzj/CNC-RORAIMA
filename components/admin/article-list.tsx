@@ -22,6 +22,7 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [authorFilter, setAuthorFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("updated_desc");
   const [offset, setOffset] = useState(0);
   const [results, setResults] = useState<AdminArticle[]>([]);
   const [total, setTotal] = useState(0);
@@ -43,6 +44,7 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
         status: statusFilter,
         category: categoryFilter,
         author: authorFilter,
+        sort: sortOrder,
         limit: String(PAGE_SIZE),
         offset: String(offset),
       });
@@ -79,7 +81,7 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
       // aborted requests whose finally block intentionally does not run state updates.
       loadingRef.current = false;
     };
-  }, [search, statusFilter, categoryFilter, authorFilter, offset, articles]);
+  }, [search, statusFilter, categoryFilter, authorFilter, sortOrder, offset, articles]);
 
   const panel: CSSProperties = { background: "#fff", padding: 22, borderRadius: 14, border: "1px solid #eee", minWidth: 0 };
   const input: CSSProperties = { width: "100%", padding: "10px 11px", border: "1px solid #ddd", borderRadius: 8, font: "inherit", background: "#fff", minWidth: 0 };
@@ -164,6 +166,16 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
               {authors.map((author) => <option key={author.id} value={author.id}>{author.name}</option>)}
             </select>
           </label>
+          <label style={{ display: "grid", gap: 5, fontSize: 12, color: "#666" }}>
+            Ordenar por
+            <select aria-label="Ordenar notícias" style={input} value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); filtersChanged(); }}>
+              <option value="updated_desc">Última edição (mais recente)</option>
+              <option value="published_desc">Data de publicação (mais recente)</option>
+              <option value="published_asc">Data de publicação (mais antiga)</option>
+              <option value="title_asc">Título (A–Z)</option>
+              <option value="title_desc">Título (Z–A)</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -171,8 +183,8 @@ export function ArticleList({ articles, authors, categories, busy, onRefresh, on
         <p style={{ color: "#777", fontSize: 12, margin: "9px 0 8px" }} aria-live="polite">
           {loading ? "Pesquisando…" : `Exibindo ${results.length} de ${total} notícias`}
         </p>
-        {(search || statusFilter !== "all" || categoryFilter !== "all" || authorFilter !== "all") &&
-          <button type="button" onClick={() => { setSearch(""); setStatusFilter("all"); setCategoryFilter("all"); setAuthorFilter("all"); setOffset(0); }} style={{ ...button, fontSize: 12, padding: "6px 8px" }}>Limpar filtros</button>}
+        {(search || statusFilter !== "all" || categoryFilter !== "all" || authorFilter !== "all" || sortOrder !== "updated_desc") &&
+          <button type="button" onClick={() => { setSearch(""); setStatusFilter("all"); setCategoryFilter("all"); setAuthorFilter("all"); setSortOrder("updated_desc"); setOffset(0); }} style={{ ...button, fontSize: 12, padding: "6px 8px" }}>Limpar filtros</button>}
       </div>
       {error && <p role="alert" style={{ color: "#b90018", fontSize: 13 }}>{error}</p>}
 
