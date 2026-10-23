@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { NewsSearch } from "@/components/news-search";
-import { NewsList } from "@/components/news-list";
+import { InfiniteNewsList } from "@/components/infinite-news-list";
 
 type Filters = { q?: string; author?: string; from?: string; to?: string; sort?: string };
 type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<Filters> };
@@ -39,7 +39,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const category = await getCategory(slug);
   if (!category) notFound();
   const sql = getDb();
-  const [authors, articles] = await Promise.all([
+  const [authors, articles, countRows] = await Promise.all([
     sql`SELECT au.id,au.name FROM authors au WHERE EXISTS (SELECT 1 FROM articles a WHERE a.author_id=au.id AND a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW()) ORDER BY au.name` as unknown as Promise<Author[]>,
     sql`
       SELECT a.id,a.title,a.slug,a.excerpt,a.featured_image_url,a.published_at,c.name AS category_name,c.slug AS category_slug,au.name AS author_name
@@ -52,16 +52,18 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       ORDER BY CASE WHEN ${sort}='title' THEN a.title END ASC,
         CASE WHEN ${sort}='oldest' THEN a.published_at END ASC NULLS LAST,
         CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST
-      LIMIT 100
-    ` as unknown as Promise<Article[]>
+      LIMIT 9
+    ` as unknown as Promise<Article[]>,
+    sql`SELECT COUNT(*)::int AS total FROM articles a WHERE a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW() AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%') AND (${author}='' OR a.author_id::text=${author}) AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date) AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))` as unknown as Promise<{ total: number }[]>
   ]);
+  const total = countRows[0]?.total ?? articles.length;
   const values = { q, author, from, to, sort };
   return <main className="editoria-page">
     <section className="editoria-content">
       <div className="editoria-intro"><span className="editoria-eyebrow">CNC RORAIMA / EDITORIAS</span><h1>{category.name}</h1><p>{`Acompanhe as notícias e atualizações de ${category.name} em Roraima.`}</p><div className="editoria-rule"><span /></div></div>
       <NewsSearch action={`/editorias/${slug}`} authors={authors} values={values} showCategory={false} compact />
-      <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{articles.length} {articles.length === 1 ? "notícia encontrada" : "notícias encontradas"}{articles.length === 100 ? " · limite de 100" : ""}</span></div>
-      <NewsList articles={articles} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
+      <div className="editoria-section-heading"><h2>{q ? `Resultados para “${q}”` : "Últimas notícias"}</h2><span>{total} {total === 1 ? "notícia encontrada" : "notícias encontradas"}</span></div>
+      <InfiniteNewsList initialArticles={articles} hasMore={total > articles.length} filters={{ ...values, category: slug }} emptyTitle="Nenhuma notícia encontrada" emptyDescription="Tente alterar os termos da busca ou remover algum filtro." emptyHref={`/editorias/${slug}`} emptyLinkLabel="Limpar filtros" />
     </section>
   </main>;
 }
