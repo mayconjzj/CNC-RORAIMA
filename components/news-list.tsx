@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock3, Search } from "lucide-react";
 import { shouldOptimizeImage } from "@/lib/media";
+import { formatNewsDate } from "@/lib/news-date";
 
 type Article = {
   id: string;
@@ -22,16 +23,6 @@ type Props = {
   emptyHref?: string;
   emptyLinkLabel?: string;
 };
-
-function dateLabel(value: string | null) {
-  return value
-    ? new Date(value).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "Data não informada";
-}
 
 export function NewsList({
   articles,
@@ -88,7 +79,7 @@ export function NewsList({
               {article.author_name && <span>Por {article.author_name}</span>}
               <span>
                 <Clock3 size={13} />
-                {dateLabel(article.published_at)}
+                {formatNewsDate(article.published_at)}
               </span>
             </div>
           </div>
