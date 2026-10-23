@@ -20,5 +20,5 @@ export default function ContatoPage() {
     </section>
     <section><h2>Pedido de correção</h2><p>Ao solicitar uma correção, informe o título ou endereço da notícia e descreva objetivamente o trecho que precisa ser verificado. A equipe poderá solicitar informações adicionais para avaliar o pedido.</p></section>
     <section><h2>Outros assuntos</h2><p>Para questões de privacidade ou uso de dados, consulte a <Link href="/privacidade">Política de Privacidade</Link>.</p></section>
-  </article><footer className="institutional-footer">© {new Date().getFullYear()} CNC Roraima — Cristhian Cruz News.</footer></main>;
+  </article></main>;
 }
