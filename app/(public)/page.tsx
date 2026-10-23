@@ -57,6 +57,36 @@ export default async function Home() {
     </section>
     <section className="cnc-band" id="cnc"><div className="wrap cnc-inner"><div className="cnc-symbol">CNC<span>+</span></div><div className="cnc-text"><span className="eyebrow gold">ALÉM DAS NOTÍCIAS</span><h2>A CNC também faz parte dessa história.</h2><p>Conheça as ações, os projetos e as iniciativas da CNC em Roraima.</p></div><Link className="gold-button" href="/admin">Painel editorial <ArrowRight size={17}/></Link></div></section>
     <section className="wrap newsletter"><div><span className="eyebrow">FIQUE BEM INFORMADO</span><h2>Roraima acontece. <em>A gente conta.</em></h2><p>Volte para acompanhar as principais atualizações do estado.</p></div><Link className="red-button" href="#ultimas">Ler as notícias <ArrowRight size={16}/></Link></section>
-    <footer><div className="wrap footer-main"><Brand/><p>Informação de credibilidade para Roraima.</p><Link href="/sobre">Sobre o portal</Link><Link href="/contato">Contato</Link><Link href="/politica-editorial">Princípios editoriais</Link><Link href="/privacidade">Privacidade</Link><Link href="/admin">Administração</Link></div><div className="footer-bottom"><div className="wrap"><span>© {new Date().getFullYear()} CNC — Cristhian Cruz News</span><span>Jornalismo local com responsabilidade.</span></div></div></footer>
+    <footer className="site-footer">
+      <div className="site-footer-main">
+        <div className="wrap site-footer-grid">
+          <div className="site-footer-brand">
+            <Brand />
+            <p>Notícias, informação e os acontecimentos que impactam Roraima. Um espaço dedicado a informar com responsabilidade e contexto.</p>
+            <span className="site-footer-location"><span className="site-footer-status" /> Informação de Roraima para Roraima</span>
+          </div>
+          <div className="site-footer-column">
+            <h2>Explore</h2>
+            <Link href="/noticias">Todas as notícias</Link>
+            <Link href="/#ultimas">Últimas notícias</Link>
+            <Link href="/#cnc">A CNC</Link>
+            <Link href="/sobre">Sobre o portal</Link>
+          </div>
+          <div className="site-footer-column">
+            <h2>Institucional</h2>
+            <Link href="/contato">Fale conosco</Link>
+            <Link href="/politica-editorial">Política editorial</Link>
+            <Link href="/privacidade">Política de privacidade</Link>
+            <Link href="/admin">Acesso da redação <ArrowRight size={13}/></Link>
+          </div>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <div className="wrap">
+          <span>© {new Date().getFullYear()} CNC Roraima — Cristhian Cruz News. Todos os direitos reservados.</span>
+          <span>Jornalismo local com responsabilidade.</span>
+        </div>
+      </div>
+    </footer>
   </main>;
 }
