@@ -50,6 +50,52 @@ export function InfiniteNewsList({
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(initialArticles.length);
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const restoredRef = useRef(false);
+  const cacheKey = `cnc-news-list:${JSON.stringify(filters)}`;
+  const returnKey = `${cacheKey}:return`;
+
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+
+    try {
+      if (sessionStorage.getItem(returnKey) !== "1") return;
+      const cached = sessionStorage.getItem(cacheKey);
+      sessionStorage.removeItem(returnKey);
+      if (!cached) return;
+
+      const saved = JSON.parse(cached) as {
+        articles?: Article[];
+        hasMore?: boolean;
+        offset?: number;
+        scrollY?: number;
+      };
+      if (!Array.isArray(saved.articles)) return;
+
+      setArticles(saved.articles);
+      setHasMore(Boolean(saved.hasMore));
+      offsetRef.current = typeof saved.offset === "number" ? saved.offset : saved.articles.length;
+      requestAnimationFrame(() => window.scrollTo(0, Math.max(0, saved.scrollY ?? 0)));
+    } catch {
+      sessionStorage.removeItem(returnKey);
+    }
+  }, [cacheKey, returnKey]);
+
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        articles,
+        hasMore,
+        offset: offsetRef.current,
+        scrollY: window.scrollY,
+      }));
+    } catch {
+      // If storage is unavailable or full, pagination still works normally.
+    }
+  }, [articles, hasMore, cacheKey]);
+
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -89,13 +135,36 @@ export function InfiniteNewsList({
 
   return (
     <>
-      <NewsList
-        articles={articles}
-        emptyTitle={emptyTitle}
-        emptyDescription={emptyDescription}
-        emptyHref={emptyHref}
-        emptyLinkLabel={emptyLinkLabel}
-      />
+      <div
+        ref={listRef}
+        onClick={(event) => {
+          const target = event.target;
+          if (!(target instanceof Element)) return;
+          const link = target.closest("a[href]");
+          if (!link) return;
+          const href = link.getAttribute("href") ?? "";
+          if (!href.startsWith("/noticias/") || href === "/noticias") return;
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+              articles,
+              hasMore,
+              offset: offsetRef.current,
+              scrollY: window.scrollY,
+            }));
+            sessionStorage.setItem(returnKey, "1");
+          } catch {
+            // Navigation remains available even when storage is unavailable.
+          }
+        }}
+      >
+        <NewsList
+          articles={articles}
+          emptyTitle={emptyTitle}
+          emptyDescription={emptyDescription}
+          emptyHref={emptyHref}
+          emptyLinkLabel={emptyLinkLabel}
+        />
+      </div>
       <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
       {loading && <p role="status" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Carregando mais notícias…</p>}
       {error && (
