@@ -85,7 +85,7 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
         title="LinkedIn"
         style={iconButtonStyle}
       >
-        <LinkedinIcon size={28} round aria-hidden="true" />
+        <LinkedinIcon size={28} aria-hidden="true" />
       </a>
     </div>
   );
