@@ -10,6 +10,7 @@ import ArticleBackLink from "./article-back-link";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 import { formatArticleTimestamp, hasArticleBeenUpdated } from "@/lib/news-date";
+import { ShareButtons } from "@/components/news/share-buttons";
 
 type Props = { params: Promise<{ slug: string }> };
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; category_name: string | null; author_name: string | null; author_avatar_url: string | null };
@@ -86,6 +87,7 @@ export default async function ArticlePage({ params }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "20px 0 28px", color: "#777", fontSize: 13 }}>{article.author_name && (article.author_avatar_url ? <img src={article.author_avatar_url} alt={`Foto de ${article.author_name}`} width={40} height={40} loading="lazy" referrerPolicy="no-referrer" style={{ width: 40, height: 40, flexShrink: 0, objectFit: "cover", borderRadius: "50%", border: "1px solid #e5e5e5" }} /> : <span aria-hidden="true" style={{ width: 40, height: 40, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "#f2e6e7", color: "#b90018", fontSize: 16, fontWeight: 800 }}>{article.author_name.trim().charAt(0).toUpperCase()}</span>)}<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>{article.author_name && <span style={{ color: "#202126", fontWeight: 700 }}>Por {article.author_name}</span>}{article.published_at && <time dateTime={article.published_at}>{formatArticleTimestamp(article.published_at, "Publicado")}</time>}{hasArticleBeenUpdated(article.published_at, article.updated_at) && article.updated_at && <time dateTime={article.updated_at}>{formatArticleTimestamp(article.updated_at, "Atualizado")}</time>}</div></div>
       {article.featured_image_url && <Image src={article.featured_image_url} alt={article.image_alt || article.title} width={1200} height={520} sizes="(max-width: 900px) 100vw, 900px" priority unoptimized={!shouldOptimizeImage(article.featured_image_url)} style={{ width: "100%", height: "auto", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <ArticleBody sections={sections} />
+      <ShareButtons title={article.title} url={articleUrl} />
       
     </article>
   </main>;
