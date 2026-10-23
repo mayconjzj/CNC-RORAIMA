@@ -5,7 +5,6 @@ import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { normalizeArticleSections } from "@/lib/article-content";
-import ArticleComments from "./comments";
 import ArticleBackLink from "./article-back-link";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
@@ -103,7 +102,6 @@ export default async function ArticlePage({ params }: Props) {
         </section>)}
       </div>
       
-      <ArticleComments slug={article.slug} />
     </article>
     <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
   </main>;
