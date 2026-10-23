@@ -11,13 +11,13 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 
 type Props = { params: Promise<{ slug: string }> };
-type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; category_name: string | null; author_name: string | null };
+type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; category_name: string | null; author_name: string | null; author_avatar_url: string | null };
 
 const findArticle = cache(unstable_cache(async function findArticle(slug: string): Promise<Article | null> {
   const sql = getDb();
   const rows = await sql`
     SELECT a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.image_alt, a.published_at, a.updated_at,
-      c.name AS category_name, au.name AS author_name
+      c.name AS category_name, au.name AS author_name, au.avatar_url AS author_avatar_url
     FROM articles a LEFT JOIN categories c ON c.id = a.category_id LEFT JOIN authors au ON au.id = a.author_id
     WHERE a.slug = ${slug} AND a.status = 'published' AND a.published_at <= NOW() LIMIT 1
   `;
@@ -82,11 +82,10 @@ export default async function ArticlePage({ params }: Props) {
       <p style={{ color: "#b90018", textTransform: "uppercase", letterSpacing: 1.5, fontSize: 12, fontWeight: 800, marginTop: 28 }}>{article.category_name ?? "Notícias de Roraima"}</p>
       <h1 style={{ fontSize: "clamp(32px, 6vw, 54px)", lineHeight: 1.08, margin: "12px 0 18px" }}>{article.title}</h1>
       {article.excerpt && <p style={{ fontSize: 21, lineHeight: 1.6, color: "#666" }}>{article.excerpt}</p>}
-      <p style={{ color: "#777", fontSize: 13, margin: "20px 0 28px" }}>{article.author_name ? `Por ${article.author_name} · ` : ""}{article.published_at ? new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : ""}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "20px 0 28px", color: "#777", fontSize: 13 }}>{article.author_name && (article.author_avatar_url ? <img src={article.author_avatar_url} alt={`Foto de ${article.author_name}`} width={40} height={40} loading="lazy" referrerPolicy="no-referrer" style={{ width: 40, height: 40, flexShrink: 0, objectFit: "cover", borderRadius: "50%", border: "1px solid #e5e5e5" }} /> : <span aria-hidden="true" style={{ width: 40, height: 40, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "#f2e6e7", color: "#b90018", fontSize: 16, fontWeight: 800 }}>{article.author_name.trim().charAt(0).toUpperCase()}</span>)}<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>{article.author_name && <span style={{ color: "#202126", fontWeight: 700 }}>Por {article.author_name}</span>}{article.published_at && <time dateTime={article.published_at}>{new Date(article.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" })}</time>}</div></div>
       {article.featured_image_url && <Image src={article.featured_image_url} alt={article.image_alt || article.title} width={1200} height={520} sizes="(max-width: 900px) 100vw, 900px" priority unoptimized={!shouldOptimizeImage(article.featured_image_url)} style={{ width: "100%", height: "auto", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <ArticleBody sections={sections} />
       
     </article>
-    <footer style={{ background: "#202126", color: "#ddd", padding: 24, textAlign: "center" }}>© {new Date().getFullYear()} CNC Roraima — Informação de credibilidade.</footer>
   </main>;
 }
