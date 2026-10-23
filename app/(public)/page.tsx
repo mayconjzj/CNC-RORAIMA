@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getDb, getPublishedArticles } from "@/lib/db";
+import { getPublishedArticles } from "@/lib/db";
 import { Brand } from "@/components/site-header";
-import { NewsSearch } from "@/components/news-search";
 import { StoryCard } from "@/components/news/story-card";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
@@ -15,20 +14,9 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function Home() {
   let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
   let databaseReady = true;
-  let categories: { id: string; name: string; slug: string }[] = [];
-  let authors: { id: string; name: string }[] = [];
   try {
     stories = await getPublishedArticles(12);
   } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
-  try {
-    const sql = getDb();
-    [categories, authors] = await Promise.all([
-      sql`SELECT c.id, c.name, c.slug FROM categories c WHERE EXISTS (SELECT 1 FROM articles a WHERE a.category_id=c.id AND a.status='published' AND a.published_at<=NOW()) ORDER BY c.name` as unknown as Promise<typeof categories>,
-      sql`SELECT au.id, au.name FROM authors au WHERE EXISTS (SELECT 1 FROM articles a WHERE a.author_id=au.id AND a.status='published' AND a.published_at<=NOW()) ORDER BY au.name` as unknown as Promise<typeof authors>
-    ]);
-  } catch (error) {
-    console.error("Não foi possível carregar as opções de busca", error);
-  }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
   const siteUrl = SITE_URL;
@@ -55,7 +43,6 @@ export default async function Home() {
 
     <section className="wrap lead-section">
       <div className="section-heading"><div><span className="eyebrow">O QUE VOCÊ PRECISA SABER</span><h1>As notícias que <em>movem Roraima.</em></h1></div><p>Informação local, contexto e credibilidade para você entender o que acontece no nosso estado.</p></div>
-      <NewsSearch categories={categories} authors={authors} />
       {featured ? <div className="lead-grid">
         <article className="hero-story"><Link className="hero-image" href={`/noticias/${featured.slug}`} aria-label={featured.title}>{featured.featured_image_url ? <Image src={featured.featured_image_url} alt="" fill sizes="(max-width: 850px) 100vw, 65vw" priority unoptimized={!shouldOptimizeImage(featured.featured_image_url)} /> : <span className="hero-image-fallback" />}<span className="hero-image-overlay" />
           <span className="category-tag">{featured.category_name ?? "DESTAQUE"}</span><div className="hero-text"><span className="hero-kicker">GIRO DE NOTÍCIAS • RORAIMA</span><h2>{featured.title}</h2><span className="hero-meta"><Clock3 size={14}/> {featured.published_at ? new Date(featured.published_at).toLocaleDateString("pt-BR", { dateStyle: "long" }) : "Última notícia"} <ArrowRight size={16}/></span></div>
