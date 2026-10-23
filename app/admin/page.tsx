@@ -191,7 +191,6 @@ export default function AdminPage() {
       <div className="admin-layout-grid" style={{display:"grid",gridTemplateColumns:"minmax(0,1.2fr) minmax(300px,.8fr)",gap:20,alignItems:"start"}}>
         <div style={{minWidth:0}}><ArticleList articles={articles} authors={authors} categories={categories} busy={busy} onRefresh={()=>void load()} onEdit={editArticle} onDelete={(article)=>void deleteArticle(article)}/></div>
         <aside style={{display:"grid",gap:18,alignSelf:"start"}}>
-          <ArticleList articles={articles} authors={authors} categories={categories} busy={busy} onRefresh={()=>void load()} onEdit={editArticle} onDelete={(article)=>void deleteArticle(article)} />
           <section style={panel}><h2 style={{fontSize:20,margin:"0 0 12px"}}>Editorias</h2><div style={{display:"flex",gap:7,marginBottom:12}}><input style={{...input,marginTop:0}} placeholder="Nova editoria" value={categoryName} onChange={e=>setCategoryName(e.target.value)}/><button type="button" onClick={()=>void createCategory()} style={{...btn,color:"#b90018"}}>Adicionar</button></div>{categories.map(c=><div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #eee"}}><span>{c.name}</span><button type="button" style={{...btn,color:"#b90018",padding:6}} onClick={()=>void deleteCategory(c)} aria-label={"Excluir "+c.name}><Trash2 size={14}/></button></div>)}</section>
           <section style={panel}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:12}}><h2 style={{fontSize:20,margin:0}}>Autores</h2><button type="button" style={btn} onClick={()=>{setShowAuthors(v=>!v);resetAuthor();}}><UserRoundPlus size={15}/>{showAuthors?"Fechar":"Gerenciar"}</button></div>
             {showAuthors&&<form onSubmit={saveAuthor} style={{padding:12,background:"#fafafa",borderRadius:9,marginBottom:12}}><strong style={{display:"block",marginBottom:12}}>{editingAuthorId?"Editar autor":"Adicionar autor"}</strong><label style={label}>Nome<input required minLength={2} maxLength={120} style={input} value={authorName} onChange={e=>setAuthorName(e.target.value)}/></label><label style={label}>Biografia<textarea style={{...input,minHeight:70}} maxLength={2000} value={authorBio} onChange={e=>setAuthorBio(e.target.value)}/></label><label style={label}>URL da foto<input style={input} type="url" placeholder="https://..." value={authorAvatar} onChange={e=>setAuthorAvatar(e.target.value)}/></label><div style={{...label,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><button type="button" style={btn} onClick={()=>authorAvatarInput.current?.click()} disabled={uploading==="author-avatar"}><Upload size={15}/>{uploading==="author-avatar"?"Enviando foto...":"Escolher foto do dispositivo"}</button><input ref={authorAvatarInput} aria-label="Enviar foto do autor" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading==="author-avatar"} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadFile(file,setAuthorAvatar,"author-avatar");e.currentTarget.value="";}} style={{display:"none"}}/><span style={{fontWeight:400,color:"#777"}}>Selecione uma imagem do celular ou computador.</span></div>{authorAvatar&&<img src={authorAvatar} alt="Prévia da foto do autor" style={{width:76,height:76,objectFit:"cover",borderRadius:"50%",marginBottom:12}}/>}<div style={{display:"flex",gap:8}}><button disabled={busy} style={{...btn,background:"#b90018",color:"#fff",border:0}}>{editingAuthorId?"Salvar autor":"Adicionar autor"}</button>{editingAuthorId&&<button type="button" style={btn} onClick={resetAuthor}>Cancelar</button>}</div></form>}
@@ -199,18 +198,14 @@ export default function AdminPage() {
           </section>
         </aside>
       </div>
-        </aside>
-      </div>
-    </div>
     {showArticleForm&&<div role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!busy&&uploading===null)resetForm();}} style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(18,19,22,.68)",padding:"max(12px, 3vh) 12px",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <section role="dialog" aria-modal="true" aria-labelledby="article-form-title" style={{width:"min(1000px,100%)",maxHeight:"94vh",overflowY:"auto",background:"#f7f7f8",borderRadius:16,boxShadow:"0 24px 80px rgba(0,0,0,.28)",padding:"clamp(16px,3vw,28px)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:18}}>
           <div><h2 id="article-form-title" style={{fontSize:23,margin:"0 0 4px"}}>{editingId?"Editar notícia":"Adicionar notícia"}</h2><p style={{fontSize:13,color:"#777",margin:0}}>Preencha os dados, confira a prévia e salve ou publique.</p></div>
           <button type="button" aria-label="Fechar formulário de notícia" onClick={resetForm} disabled={busy||uploading!==null} style={{...btn,padding:9,flexShrink:0}}><X size={19}/></button>
         </div>
-              <section style={{...panel, border:0, borderRadius:0, boxShadow:"none", padding:0, background:"transparent"}}>
-                <h1 style={{ fontSize: 24, margin: "0 0 5px" }}><PlusCircle size={22} style={{ verticalAlign: "middle", marginRight: 8, color: "#b90018" }}/>{editingId ? "Editar notícia" : "Nova notícia"}</h1>
-                <p style={{ color: "#777", marginBottom: 22 }}>Monte a matéria por blocos: texto, títulos, citações, imagens, vídeos, áudios e links.</p>
+              <div style={{background:"#fff",padding:"clamp(16px,3vw,24px)",borderRadius:12,border:"1px solid #eee"}}>
+                
                 <form onSubmit={save}>
                   <label style={label}>Título da notícia<input style={input} minLength={5} maxLength={180} required value={title} onChange={e=>setTitle(e.target.value)}/></label>
                   <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:72}} maxLength={500} value={excerpt} onChange={e=>setExcerpt(e.target.value)}/></label>
@@ -227,7 +222,7 @@ export default function AdminPage() {
                   {message&&<p role="status" style={{color:"#b90018",fontSize:14}}>{message}</p>}
                   <div style={{display:"flex",gap:10}}><button disabled={busy||uploading!==null} style={{flex:1,padding:13,border:0,borderRadius:8,background:"#b90018",color:"#fff",fontWeight:800,cursor:"pointer"}}>{busy?"Salvando...":editingId?"Salvar alterações":"Salvar notícia"}</button>{editingId&&<button type="button" onClick={resetForm} style={btn}><X size={16}/> Cancelar</button>}</div>
                 </form>
-              
+              </div>
       </section>
     </div>}
 
