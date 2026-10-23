@@ -33,6 +33,8 @@ export function SiteNavigation({ categories }: { categories: Category[] }) {
           );
         })}
         <Link href="/#cnc">CNC</Link>
+        <Link href="/sobre" className={pathname === "/sobre" ? "is-active" : undefined}>SOBRE</Link>
+        <Link href="/contato" className={pathname === "/contato" ? "is-active" : undefined}>CONTATO</Link>
         <span className="nav-live"><span /> RORAIMA AGORA</span>
       </div>
     </nav>
