@@ -13,7 +13,7 @@ export const revalidate = 0;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
-  let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
+  let stories: Awaited<ReturnType<typeof getFreshPublishedArticles>> = [];
   let databaseReady = true;
   try {
     stories = await getFreshPublishedArticles(12);
