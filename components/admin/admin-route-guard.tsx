@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
+import { getCachedAdminPermissions, loadAdminPermissions, clearAdminPermissionsCache } from "@/lib/admin-permissions-client";
 
 const routePermissions: Array<{ matches: (pathname: string) => boolean; permission: string; area: string }> = [
   { matches: (path) => path === "/admin/noticias" || path.startsWith("/admin/noticias/"), permission: "manage_news", area: "Notícias" },
@@ -12,21 +13,16 @@ const routePermissions: Array<{ matches: (pathname: string) => boolean; permissi
 ];
 
 type AccessState = "not-required" | "checking" | "allowed" | "denied" | "error" | "unauthenticated";
-type PermissionCache = { permissions: string[]; fetchedAt: number };
-
-// Reuse permissions during navigation; the APIs still authorize every operation.
-let permissionCache: PermissionCache | null = null;
-const PERMISSION_CACHE_TTL_MS = 60_000;
 
 export function AdminRouteGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const route = routePermissions.find((item) => item.matches(pathname));
   const [state, setState] = useState<AccessState>(() => {
     if (!route) return "not-required";
-    if (permissionCache) return permissionCache.permissions.includes(route.permission) ? "allowed" : "denied";
-    return "checking";
+    const cached = getCachedAdminPermissions();
+    return cached === null ? "checking" : cached.includes(route.permission) ? "allowed" : "denied";
   });
-  const [checkedPath, setCheckedPath] = useState<string | null>(() => permissionCache || !route ? pathname : null);
+  const [checkedPath, setCheckedPath] = useState<string | null>(() => getCachedAdminPermissions() !== null || !route ? pathname : null);
 
   useEffect(() => {
     if (!route) {
@@ -35,49 +31,41 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
       return;
     }
 
-    const cached = permissionCache;
-    if (cached) {
-      setState(cached.permissions.includes(route.permission) ? "allowed" : "denied");
+    const cached = getCachedAdminPermissions();
+    if (cached !== null) {
+      setState(cached.includes(route.permission) ? "allowed" : "denied");
       setCheckedPath(pathname);
-      if (Date.now() - cached.fetchedAt < PERMISSION_CACHE_TTL_MS) return;
-      // Stale data is usable while it refreshes, avoiding a full-page loading screen.
-    } else {
-      setState("checking");
+      return;
     }
 
     let active = true;
-    fetch("/api/admin/me", { cache: "no-store" })
-      .then(async (response) => {
+    setState("checking");
+    loadAdminPermissions()
+      .then((permissions) => {
         if (!active) return;
-        if (response.status === 401) {
-          permissionCache = null;
-          setState("unauthenticated");
-          setCheckedPath(pathname);
-          return;
-        }
-        if (!response.ok) {
-          if (!permissionCache) setState("error");
-          setCheckedPath(pathname);
-          return;
-        }
-        const data = await response.json() as { permissions?: string[] };
-        if (active) {
-          permissionCache = { permissions: data.permissions ?? [], fetchedAt: Date.now() };
-          setState(permissionCache.permissions.includes(route.permission) ? "allowed" : "denied");
-          setCheckedPath(pathname);
-        }
+        setState(permissions.includes(route.permission) ? "allowed" : "denied");
+        setCheckedPath(pathname);
       })
-      .catch(() => {
-        if (active) {
-          if (!permissionCache) setState("error");
-          setCheckedPath(pathname);
+      .catch((error: unknown) => {
+        if (!active) return;
+        if (error instanceof Error && error.message.includes("Sessão administrativa expirada")) {
+          clearAdminPermissionsCache();
+          setState("unauthenticated");
+        } else {
+          setState("error");
         }
+        setCheckedPath(pathname);
       });
 
     return () => { active = false; };
   }, [pathname, route?.permission]);
 
-  if (route && checkedPath !== pathname && !permissionCache) {
+  const cached = getCachedAdminPermissions();
+  const visibleState = route && checkedPath !== pathname && cached !== null
+    ? (cached.includes(route.permission) ? "allowed" : "denied")
+    : state;
+
+  if (route && checkedPath !== pathname && cached === null) {
     return (
       <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f8fa", color: "#20252d" }}>
         <p>Verificando suas permissões…</p>
@@ -85,13 +73,13 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!route || state === "not-required" || state === "allowed" || state === "unauthenticated") {
+  if (!route || visibleState === "not-required" || visibleState === "allowed" || visibleState === "unauthenticated") {
     return <>{children}</>;
   }
 
-  const message = state === "checking"
+  const message = visibleState === "checking"
     ? "Verificando suas permissões…"
-    : state === "error"
+    : visibleState === "error"
       ? "Não foi possível verificar suas permissões. Atualize a página e tente novamente."
       : `Sua conta não tem permissão para acessar a área de ${route.area}.`;
 
@@ -99,9 +87,9 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f8fa", color: "#20252d" }}>
       <section style={{ width: "100%", maxWidth: 440, padding: 32, border: "1px solid #e1e5ea", borderRadius: 16, background: "#fff", textAlign: "center" }}>
         <ShieldAlert size={34} aria-hidden="true" style={{ margin: "0 auto 16px" }} />
-        <h1 style={{ margin: "0 0 10px", fontSize: 22 }}>{state === "checking" ? "Validando acesso" : state === "error" ? "Falha na verificação" : "Acesso restrito"}</h1>
+        <h1 style={{ margin: "0 0 10px", fontSize: 22 }}>{visibleState === "checking" ? "Validando acesso" : visibleState === "error" ? "Falha na verificação" : "Acesso restrito"}</h1>
         <p style={{ margin: 0, lineHeight: 1.6 }}>{message}</p>
-        {state === "denied" && <a href="/admin" style={{ display: "inline-block", marginTop: 20, color: "#8a5b00", fontWeight: 600 }}>Voltar ao painel</a>}
+        {visibleState === "denied" && <a href="/admin" style={{ display: "inline-block", marginTop: 20, color: "#8a5b00", fontWeight: 600 }}>Voltar ao painel</a>}
       </section>
     </main>
   );
