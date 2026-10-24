@@ -47,6 +47,11 @@ export async function loadAdminPermissions(): Promise<AdminPermission[]> {
   const requestGeneration = generation;
   const promise = fetch("/api/admin/me", { cache: "no-store" })
     .then(async (response) => {
+      // Uma resposta antiga não deve invalidar uma sessão autenticada mais recente.
+      if (generation !== requestGeneration && cachedPermissions !== null) {
+        return [...cachedPermissions];
+      }
+
       if (response.status === 401) {
         if (generation === requestGeneration) clearAdminPermissionsCache();
         throw new Error("Sessão administrativa expirada.");
