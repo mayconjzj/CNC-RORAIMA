@@ -1,4 +1,3 @@
-"use server";
 import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdminPermission } from "@/lib/admin-permissions";
