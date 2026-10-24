@@ -36,3 +36,17 @@ export async function requireAdminPermission(permission: AdminPermission) {
     return { session: null, response: NextResponse.json({ error: "Não foi possível verificar suas permissões." }, { status: 500 }) };
   }
 }
+
+export async function requireAnyAdminPermission(permissions: readonly AdminPermission[]) {
+  const session = await getAdminSession();
+  if (!session) return { session: null, response: NextResponse.json({ error: "Não autorizado." }, { status: 401 }) };
+  try {
+    for (const permission of permissions) {
+      if (await hasAdminPermission(session.id, permission)) return { session, response: null };
+    }
+    return { session: null, response: NextResponse.json({ error: "Você não tem permissão para acessar este recurso." }, { status: 403 }) };
+  } catch (error) {
+    console.error("Falha ao verificar permissões administrativas", error);
+    return { session: null, response: NextResponse.json({ error: "Não foi possível verificar suas permissões." }, { status: 500 }) };
+  }
+}
