@@ -97,7 +97,24 @@ export default function AdminAuthorsPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); }
 
-  if (loading) return <main className={styles.loading}><LoaderCircle size={22} className={styles.spin} />Verificando sessão administrativa…</main>;
+  if (loading) return <main className={styles.shell} aria-busy="true" aria-label="Carregando autores">
+    <AdminSidebar onLogout={() => void logout()} />
+    <div className={styles.main}>
+      <div className={styles.breadcrumb}><span className={styles.skeletonLine} style={{ width: 130 }} /><ChevronLeft size={14} /><span className={styles.skeletonLine} style={{ width: 55 }} /></div>
+      <header className={styles.pageHeader}>
+        <div><div className={styles.skeletonLine} style={{ width: 125, height: 10, marginBottom: 14 }} /><div className={styles.skeletonLine} style={{ width: 180, height: 38, marginBottom: 10 }} /><div className={styles.skeletonLine} style={{ width: 340, maxWidth: "75vw", height: 13 }} /></div>
+        <div className={styles.skeletonButton} />
+      </header>
+      <section className={styles.stats} aria-hidden="true">
+        {[0, 1, 2].map((item) => <div className={styles.statCard} key={item}><div className={styles.skeletonIcon} /><div className={styles.skeletonStatText}><span className={styles.skeletonLine} /><strong className={styles.skeletonLine} /><small className={styles.skeletonLine} /></div></div>)}
+      </section>
+      <section className={styles.directory} aria-hidden="true">
+        <div className={styles.directoryHeader}><div><div className={styles.skeletonLine} style={{ width: 180, height: 18, marginBottom: 9 }} /><div className={styles.skeletonLine} style={{ width: 235, height: 11 }} /></div><div className={styles.skeletonSearch} /></div>
+        <div className={styles.directoryMeta}><span className={styles.skeletonLine} style={{ width: 110 }} /><span className={styles.skeletonLine} style={{ width: 130 }} /></div>
+        <div className={styles.authorList}>{[0, 1, 2, 3].map((item) => <div className={styles.authorRow} key={item}><div className={styles.skeletonAvatar} /><div className={styles.skeletonAuthorInfo}><span className={styles.skeletonLine} style={{ width: item % 2 ? "42%" : "55%", height: 14 }} /><span className={styles.skeletonLine} style={{ width: item % 2 ? "72%" : "88%", height: 10 }} /><span className={styles.skeletonLine} style={{ width: 145, height: 18, marginTop: 5 }} /></div><div className={styles.skeletonActions}><span className={styles.skeletonButtonSmall} /><span className={styles.skeletonButtonSmall} /></div></div>)}</div>
+      </section>
+    </div>
+  </main>;
   if (!loggedIn) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
