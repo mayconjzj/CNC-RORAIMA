@@ -76,7 +76,7 @@ export default function AdminNewsPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao excluir a notícia."); }
     finally { setBusyId(null); }
   }
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); }
+  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); clearAdminSessionMarker(); }
 
   if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
   if (!loading && !authorized) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
