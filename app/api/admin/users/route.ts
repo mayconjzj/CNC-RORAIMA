@@ -119,3 +119,70 @@ export async function PATCH(request: Request) {
 export async function POST() {
   return NextResponse.json({ error: "Use o fluxo de convite por e-mail." }, { status: 405 });
 }
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdminPermission("manage_users");
+  if (auth.response) return auth.response;
+
+  try {
+    const body: unknown = await request.json();
+    if (typeof body !== "object" || body === null || typeof (body as { userId?: unknown }).userId !== "string") {
+      return NextResponse.json({ error: "Informe um usuário válido." }, { status: 400 });
+    }
+
+    const userId = (body as { userId: string }).userId;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+      return NextResponse.json({ error: "Usuário inválido." }, { status: 400 });
+    }
+    if (userId === auth.session!.id) {
+      return NextResponse.json({ error: "Você não pode remover o próprio acesso." }, { status: 400 });
+    }
+
+    const sql = getDb();
+    const target = await sql`
+      SELECT u.id, u.email,
+        EXISTS (
+          SELECT 1 FROM admin_user_permissions p
+          WHERE p.user_id = u.id AND p.permission = 'manage_users'
+        ) AS can_manage_users
+      FROM admin_users u
+      WHERE u.id = ${userId}::uuid
+      LIMIT 1
+    `;
+    if (!target.length) {
+      return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+    }
+
+    // Nunca permita que a operação deixe o portal sem nenhum administrador
+    // capaz de gerenciar usuários.
+    if (target[0].can_manage_users) {
+      const otherManagers = await sql`
+        SELECT COUNT(DISTINCT u.id)::int AS count
+        FROM admin_users u
+        INNER JOIN admin_user_permissions p ON p.user_id = u.id
+        WHERE p.permission = 'manage_users' AND u.id <> ${userId}::uuid
+      `;
+      if (Number(otherManagers[0]?.count ?? 0) === 0) {
+        return NextResponse.json(
+          { error: "Não é possível remover o último usuário com permissão para gerenciar usuários." },
+          { status: 409 },
+        );
+      }
+    }
+
+    // Remover o vínculo administrativo revoga o acesso ao portal mesmo que
+    // a identidade continue existindo no provedor Neon Auth.
+    await sql.transaction([
+      sql`DELETE FROM admin_user_permissions WHERE user_id = ${userId}::uuid`,
+      sql`DELETE FROM admin_users WHERE id = ${userId}::uuid`,
+    ]);
+
+    return NextResponse.json(
+      { ok: true, message: "Acesso administrativo removido." },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+    );
+  } catch (error) {
+    console.error("Falha ao remover acesso administrativo", error);
+    return NextResponse.json({ error: "Não foi possível remover o acesso do usuário." }, { status: 500 });
+  }
+}
