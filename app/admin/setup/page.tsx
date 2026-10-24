@@ -12,11 +12,36 @@ export default function AdminSetupPage() {
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  async function submit(event: React.FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage("");
-    const response = await fetch("/api/admin/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, email, displayName, password }) });
-    const data = await response.json(); setBusy(false); setMessage(data.message || data.error || "Erro inesperado.");
-    if (response.ok) { setDone(true); setToken(""); setPassword(""); }
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/admin/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email, displayName, password }),
+      });
+      const data = await response.json().catch(() => ({})) as {
+        message?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setMessage(data.error || "Não foi possível configurar o administrador.");
+        return;
+      }
+
+      setMessage(data.message || "Administrador criado com sucesso.");
+      setDone(true);
+      setToken("");
+      setPassword("");
+    } catch {
+      setMessage("Falha de conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const input: React.CSSProperties = { display: "block", width: "100%", marginTop: 6, padding: 12, border: "1px solid #ddd", borderRadius: 8, font: "inherit" };
