@@ -34,8 +34,8 @@ export async function PATCH(request: Request) {
     DELETE FROM admin_user_permissions WHERE user_id = ${userId}::uuid
   )
   INSERT INTO admin_user_permissions(user_id, permission, granted_by)
-  SELECT ${userId}::uuid, permission, ${auth.session!.id}::uuid
-  FROM unnest(${permissions}::varchar[]) AS permission
+  SELECT ${userId}::uuid, selected.permission, ${auth.session!.id}::uuid
+  FROM unnest(${permissions}::varchar[]) AS selected(permission)
   ON CONFLICT (user_id, permission) DO NOTHING`;
   return NextResponse.json({ ok: true, permissions });
  } catch (error) { console.error("Falha ao salvar permissões", error); return NextResponse.json({ error: "Não foi possível salvar as permissões." }, { status: 500 }); }
