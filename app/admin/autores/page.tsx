@@ -5,7 +5,7 @@ import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
-import { ArrowUpRight, Check, ChevronLeft, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
+import { ArrowUpRight, Check, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
 type Author = { id: string; name: string; bio: string | null; avatar_url: string | null; created_at?: string };
 
