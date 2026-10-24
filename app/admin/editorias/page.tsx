@@ -108,7 +108,7 @@ export default function AdminCategoriesPage() {
             <div className={styles.actions}><button onClick={() => openEdit(category)} disabled={busy} aria-label={`Editar ${category.name}`}><Pencil size={16} /><span>Editar</span></button><button className={styles.deleteButton} onClick={() => void remove(category)} disabled={busy} aria-label={`Excluir ${category.name}`}><Trash2 size={16} /><span>Excluir</span></button></div>
           </article>)}</div>}
       </section>
-      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><a href="/admin">Voltar ao painel <ChevronLeft size={14} /></a></footer>
+      <AdminPageFooter className={styles.pageFooter} />
     </div>
   </main>;
 }
