@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await response.json() as ApiResponse;
       if (!response.ok) throw new Error(data.error ?? "Não foi possível enviar o convite.");
-      resetForm(); setMessage("Convite enviado por e-mail. O link expira em 48 horas."); await loadUsers();
+      resetForm(); setMessage("Convite criado pelo Neon Auth."); await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao enviar convite."); }
     finally { setBusy(false); }
   }
@@ -159,11 +159,11 @@ export default function AdminUsersPage() {
 
         {formOpen && (
           <section className={styles.formPanel} aria-labelledby="create-user-title">
-            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>Enviaremos ao convidado um link seguro, válido por 48 horas.</p></div>
+            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>O envio será feito pelo Neon Auth assim que os convites nativos estiverem habilitados no projeto.</p></div>
               <button type="button" className={styles.iconButton} onClick={resetForm} aria-label="Fechar formulário"><X size={18} /></button></div>
             <form onSubmit={createUser} className={styles.form}>
               <label>E-mail do convidado<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} autoComplete="email" required disabled={busy} placeholder="nome@exemplo.com" /></label>
-              <div className={styles.securityNote}><ShieldCheck size={17} /><p>A conta só será criada quando o convidado aceitar o convite e definir a própria senha. Nenhuma permissão é concedida automaticamente.</p></div>
+              <div className={styles.securityNote}><ShieldCheck size={17} /><p>O convite deve ser enviado pelo Neon Auth. No momento, o envio fica bloqueado até a ativação do recurso nativo no projeto.</p></div>
               <div className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={resetForm} disabled={busy}>Cancelar</button><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? "Enviando…" : "Enviar convite por e-mail"}</button></div>
             </form>
           </section>
