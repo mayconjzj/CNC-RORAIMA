@@ -18,6 +18,46 @@ const getCategory = cache(unstable_cache(async function getCategory(slug: string
   return rows[0] as Category | undefined;
 }, ["published-category-by-slug"], { revalidate: 60, tags: ["published-categories", "published-articles"] }));
 
+// Cache each category listing by its category and normalized filters.
+// Search/filter variants stay correct while avoiding repeated Neon queries.
+const getCategoryListing = unstable_cache(
+  async function getCategoryListing(
+    categoryId: string,
+    q: string,
+    author: string,
+    fromDate: string | null,
+    toDate: string | null,
+    sort: string,
+  ) {
+    const sql = getDb();
+    const [authors, articles, countRows] = await Promise.all([
+      sql`SELECT au.id,au.name FROM authors au WHERE EXISTS (SELECT 1 FROM articles a WHERE a.author_id=au.id AND a.category_id=${categoryId} AND a.status='published' AND a.published_at<=NOW()) ORDER BY au.name`,
+      sql`
+        SELECT a.id,a.title,a.slug,a.excerpt,a.featured_image_url,a.published_at,c.name AS category_name,c.slug AS category_slug,au.name AS author_name
+        FROM articles a INNER JOIN categories c ON c.id=a.category_id LEFT JOIN authors au ON au.id=a.author_id
+        WHERE c.id=${categoryId} AND a.status='published' AND a.published_at<=NOW()
+          AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%')
+          AND (${author}='' OR a.author_id::text=${author})
+          AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date)
+          AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))
+        ORDER BY CASE WHEN ${sort}='title' THEN a.title END ASC,
+          CASE WHEN ${sort}='oldest' THEN a.published_at END ASC NULLS LAST,
+          CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST,
+          a.id ASC
+        LIMIT 9
+      `,
+      sql`SELECT COUNT(*)::int AS total FROM articles a WHERE a.category_id=${categoryId} AND a.status='published' AND a.published_at<=NOW() AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%') AND (${author}='' OR a.author_id::text=${author}) AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date) AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))`,
+    ]);
+    return {
+      authors: authors as unknown as Author[],
+      articles: articles as unknown as Article[],
+      total: Number((countRows as { total: number }[])[0]?.total ?? 0),
+    };
+  },
+  ["published-category-listing"],
+  { revalidate: 60, tags: ["published-categories", "published-articles"] },
+);
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategory(slug);
@@ -38,26 +78,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const sort = ["oldest", "title"].includes(p.sort ?? "") ? p.sort! : "newest";
   const category = await getCategory(slug);
   if (!category) notFound();
-  const sql = getDb();
-  const [authors, articles, countRows] = await Promise.all([
-    sql`SELECT au.id,au.name FROM authors au WHERE EXISTS (SELECT 1 FROM articles a WHERE a.author_id=au.id AND a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW()) ORDER BY au.name` as unknown as Promise<Author[]>,
-    sql`
-      SELECT a.id,a.title,a.slug,a.excerpt,a.featured_image_url,a.published_at,c.name AS category_name,c.slug AS category_slug,au.name AS author_name
-      FROM articles a INNER JOIN categories c ON c.id=a.category_id LEFT JOIN authors au ON au.id=a.author_id
-      WHERE c.id=${category.id} AND a.status='published' AND a.published_at<=NOW()
-        AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%')
-        AND (${author}='' OR a.author_id::text=${author})
-        AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date)
-        AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))
-      ORDER BY CASE WHEN ${sort}='title' THEN a.title END ASC,
-        CASE WHEN ${sort}='oldest' THEN a.published_at END ASC NULLS LAST,
-        CASE WHEN ${sort}='newest' THEN a.published_at END DESC NULLS LAST,
-        a.id ASC
-      LIMIT 9
-    ` as unknown as Promise<Article[]>,
-    sql`SELECT COUNT(*)::int AS total FROM articles a WHERE a.category_id=${category.id} AND a.status='published' AND a.published_at<=NOW() AND (${q}='' OR a.title ILIKE '%' || ${q} || '%' OR COALESCE(a.excerpt,'') ILIKE '%' || ${q} || '%') AND (${author}='' OR a.author_id::text=${author}) AND (${fromDate}::date IS NULL OR a.published_at>=${fromDate}::date) AND (${toDate}::date IS NULL OR a.published_at<(${toDate}::date + INTERVAL '1 day'))` as unknown as Promise<{ total: number }[]>
-  ]);
-  const total = countRows[0]?.total ?? articles.length;
+  const { authors, articles, total } = await getCategoryListing(
+    category.id,
+    q,
+    author,
+    fromDate,
+    toDate,
+    sort,
+  );
   const values = { q, author, from, to, sort };
   return <main className="editoria-page">
     <section className="editoria-content">
