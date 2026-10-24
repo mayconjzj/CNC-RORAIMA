@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { parseArticleInput } from "@/lib/article-service";
 import { revalidatePublishedContent } from "@/lib/revalidation";
@@ -8,7 +8,8 @@ export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, context: Context) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_news");
+  if (auth.response) return auth.response;
   try {
     const { id } = await context.params;
     const sql = getDb();
@@ -31,7 +32,8 @@ export async function GET(_request: Request, context: Context) {
 }
 
 export async function PATCH(request: Request, context: Context) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_news");
+  if (auth.response) return auth.response;
   try {
     const { id } = await context.params;
     const parsed = parseArticleInput(await request.json());
@@ -58,7 +60,8 @@ export async function PATCH(request: Request, context: Context) {
 }
 
 export async function DELETE(_request: Request, context: Context) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_news");
+  if (auth.response) return auth.response;
   try {
     const { id } = await context.params;
     const sql = getDb();

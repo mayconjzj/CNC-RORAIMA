@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { getAdminSession } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -16,7 +16,8 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
-        if (!(await getAdminSession())) throw new Error("Não autorizado.");
+        const permission = await requireAdminPermission("manage_media");
+        if (permission.response) throw new Error("Não autorizado.");
         let requestedType = "";
         if (typeof clientPayload === "string") {
           try { requestedType = (JSON.parse(clientPayload) as { type?: string }).type ?? ""; } catch { requestedType = ""; }
