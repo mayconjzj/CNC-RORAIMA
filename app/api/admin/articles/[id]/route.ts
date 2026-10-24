@@ -7,6 +7,29 @@ import { revalidatePublishedContent } from "@/lib/revalidation";
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 
+export async function GET(_request: Request, context: Context) {
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  try {
+    const { id } = await context.params;
+    const sql = getDb();
+    const rows = await sql`
+      SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image_url, a.status, a.is_featured,
+        a.category_id, a.author_id, a.published_at, a.updated_at, a.seo_title, a.seo_description,
+        c.name AS category_name, au.name AS author_name
+      FROM articles a
+      LEFT JOIN categories c ON c.id = a.category_id
+      LEFT JOIN authors au ON au.id = a.author_id
+      WHERE a.id = ${id}
+      LIMIT 1
+    `;
+    if (!rows.length) return NextResponse.json({ error: "Notícia não encontrada." }, { status: 404 });
+    return NextResponse.json({ article: rows[0] });
+  } catch (error) {
+    console.error("Falha ao carregar notícia", error);
+    return NextResponse.json({ error: "Não foi possível carregar a notícia." }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: Request, context: Context) {
   if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   try {
