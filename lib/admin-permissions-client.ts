@@ -1,6 +1,10 @@
 let cachedPermissions: string[] | null = null;
 let permissionsRequest: Promise<string[]> | null = null;
 
+export function getCachedAdminPermissions(): string[] | null {
+  return cachedPermissions;
+}
+
 export function clearAdminPermissionsCache() {
   cachedPermissions = null;
   permissionsRequest = null;
