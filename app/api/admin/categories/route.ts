@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const sql = getDb();
     const [categories, authors] = await Promise.all([
-      sql`SELECT c.id, c.name, c.slug FROM categories c ORDER BY c.name`,
+      sql`SELECT c.id, c.name, c.slug, COUNT(a.id)::int AS article_count FROM categories c LEFT JOIN articles a ON a.category_id = c.id GROUP BY c.id, c.name, c.slug ORDER BY c.name`,
       sql`SELECT id, name FROM authors ORDER BY name`,
     ]);
     return NextResponse.json({ categories, authors });
