@@ -8,6 +8,7 @@ import {
   FileText, ChartNoAxesColumn, Settings, LogOut, Menu, X, ChevronRight,
 } from "lucide-react";
 import styles from "./admin-sidebar.module.css";
+import { clearAdminPermissionsCache, getCachedAdminPermissions, loadAdminPermissions } from "@/lib/admin-permissions-client";
 
 type AdminSidebarProps = { onLogout: () => void };
 
@@ -28,23 +29,15 @@ const comingSoon = [
 
 const authClient = createAuthClient();
 
-// Keep navigation permissions available while moving between admin pages.
-// Each page currently mounts its own sidebar, so this cache prevents links from
-// disappearing until /api/admin/me responds again.
-let cachedPermissions: string[] | null = null;
-
 export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [permissions, setPermissions] = useState<string[]>(cachedPermissions ?? []);
+  const [permissions, setPermissions] = useState<string[]>(getCachedAdminPermissions() ?? []);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/admin/me", { cache: "no-store" }).then(async (response) => {
-      if (!response.ok) return;
-      const data = await response.json() as { permissions?: string[] };
-      cachedPermissions = data.permissions ?? [];
-      if (active) setPermissions(cachedPermissions);
-    }).catch(() => { cachedPermissions = []; if (active) setPermissions([]); });
+    loadAdminPermissions()
+      .then((granted) => { if (active) setPermissions(granted); })
+      .catch(() => { if (active) setPermissions([]); });
     return () => { active = false; };
   }, []);
 
@@ -104,7 +97,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
               <small>Acesso autorizado</small>
             </span>
           </div>
-          <button type="button" className={styles.logout} onClick={async () => { cachedPermissions = null; try { await authClient.signOut(); } finally { onLogout(); } }}>
+          <button type="button" className={styles.logout} onClick={async () => { clearAdminPermissionsCache(); try { await authClient.signOut(); } finally { onLogout(); } }}>
             <LogOut size={17} />
             <span>Sair do painel</span>
           </button>
