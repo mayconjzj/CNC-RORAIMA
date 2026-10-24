@@ -6,7 +6,7 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminArticleRow } from "./components/admin-article-row";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
-import { Check, FilePlus2, Filter, LoaderCircle, Newspaper, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Check, FilePlus2, Filter, Newspaper, Pencil, RefreshCw, Search, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
 type Article = {
