@@ -77,7 +77,7 @@ export default function AdminCategoriesPage() {
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); clearAdminSessionMarker(); }
 
   if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
-  if (!loading && !authorized) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as editorias.</p><a href="/admin">Ir para o painel</a></main>;
+  if (!loading && !authorized && !error) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as editorias.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
