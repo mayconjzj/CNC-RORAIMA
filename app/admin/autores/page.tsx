@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { ArrowUpRight, Check, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
@@ -151,7 +151,7 @@ export default function AdminAuthorsPage() {
             <div className={styles.authorActions}><button type="button" onClick={() => openEdit(author)} disabled={busy} aria-label={`Editar ${author.name}`}><Pencil size={16} /><span>Editar</span></button><button type="button" className={styles.deleteButton} onClick={() => void deleteAuthor(author)} disabled={busy} aria-label={`Excluir ${author.name}`}><Trash2 size={16} /><span>Excluir</span></button></div>
           </article>)}</div>}
       </section>
-      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><a href="/admin">Voltar ao painel <ArrowUpRight size={14} /></a></footer>
+      <AdminPageFooter className={styles.pageFooter} />
     </div>
   </main>;
 }
