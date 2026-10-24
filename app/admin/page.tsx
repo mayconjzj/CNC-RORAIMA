@@ -48,7 +48,7 @@ export default function AdminPage() {
 
   async function load() {
     const [a, c, au] = await Promise.all([fetch("/api/admin/articles"), fetch("/api/admin/categories"), fetch("/api/admin/authors")]);
-    if (a.status === 401) { setLoggedIn(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
+    if (a.status === 401 || c.status === 401 || au.status === 401) { setLoggedIn(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
     const [articleData, categoryData, authorData] = await Promise.all([a.json(), c.json(), au.json()]);
     setArticles(articleData.articles ?? []);
     setCategories(categoryData.categories ?? []);
