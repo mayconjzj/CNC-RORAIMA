@@ -16,10 +16,20 @@ export default function AcceptInvitePage() {
   if(password!==confirm){setError("As senhas não coincidem.");return;}
   setBusy(true);
   try {
-   const signup = await authClient.signUp.email({ email, password, name });
-   if (signup.error) {
-    const signin = await authClient.signIn.email({ email, password });
-    if (signin.error) throw new Error("Não foi possível criar ou acessar a conta Neon Auth. Verifique os dados e tente novamente.");
+   let signupSucceeded = false;
+   try {
+    const signup = await authClient.signUp.email({ email, password, name });
+    signupSucceeded = !signup.error;
+   } catch {
+    signupSucceeded = false;
+   }
+   if (!signupSucceeded) {
+    try {
+     const signin = await authClient.signIn.email({ email, password });
+     if (signin.error) throw new Error("sign-in failed");
+    } catch {
+     throw new Error("Não foi possível criar ou acessar a conta Neon Auth. Verifique os dados e tente novamente.");
+    }
    }
    const r=await fetch("/api/admin/invitations/accept",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,displayName:name})});
    const d=await r.json();
