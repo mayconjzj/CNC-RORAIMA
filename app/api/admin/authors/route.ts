@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_authors");
+  if (auth.response) return auth.response;
   try {
     const sql = getDb();
     const authors = await sql`SELECT id, name, bio, avatar_url, created_at FROM authors ORDER BY name`;
@@ -18,7 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_authors");
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim().replace(/\s+/g, " ") : "";
@@ -37,7 +39,8 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_authors");
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
     const id = typeof body.id === "string" ? body.id : "";
@@ -59,7 +62,8 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_authors");
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
     const id = typeof body.id === "string" ? body.id : "";
