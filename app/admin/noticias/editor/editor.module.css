@@ -32,3 +32,22 @@
  .previewArticle{padding:17px}
 }
 @media(prefers-reduced-motion:reduce){.skeletonHeading,.skeletonField,.skeletonFieldShort{animation:none}}
+
+/* Align page gutters with the Authors, Categories and News admin screens */
+.main{width:min(1320px,calc(100% - 300px));margin-left:276px;padding:30px 36px 24px}
+@media(max-width:1150px){
+ .main{width:calc(100% - 260px);margin-left:246px;padding:26px 22px 24px}
+}
+@media(max-width:900px){
+ .main{width:calc(100% - 260px);margin-left:246px;padding:26px 22px 24px}
+ .editorGrid,.editorSkeletonGrid{grid-template-columns:minmax(0,1fr) 250px;gap:14px}
+ .sideColumn{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+ .main{width:100%;margin-left:0;padding:75px 17px 22px}
+ .editorGrid,.editorSkeletonGrid{grid-template-columns:minmax(0,1fr);gap:12px}
+ .sideColumn{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+ .main{padding-inline:12px}
+}
