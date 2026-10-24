@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import type { ComponentType, ReactNode } from "react";
-import { Check, ChevronLeft, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronLeft, X } from "lucide-react";
 
 type BreadcrumbItem = { label: string; href?: string };
 type AdminBreadcrumbProps = {
@@ -68,7 +68,7 @@ export function AdminPageFooter({
     <footer className={className}>
       <span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span>
       {children}
-      <Link className={linkClassName} href={href}>{linkLabel} <ChevronLeft size={14} aria-hidden="true" /></Link>
+      <Link className={linkClassName} href={href}>{linkLabel} <ArrowUpRight size={14} aria-hidden="true" /></Link>
     </footer>
   );
 }
