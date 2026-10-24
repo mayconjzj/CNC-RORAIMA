@@ -108,6 +108,32 @@ export default function AdminUsersPage() {
     finally { setBusy(false); }
   }
 
+  async function removeUser(user: AdminUser) {
+    if (!user.id || user.status !== "active") return;
+    const confirmed = window.confirm(
+      `Remover o acesso administrativo de ${user.display_name || user.email}? A pessoa perderá o acesso ao painel e essa ação não pode ser desfeita por aqui.`,
+    );
+    if (!confirmed) return;
+
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const data = await response.json() as ApiResponse;
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível remover o acesso.");
+      setMessage(`Acesso administrativo de ${user.email} removido.`);
+      if (selectedUser?.id === user.id) setSelectedUser(null);
+      await loadUsers();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Falha ao remover o acesso.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function logout() {
     clearAdminSessionMarker();
     setLoggedIn(false);
@@ -178,7 +204,7 @@ export default function AdminUsersPage() {
             <div className={styles.emptyState}><UsersRound size={28} /><h3>{query ? "Nenhum resultado" : "Nenhum usuário cadastrado"}</h3><p>{query ? "Tente outro nome ou endereço de e-mail." : "Adicione uma conta para permitir que outra pessoa acesse o painel."}</p>{!query && <button className={styles.secondaryButton} type="button" onClick={() => setFormOpen(true)}>Adicionar primeiro usuário</button>}</div>
           ) : (
             <div className={styles.tableWrap}><table><thead><tr><th>Usuário</th><th>Status</th><th>Permissões</th><th>Último acesso</th><th>Ações</th></tr></thead><tbody>
-              {filteredUsers.map((user) => <tr key={user.id ?? user.invitation_id ?? user.email}><td><div className={styles.userCell}><span className={styles.avatar}>{(user.display_name || user.email).trim().charAt(0).toLocaleUpperCase("pt-BR")}</span><span><strong>{user.display_name || user.email}</strong><small>{user.email}</small></span></div></td><td><span className={user.status === "active" ? styles.roleBadge : styles.pendingBadge}>{user.status === "active" ? "Ativo" : "Convite pendente"}</span></td><td>{user.status === "pending" ? "Nenhuma" : user.permissions.length === 0 ? "Sem permissões" : user.permissions.length === 5 ? "Acesso completo" : user.permissions.length + " área(s)"}</td><td>{user.status === "pending" ? "Expira em " + formatDate(user.invitation_expires_at ?? null) : formatDate(user.last_login_at)}</td><td>{user.status === "active" ? <button className={styles.secondaryButton} type="button" onClick={() => { setSelectedUser(user); setPermissions(user.permissions); }}><Settings2 size={14}/> Gerenciar</button> : <button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void cancelInvite(user)}>Cancelar convite</button>}</td></tr>)}
+              {filteredUsers.map((user) => <tr key={user.id ?? user.invitation_id ?? user.email}><td><div className={styles.userCell}><span className={styles.avatar}>{(user.display_name || user.email).trim().charAt(0).toLocaleUpperCase("pt-BR")}</span><span><strong>{user.display_name || user.email}</strong><small>{user.email}</small></span></div></td><td><span className={user.status === "active" ? styles.roleBadge : styles.pendingBadge}>{user.status === "active" ? "Ativo" : "Convite pendente"}</span></td><td>{user.status === "pending" ? "Nenhuma" : user.permissions.length === 0 ? "Sem permissões" : user.permissions.length === 5 ? "Acesso completo" : user.permissions.length + " área(s)"}</td><td>{user.status === "pending" ? "Expira em " + formatDate(user.invitation_expires_at ?? null) : formatDate(user.last_login_at)}</td><td>{user.status === "active" ? <div className={styles.formActions}><button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => { setSelectedUser(user); setPermissions(user.permissions); }}><Settings2 size={14}/> Gerenciar</button><button className={styles.secondaryButton} type="button" disabled={busy || user.id === undefined} onClick={() => void removeUser(user)} aria-label={`Remover acesso de ${user.email}`}>Remover acesso</button></div> : <button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void cancelInvite(user)}>Cancelar convite</button>}</td></tr>)}
             </tbody></table></div>
           )}
         </section>
