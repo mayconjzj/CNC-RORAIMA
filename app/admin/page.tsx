@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArrowUpRight, FilePlus2, FolderKanban, Newspaper, RefreshCw, UsersRound, CheckCircle2, FilePenLine } from "lucide-react";
 import styles from "./dashboard.module.css";
@@ -52,7 +53,7 @@ export default function AdminPage() {
         fetch("/api/admin/authors", { cache: "no-store" }),
       ]);
       if (responses.some((response) => response.status === 401)) {
-        window.sessionStorage.removeItem("cnc-admin-session");
+        clearAdminSessionMarker();
         setLoggedIn(false);
         return;
       }
@@ -69,7 +70,7 @@ export default function AdminPage() {
         authors: (authorData.authors ?? []).length,
       });
       setLoggedIn(true);
-      window.sessionStorage.setItem("cnc-admin-session", "active");
+      markAdminSessionActive();
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao carregar o painel geral.");
@@ -116,7 +117,7 @@ export default function AdminPage() {
     await fetch("/api/admin/logout", { method: "POST" });
   }
 
-  const hasSessionMarker = typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") === "active";
+  const hasSessionMarker = hasAdminSessionMarker();
 
   if (checkingSession && !hasSessionMarker) {
     return <main className={styles.authLoading}><span className={styles.loader} /><p>Verificando sessão administrativa…</p></main>;
