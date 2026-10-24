@@ -41,6 +41,7 @@ export default function ArticleEditorPage() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success">("success");
   const coverInput = useRef<HTMLInputElement>(null);
+  const publishRequested = useRef(false);
 
   const input: CSSProperties = { width: "100%", padding: "12px 13px", border: "1px solid #dedfe4", borderRadius: 9, font: "inherit", fontSize: 14, marginTop: 7, background: "#fff", color: "#24252b" };
   const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 750, marginBottom: 17, color: "#484952" };
@@ -75,7 +76,7 @@ export default function ArticleEditorPage() {
         setCategoryId(article.category_id ?? ""); setAuthorId(article.author_id ?? "");
         setStatus(article.status === "published" ? "published" : "draft"); setFeatured(Boolean(article.is_featured));
         setSeoTitle(article.seo_title ?? ""); setSeoDescription(article.seo_description ?? "");
-      } catch (e) { if (alive) { setMessage(e instanceof Error ? e.message : "Falha ao carregar a notícia."); setMessageType("error"); } }
+      } catch (e) { if (alive) { setChecking(false); setMessage(e instanceof Error ? e.message : "Falha ao carregar a notícia."); setMessageType("error"); } }
       finally { if (alive) setLoadingArticle(false); }
     })();
     return () => { alive = false; };
@@ -106,7 +107,8 @@ export default function ArticleEditorPage() {
 
   async function save(event: FormEvent, publish?: boolean) {
     event.preventDefault(); setBusy(true); resetMessage();
-    const nextStatus = publish ? "published" : status;
+    const nextStatus = (publish || publishRequested.current) ? "published" : status;
+    publishRequested.current = false;
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
@@ -131,7 +133,7 @@ export default function ArticleEditorPage() {
     <AdminSidebar onLogout={() => void logout()}/>
     <div className={styles.main}>
       <div className={styles.topbar}><Link href="/admin/noticias" className={styles.back}><ArrowLeft size={16}/> Voltar às notícias</Link><span className={styles.secure}><span/> Sessão administrativa ativa</span></div>
-      <header className={styles.header}><div><div className={styles.eyebrow}>CNC RORAIMA · ESTÚDIO EDITORIAL</div><h1>{editingId ? "Editar notícia" : "Criar notícia"}</h1><p>Prepare a matéria, organize os elementos e revise a publicação em um só lugar.</p></div><div className={styles.headerActions}><button type="button" className={styles.outlineButton} onClick={() => setShowPreview(v => !v)}><Eye size={16}/>{showPreview ? "Ocultar prévia" : "Pré-visualizar"}</button><button type="button" className={styles.primaryButton} disabled={busy || uploading !== null} onClick={() => { setStatus("published"); const form = document.getElementById("article-editor-form") as HTMLFormElement | null; form?.requestSubmit(); }}><Send size={15}/> Publicar</button></div></header>
+      <header className={styles.header}><div><div className={styles.eyebrow}>CNC RORAIMA · ESTÚDIO EDITORIAL</div><h1>{editingId ? "Editar notícia" : "Criar notícia"}</h1><p>Prepare a matéria, organize os elementos e revise a publicação em um só lugar.</p></div><div className={styles.headerActions}><button type="button" className={styles.outlineButton} onClick={() => setShowPreview(v => !v)}><Eye size={16}/>{showPreview ? "Ocultar prévia" : "Pré-visualizar"}</button><button type="button" className={styles.primaryButton} disabled={busy || uploading !== null} onClick={() => { publishRequested.current = true; const form = document.getElementById("article-editor-form") as HTMLFormElement | null; form?.requestSubmit(); }}><Send size={15}/> Publicar</button></div></header>
       {message && <div role={messageType === "error" ? "alert" : "status"} className={messageType === "error" ? styles.error : styles.success}>{messageType === "error" ? <X size={17}/> : <Check size={17}/>}<span>{message}</span><button type="button" onClick={resetMessage} aria-label="Fechar aviso"><X size={15}/></button></div>}
       <form id="article-editor-form" onSubmit={e => void save(e)} className={styles.editorGrid}>
         <div className={styles.contentColumn}>
