@@ -124,7 +124,7 @@ function ArticleEditorContent() {
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); clearAdminSessionMarker(); router.replace("/admin"); }
 
   if (checking && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
-  if (!checking && !authorized) return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
+  if (!checking && !authorized && messageType !== "error") return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()}/>
