@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@neondatabase/auth": "0.6.0-beta",

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { parseBoundedInteger } from "@/lib/pagination";
 
 type Article = {
   id: string;
@@ -25,9 +26,8 @@ export async function GET(request: NextRequest) {
   const from = validDate(params.get("from"));
   const to = validDate(params.get("to"));
   const sort = ["oldest", "title"].includes(params.get("sort") ?? "") ? params.get("sort")! : "newest";
-  const offset = Math.max(0, Math.min(Number.parseInt(params.get("offset") ?? "0", 10) || 0, 100000));
-  const requestedLimit = Number.parseInt(params.get("limit") ?? "9", 10) || 9;
-  const limit = Math.max(1, Math.min(requestedLimit, 9));
+  const offset = parseBoundedInteger(params.get("offset"), 0, 0, 100000);
+  const limit = parseBoundedInteger(params.get("limit"), 9, 1, 9);
   const sql = getDb();
 
   const rows = await sql`
