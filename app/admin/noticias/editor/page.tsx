@@ -9,9 +9,8 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArticleEditorLoadingSkeleton } from "./components/editor-loading-skeleton";
+import { ArticlePreviewPanel } from "./components/article-preview-panel";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
-import { ArticleBody } from "@/components/news/article-body";
-import { normalizeArticleSections } from "@/lib/article-content";
 import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
 import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
@@ -163,7 +162,15 @@ function ArticleEditorContent() {
           <div className={styles.sideNote}>As alterações só ficam públicas depois de salvar a notícia com status “Publicada”.</div>
         </aside>
       </form>}
-      {showPreview && <section className={styles.previewPanel}><div className={styles.previewHeading}><div><span>PRÉ-VISUALIZAÇÃO</span><h2>Assim a matéria pode aparecer no portal</h2></div><button className={styles.outlineButton} onClick={() => setShowPreview(false)}><X size={15}/> Fechar</button></div><article className={styles.previewArticle}><p className={styles.previewCategory}>{categories.find(c=>c.id===categoryId)?.name ?? "Notícias de Roraima"}</p><h1>{title || "Título da notícia"}</h1>{excerpt && <p className={styles.previewExcerpt}>{excerpt}</p>}<p className={styles.previewByline}>Por {authors.find(a=>a.id===authorId)?.name ?? "Redação CNC Roraima"} · Prévia</p>{image && <img className={styles.previewCover} src={image} alt={title || "Imagem de capa"}/>}<ArticleBody sections={normalizeArticleSections(sections)}/></article></section>}
+      {showPreview && <ArticlePreviewPanel
+        title={title}
+        excerpt={excerpt}
+        categoryName={categories.find((category) => category.id === categoryId)?.name ?? "Notícias de Roraima"}
+        authorName={authors.find((author) => author.id === authorId)?.name ?? "Redação CNC Roraima"}
+        image={image}
+        sections={sections}
+        onClose={() => setShowPreview(false)}
+      />}
       <footer className={styles.footer}>CNC RORAIMA · ESTÚDIO EDITORIAL <Link href="/admin/noticias">Voltar ao diretório</Link></footer>
     </div>
   </main>;
