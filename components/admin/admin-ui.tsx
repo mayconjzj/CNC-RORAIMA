@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { Check, ChevronLeft, X } from "lucide-react";
 
 type BreadcrumbItem = { label: string; href?: string };
@@ -69,5 +69,23 @@ export function AdminPageFooter({
       {children}
       <Link className={linkClassName} href={href}>{linkLabel} <ChevronLeft size={14} aria-hidden="true" /></Link>
     </footer>
+  );
+}
+
+type AdminStatCardProps = {
+  className: string;
+  iconClassName: string;
+  icon: ComponentType<{ size?: number }>;
+  label: string;
+  value: string | number;
+  note: string;
+};
+
+export function AdminStatCard({ className, iconClassName, icon: Icon, label, value, note }: AdminStatCardProps) {
+  return (
+    <article className={className}>
+      <span className={iconClassName}><Icon size={19} aria-hidden="true" /></span>
+      <div><span>{label}</span><strong>{value}</strong><small>{note}</small></div>
+    </article>
   );
 }
