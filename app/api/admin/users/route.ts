@@ -82,7 +82,6 @@ export async function PATCH(request: Request) {
     }
 
     const permissions = [...new Set(rawPermissions as string[])];
-    if (primary[0]?.id === userId) return NextResponse.json({ error: "A conta do administrador principal não pode ser alterada por este painel." }, { status: 403 });
     if (userId === auth.session!.id) {
       return NextResponse.json({ error: "Não é possível alterar as próprias permissões." }, { status: 400 });
     }
