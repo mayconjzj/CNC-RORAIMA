@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
 import { Check, ChevronLeft, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
@@ -85,9 +85,9 @@ export default function AdminCategoriesPage() {
         <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Nova editoria</button>
       </header>
       <section className={styles.stats}>
-        <div className={styles.statCard}><span className={styles.statIcon}><FolderKanban size={19} /></span><div><span>Total de editorias</span><strong>{categories.length}</strong><small>Seções editoriais cadastradas</small></div></div>
-        <div className={styles.statCard}><span className={styles.statIconGold}><Hash size={19} /></span><div><span>Com endereço próprio</span><strong>{categories.filter((item) => !!item.slug).length}</strong><small>Identificadores para navegação</small></div></div>
-        <div className={styles.statCard}><span className={styles.statIconDark}><Newspaper size={19} /></span><div><span>Resultados da busca</span><strong>{filtered.length}</strong><small>Editorias na visualização atual</small></div></div>
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIcon} icon={FolderKanban} label="Total de editorias" value={categories.length} note="Seções editoriais cadastradas" />
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIconGold} icon={Hash} label="Com endereço próprio" value={categories.filter((item) => !!item.slug).length} note="Identificadores para navegação" />
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIconDark} icon={Newspaper} label="Resultados da busca" value={filtered.length} note="Editorias na visualização atual" />
       </section>
       {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
       {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
