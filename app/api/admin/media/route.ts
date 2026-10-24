@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { getAdminSession } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
