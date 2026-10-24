@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
 import { Check, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
@@ -23,11 +24,11 @@ export default function AdminCategoriesPage() {
   const loadCategories = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/categories", { cache: "no-store" });
-      if (response.status === 401) { setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
+      if (response.status === 401) { setAuthorized(false); clearAdminSessionMarker(); return; }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar as editorias.");
       setCategories(data.categories ?? []);
-      setAuthorized(true); window.sessionStorage.setItem("cnc-admin-session", "active");
+      setAuthorized(true); markAdminSessionActive();
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao carregar editorias."); }
     finally { setLoading(false); }
   }, []);
@@ -73,7 +74,7 @@ export default function AdminCategoriesPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); }
 
-  if (loading && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
   if (!loading && !authorized) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as editorias.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
