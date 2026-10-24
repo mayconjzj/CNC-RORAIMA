@@ -52,7 +52,7 @@ export function CategoryDirectory({
               <span className={styles.categoryNumber}>{String(index + 1).padStart(2, "0")}</span>
               <span className={styles.categorySymbol}><FolderKanban size={19} /></span>
               <div className={styles.categoryInfo}><h3>{category.name}</h3><p><Hash size={13} />{category.slug}</p></div>
-              <span className={styles.categoryStatus}><span /> Ativa</span>
+              <span className={styles.categoryStatus}><Newspaper size={14} aria-hidden="true" /> {category.article_count ?? 0} notícias</span>
               <div className={styles.actions}>
                 <button type="button" onClick={() => onEdit(category)} disabled={busy} aria-label={`Editar ${category.name}`}><Pencil size={16} /><span>Editar</span></button>
                 <button type="button" className={styles.deleteButton} onClick={() => onDelete(category)} disabled={busy} aria-label={`Excluir ${category.name}`}><Trash2 size={16} /><span>Excluir</span></button>
