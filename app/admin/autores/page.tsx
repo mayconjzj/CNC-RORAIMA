@@ -95,7 +95,7 @@ export default function AdminAuthorsPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao excluir o autor."); }
     finally { setBusy(false); }
   }
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); clearAdminSessionMarker(); }
+  async function logout() { clearAdminSessionMarker(); setLoggedIn(false); try { await fetch("/api/admin/logout", { method: "POST" }); } catch { /* The local interface should still leave the admin area. */ } }
 
   if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
   if (!loading && !loggedIn && !error) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
