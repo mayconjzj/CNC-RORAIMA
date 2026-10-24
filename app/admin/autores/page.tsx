@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { Check, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
@@ -28,10 +29,10 @@ export default function AdminAuthorsPage() {
   const loadAuthors = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/authors", { cache: "no-store" });
-      if (response.status === 401) { setLoggedIn(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
+      if (response.status === 401) { setLoggedIn(false); clearAdminSessionMarker(); return; }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível carregar os autores.");
-      setAuthors(data.authors ?? []); setLoggedIn(true); window.sessionStorage.setItem("cnc-admin-session", "active");
+      setAuthors(data.authors ?? []); setLoggedIn(true); markAdminSessionActive();
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao carregar autores."); }
     finally { setLoading(false); }
   }, []);
@@ -98,7 +99,7 @@ export default function AdminAuthorsPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); window.sessionStorage.removeItem("cnc-admin-session"); }
 
-  if (loading && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
   if (!loading && !loggedIn) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
