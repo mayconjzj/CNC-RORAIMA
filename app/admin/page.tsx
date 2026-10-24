@@ -48,12 +48,13 @@ export default function AdminPage() {
 
   async function load() {
     const [a, c, au] = await Promise.all([fetch("/api/admin/articles"), fetch("/api/admin/categories"), fetch("/api/admin/authors")]);
-    if (a.status === 401) { setLoggedIn(false); return; }
+    if (a.status === 401) { setLoggedIn(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
     const [articleData, categoryData, authorData] = await Promise.all([a.json(), c.json(), au.json()]);
     setArticles(articleData.articles ?? []);
     setCategories(categoryData.categories ?? []);
     setAuthors(authorData.authors ?? categoryData.authors ?? []);
     setLoggedIn(true);
+    window.sessionStorage.setItem("cnc-admin-session", "active");
   }
   useEffect(() => { void load().finally(() => setCheckingSession(false)); }, []);
   useEffect(() => {
@@ -84,7 +85,9 @@ export default function AdminPage() {
       const response = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
       const data = await response.json();
       if (!response.ok) { setMessage(data.error ?? "Falha ao entrar."); return; }
-      setPassword(""); await load();
+      setPassword("");
+      window.sessionStorage.setItem("cnc-admin-session", "active");
+      await load();
     } catch { setMessage("Falha de conexão ao entrar."); }
     finally { setBusy(false); }
   }
@@ -211,7 +214,7 @@ export default function AdminPage() {
     } catch { setMessage("Falha ao excluir autor."); }
     finally { setBusy(false); }
   }
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); setMessage("Sessão encerrada."); }
+  async function logout() { window.sessionStorage.removeItem("cnc-admin-session"); setLoggedIn(false); setMessage("Sessão encerrada."); await fetch("/api/admin/logout", { method: "POST" }); }
 
   const input: CSSProperties = { width: "100%", padding: "11px 12px", border: "1px solid #ddd", borderRadius: 8, font: "inherit", marginTop: 6, background: "#fff" };
   const label: CSSProperties = { display: "block", fontSize: 13, fontWeight: 700, marginBottom: 16 };
