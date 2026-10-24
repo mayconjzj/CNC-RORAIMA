@@ -10,8 +10,11 @@ type ArticleRowData = {
   featured_image_url: string | null;
   status: string;
   is_featured: boolean;
+  category_id: string | null;
   category_name: string | null;
+  author_id: string | null;
   author_name?: string | null;
+  published_at: string | null;
   updated_at: string | null;
 };
 
