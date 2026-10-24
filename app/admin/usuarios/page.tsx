@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBreadcrumb, AdminNotice, AdminPageFooter, AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
-import { ArrowDownUp, Plus, Search, ShieldCheck, UserRound, UsersRound, X, Settings2, Mail, Clock } from "lucide-react";
+import { ArrowDownUp, Plus, Search, ShieldCheck, UserRound, UsersRound, X, Settings2 } from "lucide-react";
 import styles from "./users.module.css";
 
 type AdminUser = {

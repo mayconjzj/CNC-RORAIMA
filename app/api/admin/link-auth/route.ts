@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAdminSession, getLegacyAdminSession } from "@/lib/auth";
-import { neonAuth } from "@/lib/neon-auth-server";
+import { clearAdminSession, getAdminSession, getLegacyAdminSession } from "@/lib/auth";
+import { assertNeonAuthConfigured, neonAuth } from "@/lib/neon-auth-server";
 import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 export async function POST() {
   try {
     const legacy = await getLegacyAdminSession();
+    assertNeonAuthConfigured();
     const { data, error } = await neonAuth.getSession();
     const authUser = data?.user;
     if (error || !authUser || typeof authUser.id !== "string" || typeof authUser.email !== "string") {
@@ -15,7 +16,10 @@ export async function POST() {
     }
 
     if (!legacy || legacy.email.toLowerCase() !== authUser.email.toLowerCase()) {
-      if (await getAdminSession()) return NextResponse.json({ ok: true });
+      if (await getAdminSession()) {
+        await clearAdminSession();
+        return NextResponse.json({ ok: true });
+      }
       return NextResponse.json({ error: "Não foi possível confirmar a conta administrativa antiga. Entre com a senha anterior para concluir a migração." }, { status: 403 });
     }
 
@@ -30,9 +34,13 @@ export async function POST() {
     `;
     if (!rows.length) {
       const current = await sql`SELECT auth_user_id FROM admin_users WHERE id = ${legacy.id}::uuid LIMIT 1`;
-      if (current.length && current[0].auth_user_id === authUser.id) return NextResponse.json({ ok: true });
+      if (current.length && current[0].auth_user_id === authUser.id) {
+        await clearAdminSession();
+        return NextResponse.json({ ok: true });
+      }
       return NextResponse.json({ error: "Esta conta já está vinculada a outra identidade. Contate o administrador do sistema." }, { status: 409 });
     }
+    await clearAdminSession();
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Falha ao vincular identidade Neon Auth", error);

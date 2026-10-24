@@ -1,7 +1,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { getDb } from "@/lib/db";
-import { neonAuth } from "@/lib/neon-auth-server";
+import { assertNeonAuthConfigured, neonAuth } from "@/lib/neon-auth-server";
 
 const COOKIE_NAME = "cnc_admin_session";
 const SESSION_TTL = 60 * 60 * 8;
@@ -50,6 +50,7 @@ export async function getLegacyAdminSession() {
 
 export async function getAdminSession() {
   try {
+    assertNeonAuthConfigured();
     const { data, error } = await neonAuth.getSession();
     const user = data?.user;
     if (error || !user || typeof user.id !== "string" || typeof user.email !== "string") return null;
