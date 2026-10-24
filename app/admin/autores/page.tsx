@@ -6,9 +6,8 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
-import { Check, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
-
-type Author = { id: string; name: string; bio: string | null; avatar_url: string | null; created_at?: string };
+import { AuthorDirectory, type Author } from "./components/author-directory";
+import { Check, CircleUserRound, ImagePlus, LoaderCircle, Plus, ShieldCheck, UserRound, UsersRound, X } from "lucide-react";
 
 export default function AdminAuthorsPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -142,16 +141,7 @@ export default function AdminAuthorsPage() {
           <div className={styles.formFooter}><span><ShieldCheck size={15} /> Cadastro disponível apenas à administração.</span><div><button type="button" className={styles.secondaryButton} onClick={resetForm} disabled={busy}>Cancelar</button><button type="submit" className={styles.primaryButton} disabled={busy || uploading}>{busy ? <LoaderCircle size={17} className={styles.spin} /> : <Check size={17} />}{busy ? "Salvando…" : editingId ? "Salvar alterações" : "Cadastrar autor"}</button></div></div>
         </form>
       </section>}
-      <section className={styles.directory}>
-        <div className={styles.directoryHeader}><div><h2>Diretório de autores</h2><p>Consulte e mantenha os perfis da equipe editorial.</p></div><div className={styles.searchBox}><Search size={17} /><input aria-label="Buscar autores" placeholder="Buscar por nome ou biografia…" value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X size={15} /></button>}</div></div>
-        <div className={styles.directoryMeta}><span>{filteredAuthors.length} {filteredAuthors.length === 1 ? "autor encontrado" : "autores encontrados"}</span><span>ORDENADOS POR NOME</span></div>
-        {loading && authors.length === 0 ? <div className={styles.authorList} aria-label="Carregando autores">{[0,1,2].map((item) => <div className={styles.authorRow} key={item}><div className={styles.skeletonAvatar} /><div className={styles.skeletonAuthorInfo}><span className={styles.skeletonLine} style={{width:"48%",height:14}}/><span className={styles.skeletonLine} style={{width:"78%",height:10}}/></div></div>)}</div> : filteredAuthors.length === 0 ? <div className={styles.emptyState}><span><UsersRound size={25} /></span><h3>{query ? "Nenhum resultado encontrado" : "Seu diretório começa aqui"}</h3><p>{query ? "Tente buscar por outro nome ou termo." : "Cadastre o primeiro autor para organizar as assinaturas das notícias."}</p>{!query && <button className={styles.primaryButton} onClick={openCreate}><Plus size={17} /> Cadastrar primeiro autor</button>}</div> :
-          <div className={styles.authorList}>{filteredAuthors.map((author) => <article className={styles.authorRow} key={author.id}>
-            <div className={styles.authorAvatar}>{author.avatar_url ? <img src={author.avatar_url} alt="" loading="lazy" /> : <span>{author.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</span>}</div>
-            <div className={styles.authorInfo}><h3>{author.name}</h3><p>{author.bio?.trim() || "Nenhuma biografia cadastrada."}</p><div className={styles.authorBadges}><span className={author.avatar_url ? styles.badgeComplete : styles.badgeMissing}><span />{author.avatar_url ? "Foto cadastrada" : "Sem fotografia"}</span><span className={author.bio?.trim() ? styles.badgeComplete : styles.badgeMissing}><span />{author.bio?.trim() ? "Biografia preenchida" : "Sem biografia"}</span></div></div>
-            <div className={styles.authorActions}><button type="button" onClick={() => openEdit(author)} disabled={busy} aria-label={`Editar ${author.name}`}><Pencil size={16} /><span>Editar</span></button><button type="button" className={styles.deleteButton} onClick={() => void deleteAuthor(author)} disabled={busy} aria-label={`Excluir ${author.name}`}><Trash2 size={16} /><span>Excluir</span></button></div>
-          </article>)}</div>}
-      </section>
+      <AuthorDirectory authors={authors} filteredAuthors={filteredAuthors} loading={loading} query={query} busy={busy} onQueryChange={setQuery} onCreate={openCreate} onEdit={openEdit} onDelete={(author) => void deleteAuthor(author)} />
       <AdminPageFooter className={styles.pageFooter} />
     </div>
   </main>;
