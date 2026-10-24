@@ -54,8 +54,8 @@ export async function POST(request: Request) {
             password_hash = NULL,
             display_name = ${name}
         WHERE id = (SELECT id FROM existing)
-          AND (auth_user_id IS NULL OR auth_user_id = ${user.id})
-          AND (SELECT linked = 0 FROM state)
+          AND (auth_user_id IS NULL OR auth_user_id <> ${user.id})
+          AND NOT EXISTS (SELECT 1 FROM admin_users WHERE auth_user_id = ${user.id})
         RETURNING id
       ),
       created AS (
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
 
     if (!rows.length) {
       return NextResponse.json({
-        error: "A configuração inicial já foi usada ou não existe um administrador legado com este e-mail. Não foi criada nenhuma conta administrativa.",
+        error: "A configuração inicial já foi usada ou não existe um registro administrativo com este e-mail. Não foi criada nenhuma conta administrativa.",
       }, { status: 409 });
     }
 
