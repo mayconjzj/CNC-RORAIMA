@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBreadcrumb, AdminNotice, AdminPageFooter, AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
-import { ArrowDownUp, Plus, Search, ShieldCheck, UserRound, UsersRound, X, Settings2 } from "lucide-react";
+import { ArrowDownUp, Plus, Search, ShieldCheck, UserRound, UsersRound, X, Settings2, Trash2 } from "lucide-react";
 import styles from "./users.module.css";
 
 type AdminUser = {
@@ -19,7 +19,7 @@ type AdminUser = {
   invitation_expires_at?: string;
 };
 
-type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string; inviteUrl?: string };
+type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string };
 
 function formatDate(value: string | null) {
   if (!value) return "Nunca acessou";
@@ -34,7 +34,6 @@ export default function AdminUsersPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [inviteUrl, setInviteUrl] = useState("");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -81,7 +80,7 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await response.json() as ApiResponse;
       if (!response.ok) throw new Error(data.error ?? "Não foi possível enviar o convite.");
-      resetForm(); setInviteUrl(data.inviteUrl ?? ""); setMessage(data.inviteUrl ? "Convite criado. Copie o link abaixo e envie ao convidado por um canal seguro." : "Convite criado."); await loadUsers();
+      resetForm(); setMessage("Convite criado pelo Neon Auth."); await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao enviar convite."); }
     finally { setBusy(false); }
   }
@@ -94,6 +93,18 @@ export default function AdminUsersPage() {
       if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar as permissões.");
       setSelectedUser(null); setMessage("Permissões atualizadas."); await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar permissões."); }
+    finally { setBusy(false); }
+  }
+
+  async function deleteUser(user: AdminUser) {
+    if (!user.id || !window.confirm(`Excluir a conta de ${user.display_name || user.email}? Essa ação remove o acesso administrativo e não pode ser desfeita.`)) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const response = await fetch("/api/admin/users", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) });
+      const data = await response.json() as ApiResponse;
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível excluir o usuário.");
+      setMessage("Usuário excluído e acesso administrativo revogado."); await loadUsers();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao excluir usuário."); }
     finally { setBusy(false); }
   }
 
@@ -141,30 +152,19 @@ export default function AdminUsersPage() {
 
         {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.noticeError} />}
         {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.noticeSuccess} />}
-        {inviteUrl && <section className={styles.formPanel} aria-label="Link do convite">
-          <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>LINK GERADO</span><h2>Compartilhe o convite</h2><p>Este link expira em 48 horas e só pode ser usado para o e-mail convidado.</p></div></div>
-          <div className={styles.form}>
-            <label>Link do convite<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label>
-            <div className={styles.formActions}>
-              <button className={styles.secondaryButton} type="button" onClick={() => setInviteUrl("")}>Fechar</button>
-              <button className={styles.primaryButton} type="button" onClick={() => { void navigator.clipboard.writeText(inviteUrl).then(() => setMessage("Link copiado para a área de transferência.")).catch(() => setMessage("Selecione e copie o link manualmente.")); }}>Copiar link</button>
-            </div>
-          </div>
-        </section>}
-
         <section className={styles.metrics} aria-label="Resumo de usuários">
           <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIcon} icon={UsersRound} label="Contas ativas" value={users.filter((user) => user.status === "active").length} note="Usuários cadastrados" />
-          <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIconGold} icon={UserRound} label="Convites pendentes" value={users.filter((user) => user.status === "pending").length} note="Aguardando criação de senha" />
+          <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIconGold} icon={UserRound} label="Convites pendentes" value={users.filter((user) => user.status === "pending").length} note="Aguardando aceite do convite" />
         </section>
 
         {formOpen && (
           <section className={styles.formPanel} aria-labelledby="create-user-title">
-            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>Gere um link válido por 48 horas e envie ao convidado por um canal seguro.</p></div>
+            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>O Neon Auth enviará o convite diretamente para o e-mail informado.</p></div>
               <button type="button" className={styles.iconButton} onClick={resetForm} aria-label="Fechar formulário"><X size={18} /></button></div>
             <form onSubmit={createUser} className={styles.form}>
               <label>E-mail do convidado<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} autoComplete="email" required disabled={busy} placeholder="nome@exemplo.com" /></label>
-              <div className={styles.securityNote}><ShieldCheck size={17} /><p>A conta só será criada quando o convidado aceitar o convite e definir a própria senha. Nenhuma permissão é concedida automaticamente.</p></div>
-              <div className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={resetForm} disabled={busy}>Cancelar</button><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? "Gerando link…" : "Enviar convite"}</button></div>
+              <div className={styles.securityNote}><ShieldCheck size={17} /><p>O convite é enviado pelo serviço de e-mail gerenciado do Neon Auth. A conta convidada começa sem permissões no portal.</p></div>
+              <div className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={resetForm} disabled={busy}>Cancelar</button><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? "Enviando…" : "Enviar convite por e-mail"}</button></div>
             </form>
           </section>
         )}
@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
             <div className={styles.emptyState}><UsersRound size={28} /><h3>{query ? "Nenhum resultado" : "Nenhum usuário cadastrado"}</h3><p>{query ? "Tente outro nome ou endereço de e-mail." : "Adicione uma conta para permitir que outra pessoa acesse o painel."}</p>{!query && <button className={styles.secondaryButton} type="button" onClick={() => setFormOpen(true)}>Adicionar primeiro usuário</button>}</div>
           ) : (
             <div className={styles.tableWrap}><table><thead><tr><th>Usuário</th><th>Status</th><th>Permissões</th><th>Último acesso</th><th>Ações</th></tr></thead><tbody>
-              {filteredUsers.map((user) => <tr key={user.id ?? user.invitation_id ?? user.email}><td><div className={styles.userCell}><span className={styles.avatar}>{(user.display_name || user.email).trim().charAt(0).toLocaleUpperCase("pt-BR")}</span><span><strong>{user.display_name || user.email}</strong><small>{user.email}</small></span></div></td><td><span className={user.status === "active" ? styles.roleBadge : styles.pendingBadge}>{user.status === "active" ? "Ativo" : "Convite pendente"}</span></td><td>{user.status === "pending" ? "Nenhuma" : user.permissions.length === 0 ? "Sem permissões" : user.permissions.length === 5 ? "Acesso completo" : user.permissions.length + " área(s)"}</td><td>{user.status === "pending" ? "Expira em " + formatDate(user.invitation_expires_at ?? null) : formatDate(user.last_login_at)}</td><td>{user.status === "active" ? <button className={styles.secondaryButton} type="button" onClick={() => { setSelectedUser(user); setPermissions(user.permissions); }}><Settings2 size={14}/> Gerenciar</button> : <button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void cancelInvite(user)}>Cancelar convite</button>}</td></tr>)}
+              {filteredUsers.map((user) => <tr key={user.id ?? user.invitation_id ?? user.email}><td><div className={styles.userCell}><span className={styles.avatar}>{(user.display_name || user.email).trim().charAt(0).toLocaleUpperCase("pt-BR")}</span><span><strong>{user.display_name || user.email}</strong><small>{user.email}</small></span></div></td><td><span className={user.status === "active" ? styles.roleBadge : styles.pendingBadge}>{user.status === "active" ? "Ativo" : "Convite pendente"}</span></td><td>{user.status === "pending" ? "Nenhuma" : user.permissions.length === 0 ? "Sem permissões" : user.permissions.length === 5 ? "Acesso completo" : user.permissions.length + " área(s)"}</td><td>{user.status === "pending" ? "Expira em " + formatDate(user.invitation_expires_at ?? null) : formatDate(user.last_login_at)}</td><td>{user.status === "active" ? <span className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={() => { setSelectedUser(user); setPermissions(user.permissions); }}><Settings2 size={14}/> Gerenciar</button><button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void deleteUser(user)} aria-label={"Excluir " + user.email}><Trash2 size={14}/> Excluir</button></span> : <button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void cancelInvite(user)}>Cancelar convite</button>}</td></tr>)}
             </tbody></table></div>
           )}
         </section>
