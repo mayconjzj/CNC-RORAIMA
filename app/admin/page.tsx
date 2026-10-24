@@ -61,10 +61,19 @@ export default function AdminPage() {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get("edit");
     if (params.get("new") === "1") {
-      resetForm(); setMessage(""); setShowArticleForm(true);
+      setEditingId(null); setTitle(""); setExcerpt(""); setSections([blankSection()]); setImage("");
+      setCategoryId(""); setAuthorId(""); setStatus("draft"); setFeatured(false); setShowPreview(false);
+      setMessage(""); setShowArticleForm(true);
+      window.history.replaceState({}, "", "/admin#admin-news");
     } else if (editId) {
       const article = articles.find((item) => item.id === editId);
-      if (article) editArticle(article);
+      if (!article) return;
+      setEditingId(article.id); setTitle(article.title); setExcerpt(article.excerpt ?? "");
+      setSections(toSections(article.content)); setImage(article.featured_image_url ?? "");
+      setCategoryId(article.category_id ?? ""); setAuthorId(article.author_id ?? "");
+      setStatus(article.status === "published" ? "published" : "draft"); setFeatured(article.is_featured);
+      setMessage(""); setShowArticleForm(true);
+      window.history.replaceState({}, "", "/admin#admin-news");
     }
   }, [checkingSession, loggedIn, articles]);
 
