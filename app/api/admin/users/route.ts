@@ -30,8 +30,13 @@ export async function PATCH(request: Request) {
   const sql = getDb();
   const target = await sql`SELECT id FROM admin_users WHERE id = ${userId}::uuid LIMIT 1`;
   if (!target.length) return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
-  await sql`DELETE FROM admin_user_permissions WHERE user_id = ${userId}::uuid`;
-  for (const permission of permissions) await sql`INSERT INTO admin_user_permissions(user_id, permission, granted_by) VALUES (${userId}::uuid, ${permission}, ${auth.session!.id}::uuid) ON CONFLICT DO NOTHING`;
+  await sql`WITH removed AS (
+    DELETE FROM admin_user_permissions WHERE user_id = ${userId}::uuid
+  )
+  INSERT INTO admin_user_permissions(user_id, permission, granted_by)
+  SELECT ${userId}::uuid, permission, ${auth.session!.id}::uuid
+  FROM unnest(${permissions}::varchar[]) AS permission
+  ON CONFLICT (user_id, permission) DO NOTHING`;
   return NextResponse.json({ ok: true, permissions });
  } catch (error) { console.error("Falha ao salvar permissões", error); return NextResponse.json({ error: "Não foi possível salvar as permissões." }, { status: 500 }); }
 }
