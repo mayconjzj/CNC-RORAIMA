@@ -11,11 +11,12 @@ import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArticleEditorLoadingSkeleton } from "./components/editor-loading-skeleton";
 import { ArticlePreviewPanel } from "./components/article-preview-panel";
 import { ArticlePublishingPanel } from "./components/article-publishing-panel";
+import { ArticleBasicsPanel } from "./components/article-basics-panel";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
 import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
 import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
-import { ArrowLeft, Check, Eye, ImagePlus, Save, Send, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, Save, Send, X } from "lucide-react";
 import styles from "./editor.module.css";
 
 function ArticleEditorContent() {
@@ -41,7 +42,6 @@ function ArticleEditorContent() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success">("success");
-  const coverInput = useRef<HTMLInputElement>(null);
 
   const input: CSSProperties = { width: "100%", padding: "12px 13px", border: "1px solid #dedfe4", borderRadius: 9, font: "inherit", fontSize: 14, marginTop: 7, background: "#fff", color: "#24252b" };
   const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 750, marginBottom: 17, color: "#484952" };
@@ -135,17 +135,18 @@ function ArticleEditorContent() {
       {message && <AdminNotice type={messageType} message={message} onDismiss={resetMessage} className={messageType === "error" ? styles.error : styles.success} />}
       {loadingArticle ? <ArticleEditorLoadingSkeleton /> : <form id="article-editor-form" onSubmit={e => void save(e)} className={styles.editorGrid}>
         <div className={styles.contentColumn}>
-          <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>01</span><div><h2>Conteúdo principal</h2><p>O título e o resumo que apresentam a matéria ao leitor.</p></div></div>
-            <label style={label}>Título da notícia <span className={styles.required}>*</span><input style={input} required minLength={5} maxLength={180} value={title} onChange={e => setTitle(e.target.value)} placeholder="Escreva um título claro e informativo"/></label>
-            <div className={styles.counterRow}><span>Use uma manchete objetiva, com a informação mais importante.</span><span>{title.length}/180</span></div>
-            <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:104,resize:"vertical"}} maxLength={500} value={excerpt} onChange={e => setExcerpt(e.target.value)} placeholder="Contextualize a notícia em uma ou duas frases."/></label>
-            <div className={styles.counterRow}><span>Este texto pode aparecer nos cards e nos mecanismos de busca.</span><span>{excerpt.length}/500</span></div>
-          </section>
-          <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>02</span><div><h2>Imagem de capa</h2><p>Escolha a imagem que representa a matéria no portal.</p></div></div>
-            {image ? <div className={styles.coverPreview}><img src={image} alt={title ? `Capa: ${title}` : "Prévia da capa"}/><button type="button" onClick={() => setImage("")} aria-label="Remover imagem de capa"><X size={16}/></button></div> : <button type="button" className={styles.uploadCover} onClick={() => coverInput.current?.click()}><ImagePlus size={24}/><strong>Adicionar imagem de capa</strong><span>JPG, PNG, WebP, GIF ou AVIF · até 25 MB</span></button>}
-            <input ref={coverInput} hidden type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading !== null} onChange={e => { const file=e.target.files?.[0]; if(file) void uploadFile(file,setImage,"cover"); e.currentTarget.value=""; }}/>
-            <label style={label}>URL da imagem<input style={input} type="url" placeholder="https://..." value={image} onChange={e => setImage(e.target.value)}/></label>
-          </section>
+          <ArticleBasicsPanel
+            title={title}
+            excerpt={excerpt}
+            image={image}
+            uploading={uploading}
+            inputStyle={input}
+            labelStyle={label}
+            onTitleChange={setTitle}
+            onExcerptChange={setExcerpt}
+            onImageChange={setImage}
+            onUploadFile={uploadFile}
+          />
           <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>03</span><div><h2>Corpo da notícia</h2><p>Monte a matéria com texto, títulos, citações, listas e elementos multimídia.</p></div></div>
             <ArticleStructureEditor sections={sections} setSections={setSections} inputStyle={input} labelStyle={label} buttonStyle={button} uploading={uploading} addSection={addSection} moveSection={moveSection} removeSection={removeSection} addBlock={addBlock} moveBlock={moveBlock} removeBlock={removeBlock} updateBlock={updateBlock} appendGalleryImage={appendGalleryImage} uploadFile={uploadFile}/>
           </section>
