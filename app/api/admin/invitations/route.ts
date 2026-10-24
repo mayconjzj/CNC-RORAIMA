@@ -1,41 +1,89 @@
 import { NextResponse } from "next/server";
 import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
+import { getAdminOrganizationId } from "@/lib/admin-organization";
+import { neonAuth } from "@/lib/neon-auth-server";
 
 export const runtime = "nodejs";
 
-/**
- * Invitations must be sent by Neon Auth itself. Do not add an application
- * email provider here. The Neon Auth organization plugin and its managed
- * invitation email setting must be enabled before this endpoint can create
- * native invitations.
- */
-export async function POST() {
+type InvitationPayload = { id?: string; invitation?: { id?: string } };
+
+/** Sends invitations using Neon Auth's managed email delivery. */
+export async function POST(request: Request) {
   const auth = await requireAdminPermission("manage_users");
   if (auth.response) return auth.response;
 
-  return NextResponse.json(
-    {
-      error:
-        "Os convites por e-mail do Neon Auth ainda não estão habilitados neste projeto. Ative o plugin de organizações e o envio de convites no Neon Auth; nenhum e-mail foi enviado.",
-      code: "NEON_AUTH_INVITATIONS_NOT_CONFIGURED",
-    },
-    { status: 503, headers: { "Cache-Control": "no-store" } },
-  );
+  try {
+    const body: unknown = await request.json();
+    const email = typeof body === "object" && body !== null && "email" in body && typeof body.email === "string"
+      ? body.email.trim().toLowerCase()
+      : "";
+
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Informe um endereço de e-mail válido." }, { status: 400 });
+    }
+
+    const sql = getDb();
+    const existingUser = await sql`SELECT id FROM admin_users WHERE lower(email) = lower(${email}) LIMIT 1`;
+    if (existingUser.length) {
+      return NextResponse.json({ error: "Esse e-mail já possui uma conta administrativa." }, { status: 409 });
+    }
+
+    const organizationId = await getAdminOrganizationId();
+    const result = await neonAuth.organization.inviteMember({
+      organizationId,
+      email,
+      role: "admin",
+      resend: true,
+    });
+
+    if (result.error) {
+      console.error("Neon Auth não conseguiu enviar o convite", result.error);
+      return NextResponse.json(
+        { error: "O Neon Auth não conseguiu enviar o convite. Confirme que o plugin Organization, o envio de convites e a verificação de e-mail estão habilitados." },
+        { status: 502 },
+      );
+    }
+
+    const data = result.data as InvitationPayload | null;
+    const invitationId = data?.id ?? data?.invitation?.id ?? null;
+    return NextResponse.json(
+      { ok: true, invitationId, message: "Convite enviado pelo Neon Auth." },
+      { status: 201, headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    console.error("Falha ao enviar convite pelo Neon Auth", error);
+    const message = error instanceof Error ? error.message : "";
+    return NextResponse.json(
+      { error: message.includes("organization") || message.includes("Organization")
+          ? "Não foi possível preparar a organização de convites do Neon Auth. Verifique se o plugin Organization está ativo."
+          : "Não foi possível enviar o convite. Confira a configuração de e-mail do Neon Auth e tente novamente." },
+      { status: 500 },
+    );
+  }
 }
 
 export async function DELETE(request: Request) {
   const auth = await requireAdminPermission("manage_users");
   if (auth.response) return auth.response;
+
   try {
-    const body = await request.json();
-    const id = typeof body.invitationId === "string" ? body.invitationId : "";
+    const body: unknown = await request.json();
+    const id = typeof body === "object" && body !== null && "invitationId" in body && typeof body.invitationId === "string"
+      ? body.invitationId
+      : "";
     if (!id) return NextResponse.json({ error: "Convite inválido." }, { status: 400 });
-    const sql = getDb();
-    const rows = await sql`UPDATE admin_invitations SET status = 'revoked' WHERE id = ${id}::uuid AND status = 'pending' RETURNING id`;
-    if (!rows.length) return NextResponse.json({ error: "Convite não encontrado." }, { status: 404 });
-    return NextResponse.json({ ok: true });
-  } catch {
+
+    const organizationId = await getAdminOrganizationId();
+    await neonAuth.organization.setActive({ organizationId });
+    const result = await neonAuth.organization.cancelInvitation({ invitationId: id });
+    if (result.error) {
+      console.error("Neon Auth não conseguiu cancelar o convite", result.error);
+      return NextResponse.json({ error: "Não foi possível cancelar o convite. Ele pode já ter sido aceito ou expirado." }, { status: 409 });
+    }
+    return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    console.error("Falha ao cancelar convite do Neon Auth", error);
     return NextResponse.json({ error: "Não foi possível cancelar o convite." }, { status: 500 });
   }
 }
