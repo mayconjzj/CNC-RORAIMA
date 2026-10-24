@@ -72,3 +72,24 @@ const getCachedPublishedCategories = unstable_cache(
 export const getPublishedCategories = cache(async function getPublishedCategories(): Promise<CategorySummary[]> {
   return getCachedPublishedCategories();
 });
+
+
+// Homepage freshness: query published articles on every server request.
+// React cache only deduplicates calls within the same render; unlike
+// unstable_cache, it does not persist results across requests.
+export const getFreshPublishedArticles = cache(async function getFreshPublishedArticles(
+  limit = 12,
+): Promise<ArticleSummary[]> {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 50);
+  const sql = getDb();
+  return sql`
+    SELECT a.id, a.title, a.slug, a.excerpt, a.featured_image_url, a.image_alt,
+      a.is_featured, a.published_at, c.name AS category_name, c.slug AS category_slug, au.name AS author_name
+    FROM articles a
+    LEFT JOIN categories c ON c.id = a.category_id
+    LEFT JOIN authors au ON au.id = a.author_id
+    WHERE a.status = 'published' AND a.published_at <= NOW()
+    ORDER BY a.is_featured DESC, a.published_at DESC NULLS LAST
+    LIMIT ${safeLimit}
+  ` as unknown as ArticleSummary[];
+});
