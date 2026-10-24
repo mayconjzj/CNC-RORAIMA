@@ -1,4 +1,5 @@
 "use client";
+import { createAuthClient } from "@neondatabase/auth/next";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,6 +25,8 @@ const comingSoon = [
   { label: "Estatísticas", icon: ChartNoAxesColumn },
   { label: "Configurações", icon: Settings },
 ];
+
+const authClient = createAuthClient();
 
 export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -95,7 +98,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
               <small>Acesso autorizado</small>
             </span>
           </div>
-          <button type="button" className={styles.logout} onClick={onLogout}>
+          <button type="button" className={styles.logout} onClick={async () => { try { await authClient.signOut(); } finally { onLogout(); } }}>
             <LogOut size={17} />
             <span>Sair do painel</span>
           </button>
