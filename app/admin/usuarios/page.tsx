@@ -19,7 +19,7 @@ type AdminUser = {
   invitation_expires_at?: string;
 };
 
-type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string; inviteUrl?: string };
+type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string };
 
 function formatDate(value: string | null) {
   if (!value) return "Nunca acessou";
@@ -34,7 +34,6 @@ export default function AdminUsersPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [inviteUrl, setInviteUrl] = useState("");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -81,7 +80,7 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await response.json() as ApiResponse;
       if (!response.ok) throw new Error(data.error ?? "Não foi possível enviar o convite.");
-      resetForm(); setInviteUrl(data.inviteUrl ?? ""); setMessage(data.inviteUrl ? "Convite criado. Copie o link abaixo e envie ao convidado por um canal seguro." : "Convite criado."); await loadUsers();
+      resetForm(); setMessage(`Convite enviado por e-mail para ${data.email ?? email.trim()}.`); await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao enviar convite."); }
     finally { setBusy(false); }
   }
@@ -161,23 +160,12 @@ export default function AdminUsersPage() {
           descriptionClassName={styles.subtitle}
           eyebrow="GESTÃO DE ACESSO"
           title="Usuários"
-          description="Convide pessoas e controle as áreas que cada uma pode administrar."
+          description="Envie convites por e-mail e controle as áreas que cada pessoa pode administrar."
           actions={<button className={styles.primaryButton} type="button" onClick={() => { setFormOpen((open) => !open); setError(""); setMessage(""); }}><Plus size={16} />{formOpen ? "Fechar formulário" : "Convidar usuário"}</button>}
         />
 
         {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.noticeError} />}
         {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.noticeSuccess} />}
-        {inviteUrl && <section className={styles.formPanel} aria-label="Link do convite">
-          <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>LINK GERADO</span><h2>Compartilhe o convite</h2><p>Este link expira em 48 horas e só pode ser usado para o e-mail convidado.</p></div></div>
-          <div className={styles.form}>
-            <label>Link do convite<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label>
-            <div className={styles.formActions}>
-              <button className={styles.secondaryButton} type="button" onClick={() => setInviteUrl("")}>Fechar</button>
-              <button className={styles.primaryButton} type="button" onClick={() => { void navigator.clipboard.writeText(inviteUrl).then(() => setMessage("Link copiado para a área de transferência.")).catch(() => setMessage("Selecione e copie o link manualmente.")); }}>Copiar link</button>
-            </div>
-          </div>
-        </section>}
-
         <section className={styles.metrics} aria-label="Resumo de usuários">
           <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIcon} icon={UsersRound} label="Contas ativas" value={users.filter((user) => user.status === "active").length} note="Usuários cadastrados" />
           <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIconGold} icon={UserRound} label="Convites pendentes" value={users.filter((user) => user.status === "pending").length} note="Aguardando criação de senha" />
@@ -185,7 +173,7 @@ export default function AdminUsersPage() {
 
         {formOpen && (
           <section className={styles.formPanel} aria-labelledby="create-user-title">
-            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>Gere um link válido por 48 horas e envie ao convidado por um canal seguro.</p></div>
+            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>O convidado receberá um e-mail com um link para criar a própria senha. O convite expira em 48 horas.</p></div>
               <button type="button" className={styles.iconButton} onClick={resetForm} aria-label="Fechar formulário"><X size={18} /></button></div>
             <form onSubmit={createUser} className={styles.form}>
               <label>E-mail do convidado<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} autoComplete="email" required disabled={busy} placeholder="nome@exemplo.com" /></label>
