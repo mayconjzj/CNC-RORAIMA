@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice, AdminStatCard } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
 import { Check, ChevronLeft, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
@@ -80,10 +80,7 @@ export default function AdminCategoriesPage() {
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
       <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Editorias" }]} />
-      <header className={styles.pageHeader}>
-        <div><div className={styles.eyebrow}><span /> ORGANIZAÇÃO EDITORIAL</div><h1>Editorias</h1><p>Organize as notícias por assunto e mantenha a navegação do portal clara para os leitores.</p></div>
-        <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Nova editoria</button>
-      </header>
+      <AdminPageHeader className={styles.pageHeader} contentClassName={styles.pageHeaderContent} eyebrowClassName={styles.eyebrow} titleClassName={styles.pageTitle} descriptionClassName={styles.pageDescription} eyebrow={<><span /> ORGANIZAÇÃO EDITORIAL</>} title="Editorias" description="Organize as notícias por assunto e mantenha a navegação do portal clara para os leitores." actions={<button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Nova editoria</button>} />
       <section className={styles.stats}>
         <AdminStatCard className={styles.statCard} iconClassName={styles.statIcon} icon={FolderKanban} label="Total de editorias" value={categories.length} note="Seções editoriais cadastradas" />
         <AdminStatCard className={styles.statCard} iconClassName={styles.statIconGold} icon={Hash} label="Com endereço próprio" value={categories.filter((item) => !!item.slug).length} note="Identificadores para navegação" />
