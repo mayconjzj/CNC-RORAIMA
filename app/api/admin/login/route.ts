@@ -27,8 +27,8 @@ export async function POST(request: Request) {
 
     const sql = getDb();
     const rows = await sql`SELECT id, email, password_hash, display_name FROM admin_users WHERE lower(email) = ${email} LIMIT 1`;
-    const user = rows[0] as { id: string; email: string; password_hash: string; display_name: string | null } | undefined;
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    const user = rows[0] as { id: string; email: string; password_hash: string | null; display_name: string | null } | undefined;
+    if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
       await recordAdminLoginFailure(request);
       const updatedLimit = await isAdminLoginBlocked(request);
       if (updatedLimit.blocked) return rateLimitResponse(updatedLimit.retryAfter);
