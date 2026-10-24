@@ -122,7 +122,8 @@ function ArticleEditorContent() {
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); router.replace("/admin"); }
   const previewAuthor = authors.find(a => a.id === authorId);
 
-  if (!checking && !authorized) return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
+  if (checking) return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (!authorized) return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()}/>
