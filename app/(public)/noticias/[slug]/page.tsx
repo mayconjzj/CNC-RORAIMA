@@ -14,7 +14,7 @@ import { ShareButtons } from "@/components/news/share-buttons";
 
 type Props = { params: Promise<{ slug: string }> };
 
-// Cache the rendered article for one minute; publication/edit handlers invalidate this route.
+// Revalidate the rendered route at most once per minute; the article query has its own data-cache policy.
 export const revalidate = 60;
 type Article = { title: string; slug: string; excerpt: string | null; content: unknown; featured_image_url: string | null; image_alt: string | null; published_at: string | null; updated_at: string | null; category_name: string | null; author_name: string | null; author_avatar_url: string | null };
 
