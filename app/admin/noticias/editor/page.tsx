@@ -12,7 +12,7 @@ import { normalizeArticleSections } from "@/lib/article-content";
 import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
 import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
-import { ArrowLeft, Check, Eye, FileText, ImagePlus, LoaderCircle, Save, Send, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, FileText, ImagePlus, Save, Send, X } from "lucide-react";
 import styles from "./editor.module.css";
 
 function ArticleEditorContent() {
@@ -127,7 +127,7 @@ function ArticleEditorContent() {
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()}/>
     <div className={styles.main}>
-      <div className={styles.topbar}><Link href="/admin/noticias" className={styles.back}><ArrowLeft size={16}/> Voltar às notícias</Link><span className={styles.secure}><span/> Sessão administrativa ativa</span></div>
+      <div className={styles.topbar}><Link href="/admin/noticias" className={styles.back}><ArrowLeft size={16}/> Voltar às notícias</Link><span className={styles.secure}><span/> {checking ? "Verificando sessão…" : "Sessão administrativa ativa"}</span></div>
       <header className={styles.header}><div><div className={styles.eyebrow}>CNC RORAIMA · ESTÚDIO EDITORIAL</div><h1>{editingId ? "Editar notícia" : "Criar notícia"}</h1><p>Prepare a matéria, organize os elementos e revise a publicação em um só lugar.</p></div><div className={styles.headerActions}><button type="button" className={styles.outlineButton} onClick={() => setShowPreview(v => !v)}><Eye size={16}/>{showPreview ? "Ocultar prévia" : "Pré-visualizar"}</button></div></header>
       {message && <div role={messageType === "error" ? "alert" : "status"} className={messageType === "error" ? styles.error : styles.success}>{messageType === "error" ? <X size={17}/> : <Check size={17}/>}<span>{message}</span><button type="button" onClick={resetMessage} aria-label="Fechar aviso"><X size={15}/></button></div>}
       {(checking || loadingArticle) ? <div className={styles.editorSkeletonGrid} aria-label={loadingArticle ? "Carregando dados da notícia" : "Carregando editor"}>
