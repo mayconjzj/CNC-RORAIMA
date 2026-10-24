@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createAuthClient } from "@neondatabase/auth/next";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
-import { clearAdminPermissionsCache, loadAdminPermissions } from "@/lib/admin-permissions-client";
+import { clearAdminPermissionsCache, loadAdminPermissions, setCachedAdminPermissions } from "@/lib/admin-permissions-client";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArrowUpRight, FilePlus2, FolderKanban, Newspaper, RefreshCw, UsersRound, CheckCircle2, FilePenLine } from "lucide-react";
 import styles from "./dashboard.module.css";
@@ -126,6 +126,8 @@ export default function AdminPage() {
       if (authSignInSucceeded) {
         const sessionResponse = await fetch("/api/admin/me", { cache: "no-store" });
         if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json() as { permissions?: string[] };
+          setCachedAdminPermissions(sessionData.permissions ?? []);
           setPassword("");
           await loadDashboard();
           return;
