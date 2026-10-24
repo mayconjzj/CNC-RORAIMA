@@ -15,13 +15,13 @@ const navigation = [
   { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
   { label: "Editorias", href: "/admin/editorias", icon: FolderKanban },
   { label: "Autores", href: "/admin/autores", icon: UsersRound },
+  { label: "Usuários", href: "/admin/usuarios", icon: UsersRound },
 ];
 
 const comingSoon = [
   { label: "Biblioteca de mídia", icon: Image },
   { label: "Páginas", icon: FileText },
   { label: "Estatísticas", icon: ChartNoAxesColumn },
-  { label: "Usuários e permissões", icon: UsersRound },
   { label: "Configurações", icon: Settings },
 ];
 
