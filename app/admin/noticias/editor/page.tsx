@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties, FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
 import { ArticleBody } from "@/components/news/article-body";
 import { normalizeArticleSections } from "@/lib/article-content";
@@ -130,7 +131,7 @@ function ArticleEditorContent() {
     <div className={styles.main}>
       <div className={styles.topbar}><Link href="/admin/noticias" className={styles.back}><ArrowLeft size={16}/> Voltar às notícias</Link><span className={styles.secure}><span/> {checking ? "Verificando sessão…" : "Sessão administrativa ativa"}</span></div>
       <header className={styles.header}><div><div className={styles.eyebrow}>CNC RORAIMA · ESTÚDIO EDITORIAL</div><h1>{editingId ? "Editar notícia" : "Criar notícia"}</h1><p>Prepare a matéria, organize os elementos e revise a publicação em um só lugar.</p></div><div className={styles.headerActions}><button type="button" className={styles.outlineButton} onClick={() => setShowPreview(v => !v)}><Eye size={16}/>{showPreview ? "Ocultar prévia" : "Pré-visualizar"}</button></div></header>
-      {message && <div role={messageType === "error" ? "alert" : "status"} className={messageType === "error" ? styles.error : styles.success}>{messageType === "error" ? <X size={17}/> : <Check size={17}/>}<span>{message}</span><button type="button" onClick={resetMessage} aria-label="Fechar aviso"><X size={15}/></button></div>}
+      {message && <AdminNotice type={messageType} message={message} onDismiss={resetMessage} className={messageType === "error" ? styles.error : styles.success} />}
       {loadingArticle ? <div className={styles.editorSkeletonGrid} aria-label={loadingArticle ? "Carregando dados da notícia" : "Carregando editor"}>
         <div className={styles.contentColumn}>{[0,1,2].map((item) => <section className={styles.card} key={item}><div className={styles.skeletonHeading}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/><div className={styles.skeletonFieldShort}/></section>)}</div>
         <aside className={styles.sideColumn}><section className={styles.card}><div className={styles.skeletonHeading}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/></section><section className={styles.stickyActions}><div className={styles.skeletonField}/><div className={styles.skeletonField}/></section></aside>
