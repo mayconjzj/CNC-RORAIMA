@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireAdminPermission } from "@/lib/admin-permissions";
+import { requireAdminPermission, requireAnyAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export async function GET() {
-  const auth = await requireAdminPermission("manage_categories");
+  const auth = await requireAnyAdminPermission(["manage_news", "manage_categories"]);
   if (auth.response) return auth.response;
   try {
     const sql = getDb();
