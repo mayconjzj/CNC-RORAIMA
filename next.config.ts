@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Keep visited dynamic route segments in the client router cache briefly,
+  // while server-side data caches independently revalidate published content.
+  experimental: {
+    staleTimes: {
+      dynamic: 60,
+      static: 180,
+    },
+  },
   poweredByHeader: false,
   images: {
     remotePatterns: [
