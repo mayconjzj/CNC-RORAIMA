@@ -1,7 +1,6 @@
 .sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0 auto 0 0;
   z-index: 1100;
   height: 100vh;
   height: 100dvh;
@@ -13,12 +12,15 @@
   color: #f8f8f9;
   background: #202126;
   border-right: 1px solid #34353b;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
+
 .shell { padding-left: 252px; min-height: 100vh; }
+
 .brand {
   display: flex;
   align-items: center;
@@ -27,6 +29,7 @@
   border-bottom: 1px solid #3a3b41;
   color: #fff;
 }
+
 .brandMark { color: #fff; font-size: 26px; line-height: 1; font-weight: 900; letter-spacing: -0.12em; }
 .brandMark span { color: #d4ad57; }
 .brandText { display: flex; flex-direction: column; gap: 5px; }
@@ -34,6 +37,7 @@
 .brandText small { color: #d4ad57; font-size: 8px; letter-spacing: .13em; font-weight: 800; }
 .sectionLabel { margin: 24px 10px 9px; color: #8f9098; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
 .nav, .futureNav { display: grid; gap: 4px; }
+
 .navLink, .disabledLink {
   display: flex;
   align-items: center;
@@ -46,8 +50,20 @@
   font-weight: 650;
   transition: background .15s ease, color .15s ease;
 }
+
+.navLink { text-decoration: none; }
 .navLink:hover { color: #fff; background: #34353b; }
-.navLink:focus-visible, .logout:focus-visible, .mobileToggle:focus-visible { outline: 2px solid #d4ad57; outline-offset: 2px; }
+.navLinkActive,
+.navLinkActive:hover {
+  color: #fff;
+  background: #3a3030;
+  box-shadow: inset 3px 0 #d4ad57;
+}
+.navLinkActive .chevron { color: #d4ad57; opacity: 1; }
+.navLink:focus-visible, .logout:focus-visible, .mobileToggle:focus-visible, .backdrop:focus-visible {
+  outline: 2px solid #d4ad57;
+  outline-offset: 2px;
+}
 .chevron { margin-left: auto; opacity: .35; }
 .disabledLink { min-height: 38px; color: #85868e; font-size: 11px; cursor: not-allowed; }
 .soon { margin-left: auto; font-size: 7px; letter-spacing: .04em; color: #b9a16a; border: 1px solid #62563b; border-radius: 4px; padding: 3px 4px; }
@@ -60,14 +76,37 @@
 .logout { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid #45464d; border-radius: 8px; color: #f0c6ca; background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; text-align: left; }
 .logout:hover { background: #3a2529; border-color: #704047; }
 .mobileToggle, .backdrop { display: none; }
+
 @media (max-width: 760px) {
   .shell { padding-left: 0; padding-top: 54px; }
-  .sidebar { width: min(290px, 86vw); transform: translateX(-105%); transition: transform .2s ease; box-shadow: 18px 0 45px #0002; }
+  .sidebar {
+    width: min(290px, 86vw);
+    transform: translateX(-105%);
+    transition: transform .2s ease;
+    box-shadow: 18px 0 45px #0002;
+  }
   .sidebarOpen { transform: translateX(0); }
-  .mobileToggle { position: fixed; inset: 0 0 auto; z-index: 1090; display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border: 0; border-bottom: 1px solid #393a40; color: #fff; background: #202126; font-size: 12px; font-weight: 800; text-align: left; }
+  .mobileToggle {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 1090;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 16px;
+    border: 0;
+    border-bottom: 1px solid #393a40;
+    color: #fff;
+    background: #202126;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: left;
+  }
   .backdrop { position: fixed; inset: 0; z-index: 1095; display: block; border: 0; background: #10111699; }
   .sidebarOpen { z-index: 1100; }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .sidebar, .navLink { transition: none; }
 }
