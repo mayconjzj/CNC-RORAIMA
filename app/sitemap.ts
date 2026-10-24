@@ -9,10 +9,10 @@ type ArticleSitemapRow = { slug: string; updated_at: string | Date | null; publi
 type CategorySitemapRow = { slug: string; last_modified: string | Date | null };
 type LatestSitemapRow = { last_modified: string | Date | null };
 
-function asDate(value: string | Date | null | undefined): Date {
-  if (!value) return new Date();
+function asDate(value: string | Date | null | undefined): Date | undefined {
+  if (!value) return undefined;
   const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date() : date;
+  return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

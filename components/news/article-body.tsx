@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import type { ArticleSection, ArticleBlock } from "@/lib/article-content";
 import { shouldOptimizeImage } from "@/lib/media";

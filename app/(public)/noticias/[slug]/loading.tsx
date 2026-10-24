@@ -1,5 +1,3 @@
-"use client";
-
 export default function ArticleLoading() {
   return (
     <main className="article-loading" role="status" aria-label="Carregando notícia" aria-busy="true">
