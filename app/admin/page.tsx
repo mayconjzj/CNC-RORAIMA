@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createAuthClient } from "@neondatabase/auth/next";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
+import { clearAdminPermissionsCache, loadAdminPermissions } from "@/lib/admin-permissions-client";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArrowUpRight, FilePlus2, FolderKanban, Newspaper, RefreshCw, UsersRound, CheckCircle2, FilePenLine } from "lucide-react";
 import styles from "./dashboard.module.css";
@@ -49,16 +50,7 @@ export default function AdminPage() {
   const loadDashboard = useCallback(async () => {
     setRefreshing(true);
     try {
-      const sessionResponse = await fetch("/api/admin/me", { cache: "no-store" });
-      if (sessionResponse.status === 401) {
-        clearAdminSessionMarker();
-        setLoggedIn(false);
-        setPermissions([]);
-        return;
-      }
-      if (!sessionResponse.ok) throw new Error("Não foi possível verificar suas permissões.");
-      const sessionData = await sessionResponse.json() as { permissions?: string[] };
-      const granted = sessionData.permissions ?? [];
+      const granted = await loadAdminPermissions();
       setPermissions(granted);
 
       const [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse] = await Promise.all([
@@ -98,7 +90,15 @@ export default function AdminPage() {
       markAdminSessionActive();
       setError(granted.length === 0 ? "Sua conta ainda não tem permissões concedidas. Peça ao administrador do portal para liberar as áreas necessárias." : "");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha ao carregar o painel geral.");
+      if (e instanceof Error && e.message.includes("Sessão administrativa expirada")) {
+        clearAdminPermissionsCache();
+        clearAdminSessionMarker();
+        setLoggedIn(false);
+        setPermissions([]);
+        setError("");
+      } else {
+        setError(e instanceof Error ? e.message : "Falha ao carregar o painel geral.");
+      }
     } finally {
       setRefreshing(false);
       setCheckingSession(false);
