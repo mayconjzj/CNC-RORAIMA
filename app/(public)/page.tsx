@@ -2,20 +2,21 @@ import type { Metadata } from "next";
 import { ArrowRight, Clock3, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getPublishedArticles } from "@/lib/db";
+import { getFreshPublishedArticles } from "@/lib/db";
 import { StoryCard } from "@/components/news/story-card";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 import { formatNewsDate } from "@/lib/news-date";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
   let stories: Awaited<ReturnType<typeof getPublishedArticles>> = [];
   let databaseReady = true;
   try {
-    stories = await getPublishedArticles(12);
+    stories = await getFreshPublishedArticles(12);
   } catch (error) { databaseReady = false; console.error("Não foi possível carregar as notícias/editorias do banco", error); }
   const featured = stories.find((story) => story.is_featured) ?? stories[0];
   const sideStories = stories.filter((story) => story.id !== featured?.id).slice(0, 2);
