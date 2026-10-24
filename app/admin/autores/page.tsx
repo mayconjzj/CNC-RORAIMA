@@ -97,7 +97,8 @@ export default function AdminAuthorsPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); }
 
-  if (!loggedIn && !loading) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
+  if (loading) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (!loggedIn) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
