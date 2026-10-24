@@ -115,8 +115,35 @@ export default function AdminPage() {
     await fetch("/api/admin/logout", { method: "POST" });
   }
 
-  if (checkingSession) {
+  const hasSessionMarker = typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") === "active";
+
+  if (checkingSession && !hasSessionMarker) {
     return <main className={styles.authLoading}><span className={styles.loader} /><p>Verificando sessão administrativa…</p></main>;
+  }
+
+  if (checkingSession && hasSessionMarker) {
+    return (
+      <main className={styles.shell}>
+        <AdminSidebar onLogout={() => void logout()} />
+        <div className={styles.main} aria-label="Carregando painel geral" aria-busy="true">
+          <header className={styles.header}>
+            <div className={styles.skeletonHeading}><span className={styles.skeletonLine} /><span className={styles.skeletonTitle} /><span className={styles.skeletonLine} /></div>
+            <div className={styles.headerActions}><span className={styles.skeletonButton} /><span className={styles.skeletonButton} /></div>
+          </header>
+          <section className={styles.metrics}>
+            {[0, 1, 2, 3, 4].map((item) => <article className={styles.metricCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonNumber} /><span className={styles.skeletonLine} /></div></article>)}
+          </section>
+          <section className={styles.quickSection}>
+            <div className={styles.sectionHeading}><div><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>
+            <div className={styles.quickGrid}>{[0, 1, 2].map((item) => <div className={styles.quickCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>)}</div>
+          </section>
+          <section className={styles.recentSection}>
+            <div className={styles.sectionHeading}><div><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>
+            <div className={styles.recentList}>{[0, 1, 2, 3, 4].map((item) => <div className={styles.skeletonRecentRow} key={item}><span className={styles.skeletonStatus} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div><span className={styles.skeletonDate} /></div>)}</div>
+          </section>
+        </div>
+      </main>
+    );
   }
 
   if (!loggedIn) {
