@@ -43,28 +43,48 @@ export default function AdminPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [data, setData] = useState<DashboardData>(emptyData);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadDashboard = useCallback(async () => {
     setRefreshing(true);
     try {
-      const responses = await Promise.all([
-        fetch("/api/admin/articles?limit=5&offset=0&sort=updated_desc", { cache: "no-store" }),
-        fetch("/api/admin/articles?status=published&limit=1&offset=0", { cache: "no-store" }),
-        fetch("/api/admin/articles?status=draft&limit=1&offset=0", { cache: "no-store" }),
-        fetch("/api/admin/categories", { cache: "no-store" }),
-        fetch("/api/admin/authors", { cache: "no-store" }),
+      const sessionResponse = await fetch("/api/admin/me", { cache: "no-store" });
+      if (sessionResponse.status === 401) {
+        clearAdminSessionMarker();
+        setLoggedIn(false);
+        setPermissions([]);
+        return;
+      }
+      if (!sessionResponse.ok) throw new Error("Não foi possível verificar suas permissões.");
+      const sessionData = await sessionResponse.json() as { permissions?: string[] };
+      const granted = sessionData.permissions ?? [];
+      setPermissions(granted);
+
+      const [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse] = await Promise.all([
+        granted.includes("manage_news") ? fetch("/api/admin/articles?limit=5&offset=0&sort=updated_desc", { cache: "no-store" }) : Promise.resolve(null),
+        granted.includes("manage_news") ? fetch("/api/admin/articles?status=published&limit=1&offset=0", { cache: "no-store" }) : Promise.resolve(null),
+        granted.includes("manage_news") ? fetch("/api/admin/articles?status=draft&limit=1&offset=0", { cache: "no-store" }) : Promise.resolve(null),
+        granted.includes("manage_categories") ? fetch("/api/admin/categories", { cache: "no-store" }) : Promise.resolve(null),
+        granted.includes("manage_authors") ? fetch("/api/admin/authors", { cache: "no-store" }) : Promise.resolve(null),
       ]);
+      const responses = [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse].filter((response) => response !== null);
       if (responses.some((response) => response.status === 401)) {
         clearAdminSessionMarker();
         setLoggedIn(false);
+        setPermissions([]);
         return;
       }
-      const parsed = await Promise.all(responses.map((response) => response.json()));
-      const failed = responses.find((response) => !response.ok && response.status !== 403);
+      const failed = responses.find((response) => !response.ok);
       if (failed) throw new Error("Não foi possível carregar os dados do painel. Tente atualizar.");
-      const [recentData, publishedData, draftData, categoryData, authorData] = parsed;
-      const noPermissions = responses.every((response) => response.status === 403);
+
+      const [recentData, publishedData, draftData, categoryData, authorData] = await Promise.all([
+        recentResponse ? recentResponse.json() : Promise.resolve({ articles: [], total: 0 }),
+        publishedResponse ? publishedResponse.json() : Promise.resolve({ total: 0 }),
+        draftResponse ? draftResponse.json() : Promise.resolve({ total: 0 }),
+        categoryResponse ? categoryResponse.json() : Promise.resolve({ categories: [] }),
+        authorResponse ? authorResponse.json() : Promise.resolve({ authors: [] }),
+      ]);
       const recent: Article[] = recentData.articles ?? [];
       setData({
         recent,
@@ -76,7 +96,7 @@ export default function AdminPage() {
       });
       setLoggedIn(true);
       markAdminSessionActive();
-      setError(noPermissions ? "Sua conta ainda não tem permissões concedidas. Peça ao administrador do portal para liberar as áreas necessárias." : "");
+      setError(granted.length === 0 ? "Sua conta ainda não tem permissões concedidas. Peça ao administrador do portal para liberar as áreas necessárias." : "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao carregar o painel geral.");
     } finally {
@@ -206,7 +226,7 @@ export default function AdminPage() {
           <div><p className={styles.eyebrow}>CENTRAL DE CONTROLE</p><h1>Painel geral</h1><p className={styles.subtitle}>Acompanhe o conteúdo e acesse rapidamente as ferramentas editoriais.</p></div>
           <div className={styles.headerActions}>
             <button className={styles.secondaryButton} type="button" onClick={() => void loadDashboard()} disabled={refreshing}><RefreshCw size={15} className={refreshing ? styles.spin : ""} /> Atualizar</button>
-            <Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17} /> Nova notícia</Link>
+            {permissions.includes("manage_news") && <Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17} /> Nova notícia</Link>}
           </div>
         </header>
 
@@ -215,7 +235,7 @@ export default function AdminPage() {
         <section className={styles.metrics} aria-label="Indicadores editoriais" aria-busy={checkingSession || refreshing}>
           {checkingSession || refreshing
             ? [0, 1, 2, 3, 4].map((item) => <article className={styles.metricCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonNumber} /><span className={styles.skeletonLine} /></div></article>)
-            : cards.map(({ label, value, note, icon: Icon, tone }) => (
+            : cards.filter(({ label }) => ["Total de notícias", "Publicadas", "Rascunhos"].includes(label) ? permissions.includes("manage_news") : label === "Editorias" ? permissions.includes("manage_categories") : permissions.includes("manage_authors")).map(({ label, value, note, icon: Icon, tone }) => (
               <article className={styles.metricCard} key={label}>
                 <span className={styles[`metricIcon_${tone}`]}><Icon size={19} /></span>
                 <div><span className={styles.metricLabel}>{label}</span><strong>{value}</strong><small>{note}</small></div>
@@ -226,13 +246,13 @@ export default function AdminPage() {
         <section className={styles.quickSection}>
           <div className={styles.sectionHeading}><div><h2>Acesso rápido</h2><p>Atalhos para as tarefas mais comuns.</p></div></div>
           <div className={styles.quickGrid}>
-            <Link href="/admin/noticias" className={styles.quickCard}><span className={styles.quickIcon}><Newspaper size={20}/></span><span><strong>Gerenciar notícias</strong><small>Buscar, filtrar, editar e excluir publicações.</small></span><ArrowUpRight size={17}/></Link>
-            <Link href="/admin/editorias" className={styles.quickCard}><span className={styles.quickIconGold}><FolderKanban size={20}/></span><span><strong>Organizar editorias</strong><small>Manter os assuntos do portal organizados.</small></span><ArrowUpRight size={17}/></Link>
-            <Link href="/admin/autores" className={styles.quickCard}><span className={styles.quickIconDark}><UsersRound size={20}/></span><span><strong>Gerenciar autores</strong><small>Editar perfis, biografias e fotografias.</small></span><ArrowUpRight size={17}/></Link>
+            {permissions.includes("manage_news") && <Link href="/admin/noticias" className={styles.quickCard}><span className={styles.quickIcon}><Newspaper size={20}/></span><span><strong>Gerenciar notícias</strong><small>Buscar, filtrar, editar e excluir publicações.</small></span><ArrowUpRight size={17}/></Link>}
+            {permissions.includes("manage_categories") && <Link href="/admin/editorias" className={styles.quickCard}><span className={styles.quickIconGold}><FolderKanban size={20}/></span><span><strong>Organizar editorias</strong><small>Manter os assuntos do portal organizados.</small></span><ArrowUpRight size={17}/></Link>}
+            {permissions.includes("manage_authors") && <Link href="/admin/autores" className={styles.quickCard}><span className={styles.quickIconDark}><UsersRound size={20}/></span><span><strong>Gerenciar autores</strong><small>Editar perfis, biografias e fotografias.</small></span><ArrowUpRight size={17}/></Link>}
           </div>
         </section>
 
-        <section className={styles.recentSection}>
+        {permissions.includes("manage_news") && <section className={styles.recentSection}>
           <div className={styles.sectionHeading}><div><h2>Atualizadas recentemente</h2><p>As últimas notícias modificadas no sistema.</p></div><Link href="/admin/noticias">Ver todas <ArrowUpRight size={15}/></Link></div>
           {checkingSession || refreshing
             ? <div className={styles.recentList} aria-busy="true">{[0, 1, 2, 3, 4].map((item) => <div className={styles.skeletonRecentRow} key={item}><span className={styles.skeletonStatus} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div><span className={styles.skeletonDate} /></div>)}</div>
@@ -243,7 +263,7 @@ export default function AdminPage() {
                 <span className={styles.updatedDate}>{article.updated_at ? new Date(article.updated_at).toLocaleDateString("pt-BR") : "—"}</span>
                 <Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`}><ArrowUpRight size={17}/></Link>
               </article>)}</div>}
-        </section>
+        </section>}
         <footer className={styles.footer}>CNC RORAIMA <span>·</span> PAINEL ADMINISTRATIVO</footer>
       </div>
     </main>
