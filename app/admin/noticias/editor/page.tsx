@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties, FormEvent } from "react";
@@ -15,7 +15,7 @@ import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
 import { ArrowLeft, Check, Eye, FileText, ImagePlus, LoaderCircle, Save, Send, X } from "lucide-react";
 import styles from "./editor.module.css";
 
-export default function ArticleEditorPage() {
+function ArticleEditorContent() {
   const router = useRouter();
   const params = useSearchParams();
   const editId = params.get("edit");
@@ -173,4 +173,9 @@ export default function ArticleEditorPage() {
       <footer className={styles.footer}>CNC RORAIMA · ESTÚDIO EDITORIAL <Link href="/admin/noticias">Voltar ao diretório</Link></footer>
     </div>
   </main>;
+}
+
+
+export default function ArticleEditorPage() {
+  return <Suspense fallback={<main className={styles.shell}><AdminSidebar onLogout={() => {}}/><div className={styles.main}><div className={styles.loading}><LoaderCircle size={24}/> Carregando editor…</div></div></main>}><ArticleEditorContent /></Suspense>;
 }
