@@ -40,7 +40,7 @@ export function AuthorForm({
               {avatarUrl ? <img src={avatarUrl} alt="Prévia da foto do autor" /> : <span className={styles.avatarPlaceholder}><ImagePlus size={25} /><small>Adicionar foto</small></span>}
               <span className={styles.avatarEdit}><ImagePlus size={14} /></span>
             </button>
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden onChange={(event) => onAvatarFile(event.target.files?.[0])} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden onChange={(event) => { onAvatarFile(event.currentTarget.files?.[0]); event.currentTarget.value = ""; }} />
             <small className={styles.helper}>JPG, PNG, WebP ou AVIF. Até 8 MB.</small>
             {uploading && <small className={styles.uploadStatus}><LoaderCircle size={13} className={styles.spin} /> Enviando imagem…</small>}
             <label className={styles.fieldLabel} htmlFor="avatar-url">Ou URL da foto</label>
