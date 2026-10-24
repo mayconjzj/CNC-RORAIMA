@@ -12,12 +12,21 @@ const routePermissions: Array<{ matches: (pathname: string) => boolean; permissi
 ];
 
 type AccessState = "not-required" | "checking" | "allowed" | "denied" | "error" | "unauthenticated";
+type PermissionCache = { permissions: string[]; fetchedAt: number };
+
+// Reuse permissions during navigation; the APIs still authorize every operation.
+let permissionCache: PermissionCache | null = null;
+const PERMISSION_CACHE_TTL_MS = 60_000;
 
 export function AdminRouteGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const route = routePermissions.find((item) => item.matches(pathname));
-  const [state, setState] = useState<AccessState>("not-required");
-  const [checkedPath, setCheckedPath] = useState<string | null>(null);
+  const [state, setState] = useState<AccessState>(() => {
+    if (!route) return "not-required";
+    if (permissionCache) return permissionCache.permissions.includes(route.permission) ? "allowed" : "denied";
+    return "checking";
+  });
+  const [checkedPath, setCheckedPath] = useState<string | null>(() => permissionCache || !route ? pathname : null);
 
   useEffect(() => {
     if (!route) {
@@ -26,30 +35,41 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
       return;
     }
 
+    const cached = permissionCache;
+    if (cached) {
+      setState(cached.permissions.includes(route.permission) ? "allowed" : "denied");
+      setCheckedPath(pathname);
+      if (Date.now() - cached.fetchedAt < PERMISSION_CACHE_TTL_MS) return;
+      // Stale data is usable while it refreshes, avoiding a full-page loading screen.
+    } else {
+      setState("checking");
+    }
+
     let active = true;
-    setState("checking");
     fetch("/api/admin/me", { cache: "no-store" })
       .then(async (response) => {
         if (!active) return;
         if (response.status === 401) {
+          permissionCache = null;
           setState("unauthenticated");
           setCheckedPath(pathname);
           return;
         }
         if (!response.ok) {
-          setState("error");
+          if (!permissionCache) setState("error");
           setCheckedPath(pathname);
           return;
         }
         const data = await response.json() as { permissions?: string[] };
         if (active) {
-          setState((data.permissions ?? []).includes(route.permission) ? "allowed" : "denied");
+          permissionCache = { permissions: data.permissions ?? [], fetchedAt: Date.now() };
+          setState(permissionCache.permissions.includes(route.permission) ? "allowed" : "denied");
           setCheckedPath(pathname);
         }
       })
       .catch(() => {
         if (active) {
-          setState("error");
+          if (!permissionCache) setState("error");
           setCheckedPath(pathname);
         }
       });
@@ -57,7 +77,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [pathname, route?.permission]);
 
-  if (route && checkedPath !== pathname) {
+  if (route && checkedPath !== pathname && !permissionCache) {
     return (
       <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f8fa", color: "#20252d" }}>
         <p>Verificando suas permissões…</p>
