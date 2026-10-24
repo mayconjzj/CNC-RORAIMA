@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Newspaper, FolderKanban, UsersRound, Image,
   FileText, ChartNoAxesColumn, Settings, LogOut, Menu, X, ChevronRight,
@@ -11,11 +11,11 @@ import styles from "./admin-sidebar.module.css";
 type AdminSidebarProps = { onLogout: () => void };
 
 const navigation = [
-  { label: "Visão geral", href: "/admin", icon: LayoutDashboard },
-  { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
-  { label: "Editorias", href: "/admin/editorias", icon: FolderKanban },
-  { label: "Autores", href: "/admin/autores", icon: UsersRound },
-  { label: "Usuários", href: "/admin/usuarios", icon: UsersRound },
+  { label: "Visão geral", href: "/admin", icon: LayoutDashboard, permission: null },
+  { label: "Notícias", href: "/admin/noticias", icon: Newspaper, permission: "manage_news" },
+  { label: "Editorias", href: "/admin/editorias", icon: FolderKanban, permission: "manage_categories" },
+  { label: "Autores", href: "/admin/autores", icon: UsersRound, permission: "manage_authors" },
+  { label: "Usuários", href: "/admin/usuarios", icon: UsersRound, permission: "manage_users" },
 ];
 
 const comingSoon = [
@@ -27,6 +27,17 @@ const comingSoon = [
 
 export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [permissions, setPermissions] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/me", { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) return;
+      const data = await response.json() as { permissions?: string[] };
+      if (active) setPermissions(data.permissions ?? []);
+    }).catch(() => { if (active) setPermissions([]); });
+    return () => { active = false; };
+  }, []);
 
   function closeMobile() {
     setMobileOpen(false);
@@ -56,7 +67,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 
         <div className={styles.sectionLabel}>WORKSPACE</div>
         <nav className={styles.nav}>
-          {navigation.map(({ label, href, icon: Icon }) => (
+          {navigation.filter((item) => item.permission === null || permissions.includes(item.permission)).map(({ label, href, icon: Icon }) => (
             <Link key={href} href={href} className={styles.navLink} onClick={closeMobile}>
               <Icon size={18} strokeWidth={1.8} />
               <span>{label}</span>
