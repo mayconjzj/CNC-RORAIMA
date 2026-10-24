@@ -57,7 +57,15 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [pathname, route?.permission]);
 
-  if (route && checkedPath !== pathname) {\n    return (\n      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f8fa", color: "#20252d" }}>\n        <p>Verificando suas permissões…</p>\n      </main>\n    );\n  }\n\n  if (!route || state === "not-required" || state === "allowed" || state === "unauthenticated") {
+  if (route && checkedPath !== pathname) {
+    return (
+      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f8fa", color: "#20252d" }}>
+        <p>Verificando suas permissões…</p>
+      </main>
+    );
+  }
+
+  if (!route || state === "not-required" || state === "allowed" || state === "unauthenticated") {
     return <>{children}</>;
   }
 
