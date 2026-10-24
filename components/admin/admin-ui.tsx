@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Fragment } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { Check, ChevronLeft, X } from "lucide-react";
 
@@ -16,14 +17,14 @@ export function AdminBreadcrumb({ items, className, linkClassName, currentClassN
   return (
     <nav className={className} aria-label="Trilha de navegação">
       {items.map((item, index) => (
-        <span key={item.href ?? item.label} className="admin-breadcrumb-item">
+        <Fragment key={item.href ?? item.label}>
           {index > 0 && <ChevronLeft size={14} aria-hidden="true" />}
           {item.href ? (
             <Link className={linkClassName} href={item.href}>{item.label}</Link>
           ) : (
             <span className={currentClassName} aria-current="page">{item.label}</span>
           )}
-        </span>
+        </Fragment>
       ))}
     </nav>
   );
