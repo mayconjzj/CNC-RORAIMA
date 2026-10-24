@@ -12,9 +12,20 @@ export async function GET(request: Request) {
   try {
     const sql = getDb();
     const rows = await sql`SELECT email FROM admin_invitations WHERE token_hash = ${hash(token)} AND status = 'pending' AND expires_at > NOW() LIMIT 1`;
-    return rows.length ? NextResponse.json({ valid: true, email: rows[0].email }) : NextResponse.json({ valid: false, error: "Convite inválido, expirado ou já utilizado." }, { status: 410 });
+    return rows.length
+      ? NextResponse.json(
+          { valid: true, email: rows[0].email },
+          { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+        )
+      : NextResponse.json(
+          { valid: false, error: "Convite inválido, expirado ou já utilizado." },
+          { status: 410, headers: { "Cache-Control": "private, no-store, max-age=0" } },
+        );
   } catch {
-    return NextResponse.json({ error: "Não foi possível validar o convite." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Não foi possível validar o convite." },
+      { status: 500, headers: { "Cache-Control": "private, no-store, max-age=0" } },
+    );
   }
 }
 
@@ -46,7 +57,10 @@ export async function POST(request: Request) {
       SELECT email, NULL, ${name}, ${user.id} FROM invite
       RETURNING id`;
     if (!rows.length) return NextResponse.json({ error: "Convite inválido, expirado, já utilizado ou pertencente a outro e-mail." }, { status: 410 });
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return NextResponse.json(
+      { ok: true },
+      { status: 201, headers: { "Cache-Control": "private, no-store, max-age=0" } },
+    );
   } catch (error) {
     console.error("Falha ao aceitar convite Neon Auth", error);
     return NextResponse.json({ error: "Não foi possível concluir o convite. Verifique se esta conta já existe no painel." }, { status: 500 });
