@@ -34,6 +34,7 @@ export default function AdminUsersPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [inviteUrl, setInviteUrl] = useState("");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -80,7 +81,7 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await response.json() as ApiResponse;
       if (!response.ok) throw new Error(data.error ?? "Não foi possível enviar o convite.");
-      resetForm(); if (data.inviteUrl) { window.prompt("Copie este link e envie ao convidado por um canal seguro. O link expira em 48 horas:", data.inviteUrl); setMessage("Convite criado. Envie manualmente o link ao convidado."); } else { setMessage("Convite criado."); } await loadUsers();
+      resetForm(); setInviteUrl(data.inviteUrl ?? ""); setMessage(data.inviteUrl ? "Convite criado. Copie o link abaixo e envie ao convidado por um canal seguro." : "Convite criado."); await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao enviar convite."); }
     finally { setBusy(false); }
   }
@@ -140,6 +141,16 @@ export default function AdminUsersPage() {
 
         {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.noticeError} />}
         {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.noticeSuccess} />}
+        {inviteUrl && <section className={styles.formPanel} aria-label="Link do convite">
+          <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>LINK GERADO</span><h2>Compartilhe o convite</h2><p>Este link expira em 48 horas e só pode ser usado para o e-mail convidado.</p></div></div>
+          <div className={styles.form}>
+            <label>Link do convite<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label>
+            <div className={styles.formActions}>
+              <button className={styles.secondaryButton} type="button" onClick={() => setInviteUrl("")}>Fechar</button>
+              <button className={styles.primaryButton} type="button" onClick={() => { void navigator.clipboard.writeText(inviteUrl).then(() => setMessage("Link copiado para a área de transferência.")).catch(() => setMessage("Selecione e copie o link manualmente.")); }}>Copiar link</button>
+            </div>
+          </div>
+        </section>}
 
         <section className={styles.metrics} aria-label="Resumo de usuários">
           <AdminStatCard className={styles.metricCard} iconClassName={styles.metricIcon} icon={UsersRound} label="Contas ativas" value={users.filter((user) => user.status === "active").length} note="Usuários cadastrados" />
