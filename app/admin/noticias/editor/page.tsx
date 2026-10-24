@@ -104,10 +104,10 @@ function ArticleEditorContent() {
     finally { setUploading(null); }
   }
 
-  async function save(event: FormEvent, publish?: boolean) {
+  async function save(event: FormEvent) {
     event.preventDefault(); setBusy(true); resetMessage();
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-    const nextStatus = (publish || submitter?.value === "publish") ? "published" : "draft";
+    const nextStatus = submitter?.value === "publish" ? "published" : "draft";
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
