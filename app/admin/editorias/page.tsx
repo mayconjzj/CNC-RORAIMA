@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
-import { Check, ChevronLeft, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
+import { Check, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
 type Category = { id: string; name: string; slug: string; article_count?: number };
 
