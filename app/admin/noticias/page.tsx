@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice, AdminPageHeader } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
 import { Check, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
@@ -112,7 +112,7 @@ export default function AdminNewsPage() {
         </article>)}</div>}
         <div className={styles.pagination}><span>Página {Math.min(page+1,Math.max(1,Math.ceil(total/PAGE_SIZE)))} de {Math.max(1,Math.ceil(total/PAGE_SIZE))}</span><div><button className={styles.secondaryButton} disabled={page===0||loading} onClick={()=>setPage(p=>Math.max(0,p-1))}>Anterior</button><button className={styles.secondaryButton} disabled={(page+1)*PAGE_SIZE>=total||loading} onClick={()=>setPage(p=>p+1)}>Próxima</button></div></div>
       </section>
-      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><Link href="/admin">Voltar ao painel <ExternalLink size={13}/></Link></footer>
+      <AdminPageFooter className={styles.pageFooter} />
     </div>
   </main>;
 }
