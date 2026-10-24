@@ -181,7 +181,7 @@ export function InfiniteNewsList({
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [filters, hasMore]);
+  }, [filters, hasMore, totalArticles]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
