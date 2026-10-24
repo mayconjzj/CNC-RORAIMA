@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
-import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
 import { Check, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
