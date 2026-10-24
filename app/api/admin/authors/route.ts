@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireAdminPermission } from "@/lib/admin-permissions";
+import { requireAdminPermission, requireAnyAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { revalidatePublishedContent } from "@/lib/revalidation";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const auth = await requireAdminPermission("manage_authors");
+  const auth = await requireAnyAdminPermission(["manage_news", "manage_authors"]);
   if (auth.response) return auth.response;
   try {
     const sql = getDb();
