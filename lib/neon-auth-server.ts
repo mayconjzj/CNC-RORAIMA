@@ -1,3 +1,4 @@
+import "server-only";
 import { createNeonAuth } from "@neondatabase/auth/next/server";
 
 const baseUrl = process.env.NEON_AUTH_BASE_URL;

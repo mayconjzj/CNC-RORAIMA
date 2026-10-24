@@ -3,6 +3,9 @@ name: Quality checks
 on:
   push:
     branches:
+      - main
+      - "refactor/**"
+      - "feat/**"
       - work/cnc-portal-improvements
   pull_request:
     branches:
