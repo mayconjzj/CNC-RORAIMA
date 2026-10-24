@@ -111,7 +111,7 @@ export default function AdminPage() {
   }
 
   async function logout() {
-    window.sessionStorage.removeItem("cnc-admin-session");
+    clearAdminSessionMarker();
     setLoggedIn(false);
     setData(emptyData);
     await fetch("/api/admin/logout", { method: "POST" });
