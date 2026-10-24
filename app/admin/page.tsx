@@ -121,32 +121,8 @@ export default function AdminPage() {
     return <main className={styles.authLoading}><span className={styles.loader} /><p>Verificando sessão administrativa…</p></main>;
   }
 
-  if (checkingSession && hasSessionMarker) {
-    return (
-      <main className={styles.shell}>
-        <AdminSidebar onLogout={() => void logout()} />
-        <div className={styles.main} aria-label="Carregando painel geral" aria-busy="true">
-          <header className={styles.header}>
-            <div className={styles.skeletonHeading}><span className={styles.skeletonLine} /><span className={styles.skeletonTitle} /><span className={styles.skeletonLine} /></div>
-            <div className={styles.headerActions}><span className={styles.skeletonButton} /><span className={styles.skeletonButton} /></div>
-          </header>
-          <section className={styles.metrics}>
-            {[0, 1, 2, 3, 4].map((item) => <article className={styles.metricCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonNumber} /><span className={styles.skeletonLine} /></div></article>)}
-          </section>
-          <section className={styles.quickSection}>
-            <div className={styles.sectionHeading}><div><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>
-            <div className={styles.quickGrid}>{[0, 1, 2].map((item) => <div className={styles.quickCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>)}</div>
-          </section>
-          <section className={styles.recentSection}>
-            <div className={styles.sectionHeading}><div><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div></div>
-            <div className={styles.recentList}>{[0, 1, 2, 3, 4].map((item) => <div className={styles.skeletonRecentRow} key={item}><span className={styles.skeletonStatus} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div><span className={styles.skeletonDate} /></div>)}</div>
-          </section>
-        </div>
-      </main>
-    );
-  }
 
-  if (!loggedIn) {
+  if (!loggedIn && !hasSessionMarker) {
     return (
       <main className={styles.loginPage}>
         <form className={styles.loginCard} onSubmit={login}>
@@ -187,13 +163,15 @@ export default function AdminPage() {
 
         {error && <div className={styles.errorNotice} role="alert">{error}<button type="button" onClick={() => setError("")}>Fechar</button></div>}
 
-        <section className={styles.metrics} aria-label="Indicadores editoriais">
-          {cards.map(({ label, value, note, icon: Icon, tone }) => (
-            <article className={styles.metricCard} key={label}>
-              <span className={styles[`metricIcon_${tone}`]}><Icon size={19} /></span>
-              <div><span className={styles.metricLabel}>{label}</span><strong>{value}</strong><small>{note}</small></div>
-            </article>
-          ))}
+        <section className={styles.metrics} aria-label="Indicadores editoriais" aria-busy={checkingSession || refreshing}>
+          {checkingSession || refreshing
+            ? [0, 1, 2, 3, 4].map((item) => <article className={styles.metricCard} key={item}><span className={styles.skeletonIcon} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonNumber} /><span className={styles.skeletonLine} /></div></article>)
+            : cards.map(({ label, value, note, icon: Icon, tone }) => (
+              <article className={styles.metricCard} key={label}>
+                <span className={styles[`metricIcon_${tone}`]}><Icon size={19} /></span>
+                <div><span className={styles.metricLabel}>{label}</span><strong>{value}</strong><small>{note}</small></div>
+              </article>
+            ))}
         </section>
 
         <section className={styles.quickSection}>
@@ -207,13 +185,15 @@ export default function AdminPage() {
 
         <section className={styles.recentSection}>
           <div className={styles.sectionHeading}><div><h2>Atualizadas recentemente</h2><p>As últimas notícias modificadas no sistema.</p></div><Link href="/admin/noticias">Ver todas <ArrowUpRight size={15}/></Link></div>
-          {data.recent.length === 0 ? <div className={styles.emptyState}><Newspaper size={25}/><h3>Nenhuma notícia cadastrada</h3><p>Crie a primeira publicação para começar a preencher o portal.</p><Link href="/admin/noticias/editor" className={styles.primaryButton}><FilePlus2 size={16}/> Criar notícia</Link></div> :
-            <div className={styles.recentList}>{data.recent.map((article) => <article className={styles.recentRow} key={article.id}>
-              <span className={article.status === "published" ? styles.statusPublished : styles.statusDraft}>{article.status === "published" ? "Publicada" : "Rascunho"}</span>
-              <div className={styles.recentInfo}><strong>{article.title}</strong><small>{article.category_name ?? "Sem editoria"} · {article.author_name ?? "Autor não definido"}</small></div>
-              <span className={styles.updatedDate}>{article.updated_at ? new Date(article.updated_at).toLocaleDateString("pt-BR") : "—"}</span>
-              <Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`}><ArrowUpRight size={17}/></Link>
-            </article>)}</div>}
+          {checkingSession || refreshing
+            ? <div className={styles.recentList} aria-busy="true">{[0, 1, 2, 3, 4].map((item) => <div className={styles.skeletonRecentRow} key={item}><span className={styles.skeletonStatus} /><div className={styles.skeletonMetricText}><span className={styles.skeletonLine} /><span className={styles.skeletonLine} /></div><span className={styles.skeletonDate} /></div>)}</div>
+            : data.recent.length === 0 ? <div className={styles.emptyState}><Newspaper size={25}/><h3>Nenhuma notícia cadastrada</h3><p>Crie a primeira publicação para começar a preencher o portal.</p><Link href="/admin/noticias/editor" className={styles.primaryButton}><FilePlus2 size={16}/> Criar notícia</Link></div> :
+              <div className={styles.recentList}>{data.recent.map((article) => <article className={styles.recentRow} key={article.id}>
+                <span className={article.status === "published" ? styles.statusPublished : styles.statusDraft}>{article.status === "published" ? "Publicada" : "Rascunho"}</span>
+                <div className={styles.recentInfo}><strong>{article.title}</strong><small>{article.category_name ?? "Sem editoria"} · {article.author_name ?? "Autor não definido"}</small></div>
+                <span className={styles.updatedDate}>{article.updated_at ? new Date(article.updated_at).toLocaleDateString("pt-BR") : "—"}</span>
+                <Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`}><ArrowUpRight size={17}/></Link>
+              </article>)}</div>}
         </section>
         <footer className={styles.footer}>CNC RORAIMA <span>·</span> PAINEL ADMINISTRATIVO</footer>
       </div>
