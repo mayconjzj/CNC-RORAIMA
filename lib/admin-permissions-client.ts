@@ -5,6 +5,10 @@ export function getCachedAdminPermissions(): string[] | null {
   return cachedPermissions;
 }
 
+export function setCachedAdminPermissions(permissions: string[]) {
+  cachedPermissions = permissions;
+}
+
 export function clearAdminPermissionsCache() {
   cachedPermissions = null;
   permissionsRequest = null;
