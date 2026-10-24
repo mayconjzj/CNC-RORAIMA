@@ -1,0 +1,127 @@
+"use client";
+
+import Link from "next/link";
+import { Fragment } from "react";
+import type { ComponentType, ReactNode } from "react";
+import { ArrowUpRight, Check, ChevronLeft, X } from "lucide-react";
+
+type BreadcrumbItem = { label: string; href?: string };
+type AdminBreadcrumbProps = {
+  items: BreadcrumbItem[];
+  className: string;
+  linkClassName?: string;
+  currentClassName?: string;
+};
+
+export function AdminBreadcrumb({ items, className, linkClassName, currentClassName }: AdminBreadcrumbProps) {
+  return (
+    <nav className={className} aria-label="Trilha de navegação">
+      {items.map((item, index) => (
+        <Fragment key={item.href ?? item.label}>
+          {index > 0 && <ChevronLeft size={14} aria-hidden="true" />}
+          {item.href ? (
+            <Link className={linkClassName} href={item.href}>{item.label}</Link>
+          ) : (
+            <span className={currentClassName} aria-current="page">{item.label}</span>
+          )}
+        </Fragment>
+      ))}
+    </nav>
+  );
+}
+
+type AdminNoticeProps = {
+  type: "success" | "error";
+  message: string;
+  onDismiss: () => void;
+  className: string;
+};
+
+export function AdminNotice({ type, message, onDismiss, className }: AdminNoticeProps) {
+  return (
+    <div className={className} role={type === "error" ? "alert" : "status"}>
+      {type === "success" && <Check size={17} aria-hidden="true" />}
+      <span>{message}</span>
+      <button type="button" onClick={onDismiss} aria-label="Fechar aviso">
+        <X size={16} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+type AdminPageFooterProps = {
+  className: string;
+  linkClassName?: string;
+  href?: string;
+  linkLabel?: string;
+  children?: ReactNode;
+};
+
+export function AdminPageFooter({
+  className,
+  linkClassName,
+  href = "/admin",
+  linkLabel = "Voltar ao painel",
+  children,
+}: AdminPageFooterProps) {
+  return (
+    <footer className={className}>
+      <span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span>
+      {children}
+      <Link className={linkClassName} href={href}>{linkLabel} <ArrowUpRight size={14} aria-hidden="true" /></Link>
+    </footer>
+  );
+}
+
+type AdminStatCardProps = {
+  className: string;
+  iconClassName: string;
+  icon: ComponentType<{ size?: number }>;
+  label: string;
+  value: string | number;
+  note: string;
+};
+
+export function AdminStatCard({ className, iconClassName, icon: Icon, label, value, note }: AdminStatCardProps) {
+  return (
+    <article className={className}>
+      <span className={iconClassName}><Icon size={19} /></span>
+      <div><span>{label}</span><strong>{value}</strong><small>{note}</small></div>
+    </article>
+  );
+}
+
+type AdminPageHeaderProps = {
+  className: string;
+  contentClassName?: string;
+  eyebrowClassName?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  eyebrow: ReactNode;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+};
+
+export function AdminPageHeader({
+  className,
+  contentClassName,
+  eyebrowClassName,
+  titleClassName,
+  descriptionClassName,
+  eyebrow,
+  title,
+  description,
+  actions,
+}: AdminPageHeaderProps) {
+  return (
+    <header className={className}>
+      <div className={contentClassName}>
+        <div className={eyebrowClassName}>{eyebrow}</div>
+        <h1 className={titleClassName}>{title}</h1>
+        <p className={descriptionClassName}>{description}</p>
+      </div>
+      {actions}
+    </header>
+  );
+}

@@ -1,18 +1,22 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties, FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
+import { AdminNotice } from "@/components/admin/admin-ui";
+import { ArticleEditorLoadingSkeleton } from "./components/editor-loading-skeleton";
+import { ArticlePreviewPanel } from "./components/article-preview-panel";
+import { ArticlePublishingPanel } from "./components/article-publishing-panel";
+import { ArticleBasicsPanel } from "./components/article-basics-panel";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
-import { ArticleBody } from "@/components/news/article-body";
-import { normalizeArticleSections } from "@/lib/article-content";
 import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
 import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
-import { ArrowLeft, Check, Eye, FileText, ImagePlus, Save, Send, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, Save, Send, X } from "lucide-react";
 import styles from "./editor.module.css";
 
 function ArticleEditorContent() {
@@ -38,7 +42,6 @@ function ArticleEditorContent() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"error" | "success">("success");
-  const coverInput = useRef<HTMLInputElement>(null);
 
   const input: CSSProperties = { width: "100%", padding: "12px 13px", border: "1px solid #dedfe4", borderRadius: 9, font: "inherit", fontSize: 14, marginTop: 7, background: "#fff", color: "#24252b" };
   const label: CSSProperties = { display: "block", fontSize: 12, fontWeight: 750, marginBottom: 17, color: "#484952" };
@@ -50,10 +53,10 @@ function ArticleEditorContent() {
       fetch("/api/admin/categories", { cache: "no-store" }),
       fetch("/api/admin/authors", { cache: "no-store" }),
     ]);
-    if (a.status === 401 || c.status === 401 || u.status === 401) { setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); setChecking(false); return false; }
+    if (a.status === 401 || c.status === 401 || u.status === 401) { setAuthorized(false); clearAdminSessionMarker(); setChecking(false); return false; }
     const [ad, cd, ud] = await Promise.all([a.json(), c.json(), u.json()]);
     if (!a.ok || !c.ok || !u.ok) throw new Error(ad.error || cd.error || ud.error || "Não foi possível carregar o editor.");
-    setCategories(cd.categories ?? []); setAuthors(ud.authors ?? []); setAuthorized(true); window.sessionStorage.setItem("cnc-admin-session", "active"); setChecking(false);
+    setCategories(cd.categories ?? []); setAuthors(ud.authors ?? []); setAuthorized(true); markAdminSessionActive(); setChecking(false);
     return true;
   }, []);
 
@@ -101,10 +104,10 @@ function ArticleEditorContent() {
     finally { setUploading(null); }
   }
 
-  async function save(event: FormEvent, publish?: boolean) {
+  async function save(event: FormEvent) {
     event.preventDefault(); setBusy(true); resetMessage();
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-    const nextStatus = (publish || submitter?.value === "publish") ? "published" : "draft";
+    const nextStatus = submitter?.value === "publish" ? "published" : "draft";
     try {
       const response = await fetch(editingId ? `/api/admin/articles/${editingId}` : "/api/admin/articles", {
         method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
@@ -119,52 +122,63 @@ function ArticleEditorContent() {
     finally { setBusy(false); }
   }
 
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); router.replace("/admin"); }
-  const previewAuthor = authors.find(a => a.id === authorId);
+  async function logout() { clearAdminSessionMarker(); setAuthorized(false); router.replace("/admin"); try { await fetch("/api/admin/logout", { method: "POST" }); } catch { /* The local interface should still leave the admin area. */ } }
 
-  if (checking && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
-  if (!checking && !authorized) return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
+  if (checking && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (!checking && !authorized && messageType !== "error") return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()}/>
     <div className={styles.main}>
       <div className={styles.topbar}><Link href="/admin/noticias" className={styles.back}><ArrowLeft size={16}/> Voltar às notícias</Link><span className={styles.secure}><span/> {checking ? "Verificando sessão…" : "Sessão administrativa ativa"}</span></div>
       <header className={styles.header}><div><div className={styles.eyebrow}>CNC RORAIMA · ESTÚDIO EDITORIAL</div><h1>{editingId ? "Editar notícia" : "Criar notícia"}</h1><p>Prepare a matéria, organize os elementos e revise a publicação em um só lugar.</p></div><div className={styles.headerActions}><button type="button" className={styles.outlineButton} onClick={() => setShowPreview(v => !v)}><Eye size={16}/>{showPreview ? "Ocultar prévia" : "Pré-visualizar"}</button></div></header>
-      {message && <div role={messageType === "error" ? "alert" : "status"} className={messageType === "error" ? styles.error : styles.success}>{messageType === "error" ? <X size={17}/> : <Check size={17}/>}<span>{message}</span><button type="button" onClick={resetMessage} aria-label="Fechar aviso"><X size={15}/></button></div>}
-      {loadingArticle ? <div className={styles.editorSkeletonGrid} aria-label={loadingArticle ? "Carregando dados da notícia" : "Carregando editor"}>
-        <div className={styles.contentColumn}>{[0,1,2].map((item) => <section className={styles.card} key={item}><div className={styles.skeletonHeading}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/><div className={styles.skeletonFieldShort}/></section>)}</div>
-        <aside className={styles.sideColumn}><section className={styles.card}><div className={styles.skeletonHeading}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/><div className={styles.skeletonField}/></section><section className={styles.stickyActions}><div className={styles.skeletonField}/><div className={styles.skeletonField}/></section></aside>
-      </div> : <form id="article-editor-form" onSubmit={e => void save(e)} className={styles.editorGrid}>
+      {message && <AdminNotice type={messageType} message={message} onDismiss={resetMessage} className={messageType === "error" ? styles.error : styles.success} />}
+      {loadingArticle ? <ArticleEditorLoadingSkeleton /> : <form id="article-editor-form" onSubmit={e => void save(e)} className={styles.editorGrid}>
         <div className={styles.contentColumn}>
-          <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>01</span><div><h2>Conteúdo principal</h2><p>O título e o resumo que apresentam a matéria ao leitor.</p></div></div>
-            <label style={label}>Título da notícia <span className={styles.required}>*</span><input style={input} required minLength={5} maxLength={180} value={title} onChange={e => setTitle(e.target.value)} placeholder="Escreva um título claro e informativo"/></label>
-            <div className={styles.counterRow}><span>Use uma manchete objetiva, com a informação mais importante.</span><span>{title.length}/180</span></div>
-            <label style={label}>Resumo / linha fina<textarea style={{...input,minHeight:104,resize:"vertical"}} maxLength={500} value={excerpt} onChange={e => setExcerpt(e.target.value)} placeholder="Contextualize a notícia em uma ou duas frases."/></label>
-            <div className={styles.counterRow}><span>Este texto pode aparecer nos cards e nos mecanismos de busca.</span><span>{excerpt.length}/500</span></div>
-          </section>
-          <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>02</span><div><h2>Imagem de capa</h2><p>Escolha a imagem que representa a matéria no portal.</p></div></div>
-            {image ? <div className={styles.coverPreview}><img src={image} alt={title ? `Capa: ${title}` : "Prévia da capa"}/><button type="button" onClick={() => setImage("")} aria-label="Remover imagem de capa"><X size={16}/></button></div> : <button type="button" className={styles.uploadCover} onClick={() => coverInput.current?.click()}><ImagePlus size={24}/><strong>Adicionar imagem de capa</strong><span>JPG, PNG, WebP, GIF ou AVIF · até 25 MB</span></button>}
-            <input ref={coverInput} hidden type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={uploading !== null} onChange={e => { const file=e.target.files?.[0]; if(file) void uploadFile(file,setImage,"cover"); e.currentTarget.value=""; }}/>
-            <label style={label}>URL da imagem<input style={input} type="url" placeholder="https://..." value={image} onChange={e => setImage(e.target.value)}/></label>
-          </section>
+          <ArticleBasicsPanel
+            title={title}
+            excerpt={excerpt}
+            image={image}
+            uploading={uploading}
+            inputStyle={input}
+            labelStyle={label}
+            onTitleChange={setTitle}
+            onExcerptChange={setExcerpt}
+            onImageChange={setImage}
+            onUploadFile={uploadFile}
+          />
           <section className={styles.card}><div className={styles.cardTitle}><span className={styles.step}>03</span><div><h2>Corpo da notícia</h2><p>Monte a matéria com texto, títulos, citações, listas e elementos multimídia.</p></div></div>
             <ArticleStructureEditor sections={sections} setSections={setSections} inputStyle={input} labelStyle={label} buttonStyle={button} uploading={uploading} addSection={addSection} moveSection={moveSection} removeSection={removeSection} addBlock={addBlock} moveBlock={moveBlock} removeBlock={removeBlock} updateBlock={updateBlock} appendGalleryImage={appendGalleryImage} uploadFile={uploadFile}/>
           </section>
 
         </div>
         <aside className={styles.sideColumn}>
-          <section className={styles.card}><div className={styles.cardTitle}><FileText size={18}/><div><h2>Publicação</h2><p>Defina como a notícia será disponibilizada.</p></div></div>
-            <div className={styles.currentStatus}><span>Status atual</span><strong className={status === "published" ? styles.statusPublished : styles.statusDraft}>{status === "published" ? "Publicada" : "Rascunho"}</strong></div>
-            <label style={label}>Editoria<select style={input} value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-            <label style={label}>Autor principal<select style={input} value={authorId} onChange={e => setAuthorId(e.target.value)}><option value="">Autor não definido</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
-            <label className={styles.featured}><input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)}/><span><strong>Destacar na página inicial</strong><small>A notícia receberá destaque no portal.</small></span></label>
-            <div className={styles.publishHint}><Check size={15}/> Escolha uma ação abaixo: salvar sem publicar ou publicar agora.</div>
-          </section>
+          <ArticlePublishingPanel
+            status={status}
+            categoryId={categoryId}
+            authorId={authorId}
+            featured={featured}
+            categories={categories}
+            authors={authors}
+            inputStyle={input}
+            labelStyle={label}
+            onCategoryChange={setCategoryId}
+            onAuthorChange={setAuthorId}
+            onFeaturedChange={setFeatured}
+          />
           <section className={styles.stickyActions}><button className={styles.saveButton} type="submit" name="intent" value="draft" disabled={busy || uploading !== null}><Save size={16}/>{busy ? "Salvando…" : "Salvar rascunho"}</button><button className={styles.publishButton} type="submit" name="intent" value="publish" disabled={busy || uploading !== null}><Send size={15}/>{busy ? "Processando…" : status === "published" ? "Salvar e publicar" : "Publicar notícia"}</button><button type="button" className={styles.outlineButton} disabled={busy || uploading !== null} onClick={() => router.push("/admin/noticias")}><X size={15}/> Cancelar</button></section>
           <div className={styles.sideNote}>As alterações só ficam públicas depois de salvar a notícia com status “Publicada”.</div>
         </aside>
       </form>}
-      {showPreview && <section className={styles.previewPanel}><div className={styles.previewHeading}><div><span>PRÉ-VISUALIZAÇÃO</span><h2>Assim a matéria pode aparecer no portal</h2></div><button className={styles.outlineButton} onClick={() => setShowPreview(false)}><X size={15}/> Fechar</button></div><article className={styles.previewArticle}><p className={styles.previewCategory}>{categories.find(c=>c.id===categoryId)?.name ?? "Notícias de Roraima"}</p><h1>{title || "Título da notícia"}</h1>{excerpt && <p className={styles.previewExcerpt}>{excerpt}</p>}<p className={styles.previewByline}>Por {authors.find(a=>a.id===authorId)?.name ?? "Redação CNC Roraima"} · Prévia</p>{image && <img className={styles.previewCover} src={image} alt={title || "Imagem de capa"}/>}<ArticleBody sections={normalizeArticleSections(sections)}/></article></section>}
+      {showPreview && <ArticlePreviewPanel
+        title={title}
+        excerpt={excerpt}
+        categoryName={categories.find((category) => category.id === categoryId)?.name ?? "Notícias de Roraima"}
+        authorName={authors.find((author) => author.id === authorId)?.name ?? "Redação CNC Roraima"}
+        image={image}
+        sections={sections}
+        onClose={() => setShowPreview(false)}
+      />}
       <footer className={styles.footer}>CNC RORAIMA · ESTÚDIO EDITORIAL <Link href="/admin/noticias">Voltar ao diretório</Link></footer>
     </div>
   </main>;

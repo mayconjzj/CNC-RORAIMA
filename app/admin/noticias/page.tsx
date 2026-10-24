@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { Check, ChevronLeft, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { AdminArticleRow } from "./components/admin-article-row";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
+import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
+import { Check, FilePlus2, Filter, Newspaper, Pencil, RefreshCw, Search, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
 type Article = {
@@ -41,19 +44,19 @@ export default function AdminNewsPage() {
         fetch("/api/admin/categories", { cache: "no-store", signal }),
         fetch("/api/admin/authors", { cache: "no-store", signal }),
       ]);
-      if (articleResponse.status === 401 || categoryResponse.status === 401 || authorResponse.status === 401) { setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
+      if (articleResponse.status === 401 || categoryResponse.status === 401 || authorResponse.status === 401) { setAuthorized(false); clearAdminSessionMarker(); return; }
       const [articleData, categoryData, authorData] = await Promise.all([articleResponse.json(), categoryResponse.json(), authorResponse.json()]);
       if (!articleResponse.ok) throw new Error(articleData.error ?? "Não foi possível carregar as notícias.");
       if (!categoryResponse.ok) throw new Error(categoryData.error ?? "Não foi possível carregar as editorias.");
       if (!authorResponse.ok) throw new Error(authorData.error ?? "Não foi possível carregar os autores.");
       setArticles(articleData.articles ?? []); setTotal(Number(articleData.total ?? 0));
-      setCategories(categoryData.categories ?? []); setAuthors(authorData.authors ?? []); setAuthorized(true); window.sessionStorage.setItem("cnc-admin-session", "active");
+      setCategories(categoryData.categories ?? []); setAuthors(authorData.authors ?? []); setAuthorized(true); markAdminSessionActive();
     } catch (e) {
       if (!signal?.aborted) setError(e instanceof Error ? e.message : "Falha ao carregar o painel de notícias.");
     } finally { if (!signal?.aborted) setLoading(false); }
-  }, [query, status, category, author, sort, page, refresh]);
+  }, [query, status, category, author, sort, page]);
 
-  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load]);
+  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load, refresh]);
   const stats = useMemo(() => ({
     published: articles.filter((item) => item.status === "published").length,
     drafts: articles.filter((item) => item.status !== "published").length,
@@ -73,25 +76,25 @@ export default function AdminNewsPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao excluir a notícia."); }
     finally { setBusyId(null); }
   }
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); }
+  async function logout() { clearAdminSessionMarker(); setAuthorized(false); try { await fetch("/api/admin/logout", { method: "POST" }); } catch { /* The local interface should still leave the admin area. */ } }
 
-  if (loading && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
-  if (!loading && !authorized) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
+  if (loading && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (!loading && !authorized && !error) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
 
   const start = total === 0 ? 0 : page * PAGE_SIZE + 1;
   const end = Math.min((page + 1) * PAGE_SIZE, total);
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
-      <div className={styles.breadcrumb}><Link href="/admin">Painel administrativo</Link><ChevronLeft size={14}/><span>Notícias</span></div>
-      <header className={styles.pageHeader}><div><div className={styles.eyebrow}><span/> GESTÃO DE CONTEÚDO</div><h1>Notícias</h1><p>Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima.</p></div><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link></header>
+      <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Notícias" }]} />
+      <AdminPageHeader className={styles.pageHeader} contentClassName={styles.pageHeaderContent} eyebrowClassName={styles.eyebrow} titleClassName={styles.pageTitle} descriptionClassName={styles.pageDescription} eyebrow={<><span /> GESTÃO DE CONTEÚDO</>} title="Notícias" description="Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima." actions={<Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link>} />
       <section className={styles.stats} aria-label="Resumo da página atual">
         <div className={styles.statCard}><span className={styles.statIcon}><Newspaper size={19}/></span><div><span>Resultados nesta página</span><strong>{loading ? "—" : articles.length}</strong><small>{total} notícias no filtro atual</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconGold}><Check size={19}/></span><div><span>Publicadas nesta página</span><strong>{loading ? "—" : stats.published}</strong><small>Visíveis ao público</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconDark}><Pencil size={19}/></span><div><span>Rascunhos nesta página</span><strong>{loading ? "—" : stats.drafts}</strong><small>Conteúdo não publicado</small></div></div>
       </section>
-      {notice && <div className={styles.successNotice} role="status"><Check size={16}/>{notice}<button onClick={()=>setNotice("")} aria-label="Fechar aviso"><X size={15}/></button></div>}
-      {error && <div className={styles.errorNotice} role="alert">{error}<button onClick={()=>setError("")} aria-label="Fechar erro"><X size={15}/></button></div>}
+      {notice && <AdminNotice type="success" message={notice} onDismiss={() => setNotice("")} className={styles.successNotice} />}
+      {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
       <section className={styles.directory}>
         <div className={styles.directoryHeader}><div><h2>Diretório de notícias</h2><p>Use os filtros para localizar publicações com precisão.</p></div><button className={styles.secondaryButton} onClick={()=>setRefresh(v=>v+1)} disabled={loading}><RefreshCw size={15} className={loading?styles.spin:""}/> Atualizar</button></div>
         <div className={styles.filters}>
@@ -104,14 +107,10 @@ export default function AdminNewsPage() {
         <div className={styles.listMeta}><span><Filter size={14}/> {loading?"Atualizando resultados…":`Exibindo ${start}–${end} de ${total} notícias`}</span><button onClick={clearFilters} className={styles.clearButton} disabled={!query&&status==="all"&&category==="all"&&author==="all"&&sort==="updated_desc"}>Limpar filtros</button></div>
         {loading && articles.length===0 ? <div className={styles.loadingRows}>{[0,1,2,3].map(i=><div className={styles.skeletonRow} key={i}><span className={styles.skeletonThumb}/><div className={styles.skeletonText}><span className={styles.skeletonLine} style={{width:"65%"}}/><span className={styles.skeletonLine} style={{width:"88%"}}/><span className={styles.skeletonLine} style={{width:"35%"}}/></div></div>)}</div>
         : articles.length===0 ? <div className={styles.emptyState}><span><Newspaper size={25}/></span><h3>Nenhuma notícia encontrada</h3><p>{query||status!=="all"||category!=="all"||author!=="all"?"Altere ou limpe os filtros para ver outros resultados.":"Cadastre a primeira notícia para começar a publicar no portal."}</p><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={16}/> Adicionar notícia</Link></div>
-        : <div className={styles.articleList}>{articles.map(article=><article className={styles.articleRow} key={article.id}>
-          <div className={styles.articleImage}>{article.featured_image_url?<img src={article.featured_image_url} alt="" loading="lazy"/>:<Newspaper size={22}/>}</div>
-          <div className={styles.articleInfo}><div className={styles.articleTags}><span className={article.status==="published"?styles.published:styles.draft}><i/>{article.status==="published"?"Publicada":"Rascunho"}</span>{article.is_featured&&<span className={styles.featured}>Destaque</span>}<span>{article.category_name??"Sem editoria"}</span></div><h3>{article.title}</h3><p>{article.excerpt||"Sem resumo cadastrado."}</p><small>{article.author_name??authors.find(a=>a.id===article.author_id)?.name??"Autor não definido"} · Atualizada em {article.updated_at?new Date(article.updated_at).toLocaleDateString("pt-BR"):"—"}</small></div>
-          <div className={styles.actions}>{article.status==="published"&&<a href={`/noticias/${article.slug}`} target="_blank" rel="noreferrer" aria-label={`Ver ${article.title}`} title="Ver notícia"><ExternalLink size={16}/></a>}<Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`} title="Editar notícia"><Pencil size={16}/></Link><button disabled={busyId===article.id} onClick={()=>void remove(article)} aria-label={`Excluir ${article.title}`} title="Excluir notícia">{busyId===article.id?<LoaderCircle size={16} className={styles.spin}/>:<Trash2 size={16}/>}</button></div>
-        </article>)}</div>}
+: <div className={styles.articleList}>{articles.map((article) => <AdminArticleRow key={article.id} article={article} authorName={article.author_name ?? authors.find((author) => author.id === article.author_id)?.name ?? "Autor não definido"} busy={busyId === article.id} onDelete={(item) => void remove(item)} />)}</div>}
         <div className={styles.pagination}><span>Página {Math.min(page+1,Math.max(1,Math.ceil(total/PAGE_SIZE)))} de {Math.max(1,Math.ceil(total/PAGE_SIZE))}</span><div><button className={styles.secondaryButton} disabled={page===0||loading} onClick={()=>setPage(p=>Math.max(0,p-1))}>Anterior</button><button className={styles.secondaryButton} disabled={(page+1)*PAGE_SIZE>=total||loading} onClick={()=>setPage(p=>p+1)}>Próxima</button></div></div>
       </section>
-      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><Link href="/admin">Voltar ao painel <ExternalLink size={13}/></Link></footer>
+      <AdminPageFooter className={styles.pageFooter} />
     </div>
   </main>;
 }

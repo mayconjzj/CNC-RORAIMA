@@ -16,7 +16,13 @@ export function Brand() {
 }
 
 export async function SiteHeader() {
-  const categories = await getPublishedCategories();
+  let categories: Awaited<ReturnType<typeof getPublishedCategories>> = [];
+  try {
+    categories = await getPublishedCategories();
+  } catch (error) {
+    // Keep institutional pages available when the database is temporarily unavailable.
+    console.error("Não foi possível carregar as editorias da navegação", error);
+  }
 
   return (
     <>
