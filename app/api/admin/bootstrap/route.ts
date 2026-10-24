@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const secret = typeof body.secret === "string" ? body.secret : "";
-    const name = typeof body.displayName === "string" ? body.displayName.trim().replace(/\\s+/g, " ") : "";
+    const name = typeof body.displayName === "string" ? body.displayName.trim().replace(/\s+/g, " ") : "";
     if (!sameSecret(secret, expectedSecret)) {
       return NextResponse.json({ error: "Código de configuração inválido." }, { status: 403 });
     }
@@ -71,12 +71,12 @@ export async function POST(request: Request) {
       ),
       permissions AS (
         INSERT INTO admin_user_permissions (user_id, permission)
-        SELECT administrator.id, permission
+        SELECT administrator.id, granted.permission
         FROM administrator
         CROSS JOIN unnest(ARRAY[
           'manage_news', 'manage_categories', 'manage_authors',
           'manage_media', 'manage_users'
-        ]::varchar[]) AS permission
+        ]::varchar[]) AS granted(permission)
         ON CONFLICT (user_id, permission) DO NOTHING
         RETURNING user_id
       )
