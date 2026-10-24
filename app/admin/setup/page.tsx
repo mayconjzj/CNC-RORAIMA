@@ -13,6 +13,7 @@ export default function AdminSetupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -60,13 +61,14 @@ export default function AdminSetupPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ displayName: name.trim() }),
+        body: JSON.stringify({ displayName: name.trim(), secret }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Não foi possível configurar o administrador.");
 
       setPassword("");
       setConfirm("");
+      setSecret("");
       setDone(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao configurar a conta administrativa.");
@@ -88,25 +90,29 @@ export default function AdminSetupPage() {
           </>
         ) : (
           <>
-            <p className={styles.eyebrow}>CONFIGURAÇÃO INICIAL</p>
-            <h1>Configurar administrador</h1>
-            <p>Entre com uma conta Neon Auth cujo e-mail já esteja autorizado na tabela administrativa do portal. Por segurança, esta página não concede acesso administrativo a e-mails novos ou não autorizados.</p>
+            <p className={styles.eyebrow}>CONFIGURAÇÃO PROTEGIDA</p>
+            <h1>Configuração inicial</h1>
+            <p>Crie ou acesse sua conta Neon Auth e configure o primeiro administrador do CNC Roraima. Este procedimento só funciona enquanto o código temporário estiver configurado no ambiente do portal.</p>
             <form onSubmit={submit} className={styles.form}>
               <label>Nome completo
                 <input required minLength={2} maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy} />
               </label>
-              <label>E-mail administrativo autorizado
+              <label>E-mail administrativo
                 <input required type="email" maxLength={254} autoComplete="username" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />
               </label>
-              <label>Senha Neon Auth
-                <input required type="password" minLength={12} maxLength={200} autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} disabled={busy} />
+              <label>Senha
+                <input required type="password" minLength={12} maxLength={200} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} disabled={busy} />
                 <small>Use pelo menos 12 caracteres.</small>
               </label>
               <label>Confirmar senha
                 <input required type="password" minLength={12} maxLength={200} autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} disabled={busy} />
               </label>
+              <label>Código de configuração
+                <input required type="password" minLength={32} maxLength={200} autoComplete="off" value={secret} onChange={event => setSecret(event.target.value)} disabled={busy} />
+                <small>Informe o valor de ADMIN_SETUP_SECRET cadastrado na Vercel.</small>
+              </label>
               {error && <p className={styles.error} role="alert">{error}</p>}
-              <button className={styles.button} type="submit" disabled={busy}>{busy ? "Configurando…" : "Configurar administrador"}</button>
+              <button className={styles.button} type="submit" disabled={busy}>{busy ? "Configurando…" : "Criar administrador"}</button>
             </form>
           </>
         )}
