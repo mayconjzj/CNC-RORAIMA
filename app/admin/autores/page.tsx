@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { ArrowUpRight, Check, ChevronLeft, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
@@ -103,7 +104,7 @@ export default function AdminAuthorsPage() {
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
-      <div className={styles.breadcrumb}><a href="/admin">Painel administrativo</a><ChevronLeft size={14} /><span>Autores</span></div>
+      <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Autores" }]} />
       <header className={styles.pageHeader}>
         <div><div className={styles.eyebrow}><span /> GESTÃO EDITORIAL</div><h1>Autores</h1><p>Gerencie os perfis, biografias e fotografias que assinam as notícias da CNC Roraima.</p></div>
         <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Novo autor</button>
@@ -113,8 +114,8 @@ export default function AdminAuthorsPage() {
         <div className={styles.statCard}><span className={styles.statIconGold}><CircleUserRound size={19} /></span><div><span>Com fotografia</span><strong>{authors.filter((author) => author.avatar_url).length}</strong><small>Perfis com imagem</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconDark}><ShieldCheck size={19} /></span><div><span>Biografias</span><strong>{authors.filter((author) => author.bio?.trim()).length}</strong><small>Perfis contextualizados</small></div></div>
       </section>
-      {message && <div className={styles.successNotice} role="status"><Check size={17} />{message}<button onClick={() => setMessage("")} aria-label="Fechar aviso"><X size={16} /></button></div>}
-      {error && <div className={styles.errorNotice} role="alert">{error}<button onClick={() => setError("")} aria-label="Fechar erro"><X size={16} /></button></div>}
+      {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
+      {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
       {formOpen && <section className={styles.formCard} id="author-form">
         <div className={styles.formHeader}><div className={styles.formTitleIcon}><UserRound size={20} /></div><div><h2>{editingId ? "Editar autor" : "Cadastrar novo autor"}</h2><p>Essas informações podem aparecer junto às notícias publicadas.</p></div><button type="button" className={styles.closeButton} onClick={resetForm} aria-label="Fechar formulário"><X size={19} /></button></div>
         <form onSubmit={saveAuthor}>
