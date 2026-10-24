@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArrowUpRight, FilePlus2, FolderKanban, Newspaper, RefreshCw, UsersRound, CheckCircle2, FilePenLine } from "lucide-react";
 import styles from "./dashboard.module.css";
 
@@ -161,7 +162,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {error && <div className={styles.errorNotice} role="alert">{error}<button type="button" onClick={() => setError("")}>Fechar</button></div>}
+        {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
 
         <section className={styles.metrics} aria-label="Indicadores editoriais" aria-busy={checkingSession || refreshing}>
           {checkingSession || refreshing
