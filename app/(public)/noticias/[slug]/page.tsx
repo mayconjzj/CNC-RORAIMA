@@ -32,7 +32,7 @@ const findArticle = cache(unstable_cache(async function findArticle(slug: string
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await findArticle(slug);
-  if (!article) return { title: "Notícia não encontrada" };
+  if (!article) return { title: "Notícia não encontrada", robots: { index: false, follow: false } };
   const description = (article.excerpt || article.title).slice(0, 160);
   return {
     title: article.title,
