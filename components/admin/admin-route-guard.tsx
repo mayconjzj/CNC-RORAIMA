@@ -36,6 +36,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const route = routePermissions.find((item) => item.matches(pathname));
+  const permission = route?.permission;
   const [state, setState] = useState<AccessState>(() => {
     if (!route) return "not-required";
     const cached = getCachedAdminPermissions();
@@ -46,7 +47,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!route) {
+    if (!permission) {
       setState("not-required");
       setCheckedPath(pathname);
       return;
@@ -54,7 +55,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
 
     const cached = getCachedAdminPermissions();
     if (cached !== null) {
-      setState(cached.includes(route.permission) ? "allowed" : "denied");
+      setState(cached.includes(permission) ? "allowed" : "denied");
       setCheckedPath(pathname);
       return;
     }
@@ -65,7 +66,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     loadAdminPermissions()
       .then((permissions) => {
         if (!active) return;
-        setState(permissions.includes(route.permission) ? "allowed" : "denied");
+        setState(permissions.includes(permission) ? "allowed" : "denied");
         setCheckedPath(pathname);
       })
       .catch((error: unknown) => {
@@ -83,7 +84,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [pathname, route?.permission]);
+  }, [pathname, permission]);
 
   useEffect(() => {
     if (state === "unauthenticated") {
@@ -100,6 +101,10 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
         : "denied"
       : state;
 
+  if (route && checkedPath !== pathname && cached === null) {
+    return <LoadingAccess message="Verificando suas permissões…" />;
+  }
+
   if (!route || visibleState === "not-required" || visibleState === "allowed") {
     return <>{children}</>;
   }
@@ -108,7 +113,7 @@ export function AdminRouteGuard({ children }: { children: ReactNode }) {
     return <LoadingAccess message="Sessão expirada. Redirecionando para o login…" />;
   }
 
-  if (visibleState === "checking" || (checkedPath !== pathname && cached === null)) {
+  if (visibleState === "checking") {
     return <LoadingAccess message="Verificando suas permissões…" />;
   }
 
