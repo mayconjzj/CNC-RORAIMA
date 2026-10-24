@@ -97,25 +97,7 @@ export default function AdminAuthorsPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setLoggedIn(false); }
 
-  if (loading) return <main className={styles.shell} aria-busy="true" aria-label="Carregando autores">
-    <AdminSidebar onLogout={() => void logout()} />
-    <div className={styles.main}>
-      <div className={styles.breadcrumb}><span className={styles.skeletonLine} style={{ width: 130 }} /><ChevronLeft size={14} /><span className={styles.skeletonLine} style={{ width: 55 }} /></div>
-      <header className={styles.pageHeader}>
-        <div><div className={styles.skeletonLine} style={{ width: 125, height: 10, marginBottom: 14 }} /><div className={styles.skeletonLine} style={{ width: 180, height: 38, marginBottom: 10 }} /><div className={styles.skeletonLine} style={{ width: 340, maxWidth: "75vw", height: 13 }} /></div>
-        <div className={styles.skeletonButton} />
-      </header>
-      <section className={styles.stats} aria-hidden="true">
-        {[0, 1, 2].map((item) => <div className={styles.statCard} key={item}><div className={styles.skeletonIcon} /><div className={styles.skeletonStatText}><span className={styles.skeletonLine} /><strong className={styles.skeletonLine} /><small className={styles.skeletonLine} /></div></div>)}
-      </section>
-      <section className={styles.directory} aria-hidden="true">
-        <div className={styles.directoryHeader}><div><div className={styles.skeletonLine} style={{ width: 180, height: 18, marginBottom: 9 }} /><div className={styles.skeletonLine} style={{ width: 235, height: 11 }} /></div><div className={styles.skeletonSearch} /></div>
-        <div className={styles.directoryMeta}><span className={styles.skeletonLine} style={{ width: 110 }} /><span className={styles.skeletonLine} style={{ width: 130 }} /></div>
-        <div className={styles.authorList}>{[0, 1, 2, 3].map((item) => <div className={styles.authorRow} key={item}><div className={styles.skeletonAvatar} /><div className={styles.skeletonAuthorInfo}><span className={styles.skeletonLine} style={{ width: item % 2 ? "42%" : "55%", height: 14 }} /><span className={styles.skeletonLine} style={{ width: item % 2 ? "72%" : "88%", height: 10 }} /><span className={styles.skeletonLine} style={{ width: 145, height: 18, marginTop: 5 }} /></div><div className={styles.skeletonActions}><span className={styles.skeletonButtonSmall} /><span className={styles.skeletonButtonSmall} /></div></div>)}</div>
-      </section>
-    </div>
-  </main>;
-  if (!loggedIn) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
+  if (!loggedIn && !loading) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar os autores.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
@@ -163,7 +145,7 @@ export default function AdminAuthorsPage() {
       <section className={styles.directory}>
         <div className={styles.directoryHeader}><div><h2>Diretório de autores</h2><p>Consulte e mantenha os perfis da equipe editorial.</p></div><div className={styles.searchBox}><Search size={17} /><input aria-label="Buscar autores" placeholder="Buscar por nome ou biografia…" value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X size={15} /></button>}</div></div>
         <div className={styles.directoryMeta}><span>{filteredAuthors.length} {filteredAuthors.length === 1 ? "autor encontrado" : "autores encontrados"}</span><span>ORDENADOS POR NOME</span></div>
-        {filteredAuthors.length === 0 ? <div className={styles.emptyState}><span><UsersRound size={25} /></span><h3>{query ? "Nenhum resultado encontrado" : "Seu diretório começa aqui"}</h3><p>{query ? "Tente buscar por outro nome ou termo." : "Cadastre o primeiro autor para organizar as assinaturas das notícias."}</p>{!query && <button className={styles.primaryButton} onClick={openCreate}><Plus size={17} /> Cadastrar primeiro autor</button>}</div> :
+        {loading && authors.length === 0 ? <div className={styles.authorList} aria-label="Carregando autores">{[0,1,2].map((item) => <div className={styles.authorRow} key={item}><div className={styles.skeletonAvatar} /><div className={styles.skeletonAuthorInfo}><span className={styles.skeletonLine} style={{width:"48%",height:14}}/><span className={styles.skeletonLine} style={{width:"78%",height:10}}/></div></div>)}</div> : filteredAuthors.length === 0 ? <div className={styles.emptyState}><span><UsersRound size={25} /></span><h3>{query ? "Nenhum resultado encontrado" : "Seu diretório começa aqui"}</h3><p>{query ? "Tente buscar por outro nome ou termo." : "Cadastre o primeiro autor para organizar as assinaturas das notícias."}</p>{!query && <button className={styles.primaryButton} onClick={openCreate}><Plus size={17} /> Cadastrar primeiro autor</button>}</div> :
           <div className={styles.authorList}>{filteredAuthors.map((author) => <article className={styles.authorRow} key={author.id}>
             <div className={styles.authorAvatar}>{author.avatar_url ? <img src={author.avatar_url} alt="" loading="lazy" /> : <span>{author.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</span>}</div>
             <div className={styles.authorInfo}><h3>{author.name}</h3><p>{author.bio?.trim() || "Nenhuma biografia cadastrada."}</p><div className={styles.authorBadges}><span className={author.avatar_url ? styles.badgeComplete : styles.badgeMissing}><span />{author.avatar_url ? "Foto cadastrada" : "Sem fotografia"}</span><span className={author.bio?.trim() ? styles.badgeComplete : styles.badgeMissing}><span />{author.bio?.trim() ? "Biografia preenchida" : "Sem biografia"}</span></div></div>
