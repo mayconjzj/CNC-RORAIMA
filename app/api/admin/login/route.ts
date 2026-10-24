@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     await createAdminSession({ id: user.id, email: user.email, displayName: user.display_name });
     await sql`UPDATE admin_users SET last_login_at = NOW() WHERE id = ${user.id}`;
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, displayName: user.display_name });
   } catch (error) {
     console.error("Falha no login administrativo", error);
     return NextResponse.json({ error: "Não foi possível entrar. Verifique a configuração do servidor." }, { status: 500 });
