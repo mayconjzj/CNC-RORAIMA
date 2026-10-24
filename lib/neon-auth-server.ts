@@ -1,19 +1,14 @@
 import "server-only";
 import { createNeonAuth } from "@neondatabase/auth/next/server";
 
-// Neon integration variables use the configured NEONN_ prefix.
-// Keep the legacy name as a fallback during migration.
-const baseUrl =
-  process.env.NEONN_NEON_AUTH_BASE_URL ?? process.env.NEON_AUTH_BASE_URL;
+const baseUrl = process.env.NEON_AUTH_BASE_URL;
 const cookieSecret = process.env.NEON_AUTH_COOKIE_SECRET;
 
 export function assertNeonAuthConfigured(): void {
   if (process.env.NODE_ENV !== "production") return;
 
   if (!baseUrl) {
-    throw new Error(
-      "Configure NEONN_NEON_AUTH_BASE_URL (or legacy NEON_AUTH_BASE_URL) before starting Neon Auth.",
-    );
+    throw new Error("Configure NEON_AUTH_BASE_URL antes de iniciar o Neon Auth.");
   }
   if (!cookieSecret || cookieSecret.length < 32) {
     throw new Error("Configure NEON_AUTH_COOKIE_SECRET com pelo menos 32 caracteres.");
