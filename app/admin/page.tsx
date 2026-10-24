@@ -68,7 +68,7 @@ export default function AdminPage() {
         granted.includes("manage_categories") ? fetch("/api/admin/categories", { cache: "no-store" }) : Promise.resolve(null),
         granted.includes("manage_authors") ? fetch("/api/admin/authors", { cache: "no-store" }) : Promise.resolve(null),
       ]);
-      const responses = [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse].filter((response) => response !== null);
+      const responses = [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse].filter((response): response is Response => response !== null);
       if (responses.some((response) => response.status === 401)) {
         clearAdminSessionMarker();
         setLoggedIn(false);
