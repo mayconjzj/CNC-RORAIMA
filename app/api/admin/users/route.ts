@@ -82,6 +82,8 @@ export async function PATCH(request: Request) {
     }
 
     const permissions = [...new Set(rawPermissions as string[])];
+    const primary = await getDb()`SELECT id FROM admin_users ORDER BY created_at ASC, id ASC LIMIT 1`;
+    if (primary[0]?.id === userId) return NextResponse.json({ error: "A conta do administrador principal não pode ser alterada por este painel." }, { status: 403 });
     if (userId === auth.session!.id) {
       return NextResponse.json({ error: "Não é possível alterar as próprias permissões." }, { status: 400 });
     }
@@ -113,6 +115,27 @@ export async function PATCH(request: Request) {
   } catch (error) {
     console.error("Falha ao salvar permissões", error);
     return NextResponse.json({ error: "Não foi possível salvar as permissões." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdminPermission("manage_users");
+  if (auth.response) return auth.response;
+  try {
+    const body = await request.json();
+    const userId = typeof body.userId === "string" ? body.userId : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) return NextResponse.json({ error: "Usuário inválido." }, { status: 400 });
+    if (userId === auth.session!.id) return NextResponse.json({ error: "Você não pode excluir sua própria conta." }, { status: 400 });
+    const sql = getDb();
+    const rows = await sql`SELECT id FROM admin_users WHERE id = ${userId}::uuid LIMIT 1`;
+    if (!rows.length) return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+    const primary = await sql`SELECT id FROM admin_users ORDER BY created_at ASC, id ASC LIMIT 1`;
+    if (primary[0]?.id === userId) return NextResponse.json({ error: "A conta do administrador principal não pode ser excluída." }, { status: 403 });
+    await sql`DELETE FROM admin_users WHERE id = ${userId}::uuid`;
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Falha ao excluir usuário", error);
+    return NextResponse.json({ error: "Não foi possível excluir o usuário." }, { status: 500 });
   }
 }
 
