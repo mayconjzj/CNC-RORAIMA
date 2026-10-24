@@ -3,8 +3,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { createAuthClient } from "@neondatabase/auth/next";
-const authClient = createAuthClient();
 import styles from "./accept-invite.module.css";
+
+const authClient = createAuthClient();
 export default function AcceptInvitePage() {
  const [token,setToken]=useState("");
  const [email,setEmail]=useState(""); const [name,setName]=useState(""); const [password,setPassword]=useState(""); const [confirm,setConfirm]=useState("");
