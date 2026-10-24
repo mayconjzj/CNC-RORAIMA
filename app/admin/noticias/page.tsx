@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader } from "@/components/admin/admin-ui";
-import { Check, ChevronLeft, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
 type Article = {
