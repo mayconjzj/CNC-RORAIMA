@@ -2,122 +2,121 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import styles from "./setup.module.css";
+import { ShieldCheck } from "lucide-react";
+import { createAuthClient } from "@neondatabase/auth/next";
+import styles from "../aceitar-convite/accept-invite.module.css";
 
-type SetupResponse = {
-  message?: string;
-  error?: string;
-};
+const authClient = createAuthClient();
 
 export default function AdminSetupPage() {
-  const [token, setToken] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [done, setDone] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
-    setMessage("");
+    setError("");
+    if (password.length < 12) {
+      setError("A senha precisa ter pelo menos 12 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("As senhas não coincidem.");
+      return;
+    }
 
+    setBusy(true);
     try {
+      let authenticated = false;
+      try {
+        const signup = await authClient.signUp.email({
+          email: email.trim().toLowerCase(),
+          password,
+          name: name.trim(),
+        });
+        authenticated = !signup.error;
+      } catch {
+        authenticated = false;
+      }
+
+      if (!authenticated) {
+        try {
+          const signin = await authClient.signIn.email({
+            email: email.trim().toLowerCase(),
+            password,
+          });
+          if (signin.error) throw new Error("sign-in failed");
+          authenticated = true;
+        } catch {
+          throw new Error("Não foi possível criar ou acessar essa conta Neon Auth. Confira o e-mail e a senha; se a conta já existir, use a senha correspondente.");
+        }
+      }
+
       const response = await fetch("/api/admin/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, email, displayName, password }),
+        cache: "no-store",
+        body: JSON.stringify({ displayName: name.trim(), secret }),
       });
-      const data = await response.json().catch(() => ({})) as SetupResponse;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Não foi possível configurar o administrador.");
 
-      if (!response.ok) {
-        setMessage(data.error || "Não foi possível configurar o administrador.");
-        return;
-      }
-
-      setMessage(data.message || "Administrador criado com sucesso.");
-      setDone(true);
-      setToken("");
       setPassword("");
-    } catch {
-      setMessage("Falha de conexão. Verifique sua internet e tente novamente.");
+      setConfirm("");
+      setSecret("");
+      setDone(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Falha ao configurar a conta administrativa.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main className={styles.shell}>
-      <form className={styles.card} onSubmit={submit}>
-        <Link href="/" className={styles.brand}>CNC RORAIMA</Link>
-        <h1 className={styles.title}>Configuração inicial</h1>
-        <p className={styles.description}>
-          Crie a conta privada do administrador. Este formulário só funciona
-          enquanto não existir nenhum usuário administrador.
-        </p>
-
+    <main className={styles.page}>
+      <section className={styles.card}>
+        <Link href="/" className={styles.brand}><span>CNC</span> RORAIMA</Link>
+        <ShieldCheck size={34} className={styles.icon} />
         {done ? (
           <>
-            <p className={styles.success} role="status">{message}</p>
-            <Link href="/admin" className={styles.secondaryLink}>Ir para o login</Link>
+            <h1>Administrador configurado</h1>
+            <p>A conta foi vinculada ao portal e recebeu as permissões administrativas. Agora, entre pelo painel.</p>
+            <Link href="/admin" className={styles.button}>Ir para o painel</Link>
           </>
         ) : (
           <>
-            <label className={styles.field}>
-              Token de configuração
-              <input
-                className={styles.input}
-                required
-                value={token}
-                onChange={(event) => setToken(event.target.value)}
-                autoComplete="off"
-                disabled={busy}
-              />
-            </label>
-            <label className={styles.field}>
-              Nome de exibição
-              <input
-                className={styles.input}
-                required
-                maxLength={100}
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                disabled={busy}
-              />
-            </label>
-            <label className={styles.field}>
-              E-mail administrativo
-              <input
-                className={styles.input}
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="username"
-                disabled={busy}
-              />
-            </label>
-            <label className={styles.field}>
-              Senha (mínimo 12 caracteres)
-              <input
-                className={styles.input}
-                type="password"
-                required
-                minLength={12}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="new-password"
-                disabled={busy}
-              />
-            </label>
-            {message && <p className={styles.message} role="alert">{message}</p>}
-            <button className={styles.primaryButton} type="submit" disabled={busy}>
-              {busy ? "Configurando..." : "Criar administrador"}
-            </button>
+            <p className={styles.eyebrow}>CONFIGURAÇÃO PROTEGIDA</p>
+            <h1>Configuração inicial</h1>
+            <p>Crie ou acesse uma identidade Neon Auth e vincule-a ao painel CNC Roraima. Este procedimento exige o código temporário configurado na Vercel e só funciona enquanto a configuração inicial estiver disponível.</p>
+            <form onSubmit={submit} className={styles.form}>
+              <label>Nome completo
+                <input required minLength={2} maxLength={100} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy} />
+              </label>
+              <label>E-mail administrativo
+                <input required type="email" maxLength={254} autoComplete="username" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />
+              </label>
+              <label>Senha
+                <input required type="password" minLength={12} maxLength={200} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} disabled={busy} />
+                <small>Use pelo menos 12 caracteres.</small>
+              </label>
+              <label>Confirmar senha
+                <input required type="password" minLength={12} maxLength={200} autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} disabled={busy} />
+              </label>
+              <label>Segredo temporário de configuração
+                <input required type="password" minLength={32} maxLength={200} autoComplete="off" value={secret} onChange={event => setSecret(event.target.value)} disabled={busy} />
+                <small>É o valor da variável ADMIN_SETUP_SECRET na Vercel. Nunca compartilhe esse segredo.</small>
+              </label>
+              {error && <p className={styles.error} role="alert">{error}</p>}
+              <button className={styles.button} type="submit" disabled={busy}>{busy ? "Configurando…" : "Configurar administrador"}</button>
+            </form>
           </>
         )}
-      </form>
+      </section>
     </main>
   );
 }
