@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { AuthorDirectory, type Author } from "./components/author-directory";
-import { Check, CircleUserRound, ImagePlus, LoaderCircle, Plus, ShieldCheck, UserRound, UsersRound, X } from "lucide-react";
+import { AuthorForm } from "./components/author-form";
+import { CircleUserRound, Plus, ShieldCheck, UsersRound } from "lucide-react";
 
 export default function AdminAuthorsPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -23,7 +24,6 @@ export default function AdminAuthorsPage() {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const loadAuthors = useCallback(async () => {
     try {
@@ -45,7 +45,6 @@ export default function AdminAuthorsPage() {
 
   function resetForm() {
     setEditingId(null); setName(""); setBio(""); setAvatarUrl(""); setMessage(""); setError(""); setFormOpen(false);
-    if (fileRef.current) fileRef.current.value = "";
   }
   function openCreate() {
     setEditingId(null); setName(""); setBio(""); setAvatarUrl(""); setMessage(""); setError(""); setFormOpen(true);
@@ -113,34 +112,20 @@ export default function AdminAuthorsPage() {
       </section>
       {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
       {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
-      {formOpen && <section className={styles.formCard} id="author-form">
-        <div className={styles.formHeader}><div className={styles.formTitleIcon}><UserRound size={20} /></div><div><h2>{editingId ? "Editar autor" : "Cadastrar novo autor"}</h2><p>Essas informações podem aparecer junto às notícias publicadas.</p></div><button type="button" className={styles.closeButton} onClick={resetForm} aria-label="Fechar formulário"><X size={19} /></button></div>
-        <form onSubmit={saveAuthor}>
-          <div className={styles.formGrid}>
-            <div className={styles.avatarColumn}>
-              <span className={styles.fieldLabel}>Foto do autor</span>
-              <button type="button" className={styles.avatarPicker} onClick={() => fileRef.current?.click()} disabled={uploading}>
-                {avatarUrl ? <img src={avatarUrl} alt="Prévia da foto do autor" /> : <span className={styles.avatarPlaceholder}><ImagePlus size={25} /><small>Adicionar foto</small></span>}
-                <span className={styles.avatarEdit}><ImagePlus size={14} /></span>
-              </button>
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden onChange={(event) => void handleAvatar(event.target.files?.[0])} />
-              <small className={styles.helper}>JPG, PNG, WebP ou AVIF. Até 8 MB.</small>
-              {uploading && <small className={styles.uploadStatus}><LoaderCircle size={13} className={styles.spin} /> Enviando imagem…</small>}
-              <label className={styles.fieldLabel} htmlFor="avatar-url">Ou URL da foto</label>
-              <input id="avatar-url" className={styles.input} type="url" placeholder="https://…" value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} />
-            </div>
-            <div className={styles.fieldsColumn}>
-              <label className={styles.fieldLabel} htmlFor="author-name">Nome completo <span>*</span></label>
-              <input id="author-name" className={styles.input} autoFocus required minLength={2} maxLength={120} placeholder="Ex.: Maria Oliveira" value={name} onChange={(event) => setName(event.target.value)} />
-              <div className={styles.fieldMeta}><span>Nome que será exibido como assinatura</span><span>{name.length}/120</span></div>
-              <label className={styles.fieldLabel} htmlFor="author-bio">Biografia profissional</label>
-              <textarea id="author-bio" className={styles.textarea} rows={6} maxLength={1200} placeholder="Apresente a trajetória, a área de atuação e as principais credenciais do autor…" value={bio} onChange={(event) => setBio(event.target.value)} />
-              <div className={styles.fieldMeta}><span>Prefira uma apresentação objetiva e informativa.</span><span>{bio.length}/1200</span></div>
-            </div>
-          </div>
-          <div className={styles.formFooter}><span><ShieldCheck size={15} /> Cadastro disponível apenas à administração.</span><div><button type="button" className={styles.secondaryButton} onClick={resetForm} disabled={busy}>Cancelar</button><button type="submit" className={styles.primaryButton} disabled={busy || uploading}>{busy ? <LoaderCircle size={17} className={styles.spin} /> : <Check size={17} />}{busy ? "Salvando…" : editingId ? "Salvar alterações" : "Cadastrar autor"}</button></div></div>
-        </form>
-      </section>}
+      {formOpen && <AuthorForm
+        editing={Boolean(editingId)}
+        name={name}
+        bio={bio}
+        avatarUrl={avatarUrl}
+        busy={busy}
+        uploading={uploading}
+        onNameChange={setName}
+        onBioChange={setBio}
+        onAvatarUrlChange={setAvatarUrl}
+        onAvatarFile={(file) => void handleAvatar(file)}
+        onCancel={resetForm}
+        onSubmit={(event) => void saveAuthor(event)}
+      />}
       <AuthorDirectory authors={authors} filteredAuthors={filteredAuthors} loading={loading} query={query} busy={busy} onQueryChange={setQuery} onCreate={openCreate} onEdit={openEdit} onDelete={(author) => void deleteAuthor(author)} />
       <AdminPageFooter className={styles.pageFooter} />
     </div>
