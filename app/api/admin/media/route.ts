@@ -16,7 +16,8 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
-        if (!(await getAdminSession())) throw new Error("Não autorizado.");
+        const permission = await requireAdminPermission("manage_media");
+        if (permission.response) throw new Error("Não autorizado.");
         let requestedType = "";
         if (typeof clientPayload === "string") {
           try { requestedType = (JSON.parse(clientPayload) as { type?: string }).type ?? ""; } catch { requestedType = ""; }
