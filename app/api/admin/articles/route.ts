@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { parseArticleInput } from "@/lib/article-service";
 import { revalidatePublishedContent } from "@/lib/revalidation";
@@ -7,7 +7,8 @@ import { revalidatePublishedContent } from "@/lib/revalidation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_news");
+  if (auth.response) return auth.response;
   try {
     const params = new URL(request.url).searchParams;
     const query = (params.get("q") ?? "").trim().slice(0, 120);
@@ -68,7 +69,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireAdminPermission("manage_news");
+  if (auth.response) return auth.response;
   try {
     const parsed = parseArticleInput(await request.json());
     if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
