@@ -9,7 +9,7 @@ export function parseBoundedInteger(
     ? Math.min(maximum, Math.max(minimum, fallback))
     : minimum;
 
-  if (value === null || !/^-?\\d+$/.test(value.trim())) return safeFallback;
+  if (value === null || !/^-?\d+$/.test(value.trim())) return safeFallback;
 
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed)) return safeFallback;
