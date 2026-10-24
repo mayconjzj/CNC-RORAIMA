@@ -96,7 +96,7 @@ type AdminPageHeaderProps = {
   eyebrowClassName?: string;
   titleClassName?: string;
   descriptionClassName?: string;
-  eyebrow: string;
+  eyebrow: ReactNode;
   title: string;
   description: string;
   actions?: ReactNode;
