@@ -50,12 +50,12 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
     const id = typeof body.id === "string" ? body.id : "";
-    const name = typeof body.name === "string" ? body.name.trim().replace(/\\s+/g, " ") : "";
+    const name = typeof body.name === "string" ? body.name.trim().replace(/\s+/g, " ") : "";
     if (!id) return NextResponse.json({ error: "Informe a editoria que deseja editar." }, { status: 400 });
     if (name.length < 2 || name.length > 60) {
       return NextResponse.json({ error: "O nome da editoria deve ter entre 2 e 60 caracteres." }, { status: 400 });
     }
-    const baseSlug = name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+    const baseSlug = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
     if (!baseSlug) return NextResponse.json({ error: "Informe um nome válido para a editoria." }, { status: 400 });
     const sql = getDb();
     const existing = await sql`SELECT id, name, slug FROM categories WHERE id = ${id} LIMIT 1`;
