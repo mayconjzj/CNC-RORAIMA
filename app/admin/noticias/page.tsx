@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminPageHeader } from "@/components/admin/admin-ui";
 import { Check, ChevronLeft, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
@@ -85,7 +85,7 @@ export default function AdminNewsPage() {
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
       <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Notícias" }]} />
-      <header className={styles.pageHeader}><div><div className={styles.eyebrow}><span/> GESTÃO DE CONTEÚDO</div><h1>Notícias</h1><p>Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima.</p></div><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link></header>
+      <AdminPageHeader className={styles.pageHeader} contentClassName={styles.pageHeaderContent} eyebrowClassName={styles.eyebrow} titleClassName={styles.pageTitle} descriptionClassName={styles.pageDescription} eyebrow={<><span /> GESTÃO DE CONTEÚDO</>} title="Notícias" description="Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima." actions={<Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link>} />
       <section className={styles.stats} aria-label="Resumo da página atual">
         <div className={styles.statCard}><span className={styles.statIcon}><Newspaper size={19}/></span><div><span>Resultados nesta página</span><strong>{loading ? "—" : articles.length}</strong><small>{total} notícias no filtro atual</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconGold}><Check size={19}/></span><div><span>Publicadas nesta página</span><strong>{loading ? "—" : stats.published}</strong><small>Visíveis ao público</small></div></div>
