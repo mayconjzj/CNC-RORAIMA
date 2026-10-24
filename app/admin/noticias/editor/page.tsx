@@ -10,11 +10,12 @@ import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive 
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArticleEditorLoadingSkeleton } from "./components/editor-loading-skeleton";
 import { ArticlePreviewPanel } from "./components/article-preview-panel";
+import { ArticlePublishingPanel } from "./components/article-publishing-panel";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
 import { createEditorId as uid, createBlankBlock as blankBlock, createBlankSection as blankSection, toEditorSections as toSections } from "@/lib/article-editor";
 import type { EditorBlock, EditorSection } from "@/lib/article-editor";
 import type { AdminArticle, AdminOption, AdminAuthor } from "@/lib/admin-types";
-import { ArrowLeft, Check, Eye, FileText, ImagePlus, Save, Send, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, ImagePlus, Save, Send, X } from "lucide-react";
 import styles from "./editor.module.css";
 
 function ArticleEditorContent() {
@@ -151,13 +152,19 @@ function ArticleEditorContent() {
 
         </div>
         <aside className={styles.sideColumn}>
-          <section className={styles.card}><div className={styles.cardTitle}><FileText size={18}/><div><h2>Publicação</h2><p>Defina como a notícia será disponibilizada.</p></div></div>
-            <div className={styles.currentStatus}><span>Status atual</span><strong className={status === "published" ? styles.statusPublished : styles.statusDraft}>{status === "published" ? "Publicada" : "Rascunho"}</strong></div>
-            <label style={label}>Editoria<select style={input} value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">Sem editoria</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-            <label style={label}>Autor principal<select style={input} value={authorId} onChange={e => setAuthorId(e.target.value)}><option value="">Autor não definido</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
-            <label className={styles.featured}><input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)}/><span><strong>Destacar na página inicial</strong><small>A notícia receberá destaque no portal.</small></span></label>
-            <div className={styles.publishHint}><Check size={15}/> Escolha uma ação abaixo: salvar sem publicar ou publicar agora.</div>
-          </section>
+          <ArticlePublishingPanel
+            status={status}
+            categoryId={categoryId}
+            authorId={authorId}
+            featured={featured}
+            categories={categories}
+            authors={authors}
+            inputStyle={input}
+            labelStyle={label}
+            onCategoryChange={setCategoryId}
+            onAuthorChange={setAuthorId}
+            onFeaturedChange={setFeatured}
+          />
           <section className={styles.stickyActions}><button className={styles.saveButton} type="submit" name="intent" value="draft" disabled={busy || uploading !== null}><Save size={16}/>{busy ? "Salvando…" : "Salvar rascunho"}</button><button className={styles.publishButton} type="submit" name="intent" value="publish" disabled={busy || uploading !== null}><Send size={15}/>{busy ? "Processando…" : status === "published" ? "Salvar e publicar" : "Publicar notícia"}</button><button type="button" className={styles.outlineButton} disabled={busy || uploading !== null} onClick={() => router.push("/admin/noticias")}><X size={15}/> Cancelar</button></section>
           <div className={styles.sideNote}>As alterações só ficam públicas depois de salvar a notícia com status “Publicada”.</div>
         </aside>
