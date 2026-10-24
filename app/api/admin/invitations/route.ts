@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "Informe um e-mail válido." }, { status: 400 });
     }
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       DO UPDATE SET token_hash = EXCLUDED.token_hash, invited_by = EXCLUDED.invited_by, expires_at = EXCLUDED.expires_at, created_at = NOW()
       RETURNING expires_at`;
 
-    const inviteUrl = `${siteUrl.replace(/\\/$/, "")}/admin/aceitar-convite?token=${encodeURIComponent(token)}`;
+    const inviteUrl = `${siteUrl.replace(/\/$/, "")}/admin/aceitar-convite?token=${encodeURIComponent(token)}`;
     try {
       await sendAdminInvitationEmail({
         email,
