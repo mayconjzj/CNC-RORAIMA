@@ -62,9 +62,11 @@ export default function AdminPage() {
       ]);
       const responses = [recentResponse, publishedResponse, draftResponse, categoryResponse, authorResponse].filter((response): response is Response => response !== null);
       if (responses.some((response) => response.status === 401)) {
+        clearAdminPermissionsCache();
         clearAdminSessionMarker();
         setLoggedIn(false);
         setPermissions([]);
+        setData(emptyData);
         return;
       }
       const failed = responses.find((response) => !response.ok);
@@ -114,6 +116,8 @@ export default function AdminPage() {
     setBusy(true);
     setMessage("");
     setError("");
+    clearAdminPermissionsCache();
+    clearAdminSessionMarker();
     try {
       let authSignInSucceeded = false;
       try {
@@ -180,6 +184,7 @@ export default function AdminPage() {
     }
   }
   async function logout() {
+    clearAdminPermissionsCache();
     clearAdminSessionMarker();
     setLoggedIn(false);
     setData(emptyData);
