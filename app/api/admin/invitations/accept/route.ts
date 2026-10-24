@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { neonAuth } from "@/lib/neon-auth-server";
+import { assertNeonAuthConfigured, neonAuth } from "@/lib/neon-auth-server";
 
 export const runtime = "nodejs";
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
     if (token.length < 32 || token.length > 200) return NextResponse.json({ error: "Convite inválido." }, { status: 400 });
     if (name.length < 2 || name.length > 100) return NextResponse.json({ error: "Informe seu nome completo." }, { status: 400 });
 
+    assertNeonAuthConfigured();
     const { data, error } = await neonAuth.getSession();
     const user = data?.user;
     if (error || !user || typeof user.id !== "string" || typeof user.email !== "string") {
