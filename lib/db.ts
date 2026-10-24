@@ -4,9 +4,8 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
 export function getDb() {
-  // Prefer the integration-provided variable, retaining DATABASE_URL during migration.
-  const url = process.env.NEONN_DATABASE_URL ?? process.env.DATABASE_URL;
-  if (!url) throw new Error("Configure NEONN_DATABASE_URL (ou DATABASE_URL legado).");
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("Configure DATABASE_URL no ambiente da aplicação.");
   return neon(url);
 }
 
