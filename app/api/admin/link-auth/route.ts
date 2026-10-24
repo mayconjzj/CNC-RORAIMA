@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clearAdminSession, getAdminSession, getLegacyAdminSession } from "@/lib/auth";
-import { neonAuth } from "@/lib/neon-auth-server";
+import { assertNeonAuthConfigured, neonAuth } from "@/lib/neon-auth-server";
 import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 export async function POST() {
   try {
     const legacy = await getLegacyAdminSession();
+    assertNeonAuthConfigured();
     const { data, error } = await neonAuth.getSession();
     const authUser = data?.user;
     if (error || !authUser || typeof authUser.id !== "string" || typeof authUser.email !== "string") {
