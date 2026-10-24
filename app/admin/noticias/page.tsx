@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
 import { Check, ChevronLeft, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
@@ -83,15 +84,15 @@ export default function AdminNewsPage() {
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
-      <div className={styles.breadcrumb}><Link href="/admin">Painel administrativo</Link><ChevronLeft size={14}/><span>Notícias</span></div>
+      <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Notícias" }]} />
       <header className={styles.pageHeader}><div><div className={styles.eyebrow}><span/> GESTÃO DE CONTEÚDO</div><h1>Notícias</h1><p>Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima.</p></div><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link></header>
       <section className={styles.stats} aria-label="Resumo da página atual">
         <div className={styles.statCard}><span className={styles.statIcon}><Newspaper size={19}/></span><div><span>Resultados nesta página</span><strong>{loading ? "—" : articles.length}</strong><small>{total} notícias no filtro atual</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconGold}><Check size={19}/></span><div><span>Publicadas nesta página</span><strong>{loading ? "—" : stats.published}</strong><small>Visíveis ao público</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconDark}><Pencil size={19}/></span><div><span>Rascunhos nesta página</span><strong>{loading ? "—" : stats.drafts}</strong><small>Conteúdo não publicado</small></div></div>
       </section>
-      {notice && <div className={styles.successNotice} role="status"><Check size={16}/>{notice}<button onClick={()=>setNotice("")} aria-label="Fechar aviso"><X size={15}/></button></div>}
-      {error && <div className={styles.errorNotice} role="alert">{error}<button onClick={()=>setError("")} aria-label="Fechar erro"><X size={15}/></button></div>}
+      {notice && <AdminNotice type="success" message={notice} onDismiss={() => setNotice("")} className={styles.successNotice} />}
+      {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
       <section className={styles.directory}>
         <div className={styles.directoryHeader}><div><h2>Diretório de notícias</h2><p>Use os filtros para localizar publicações com precisão.</p></div><button className={styles.secondaryButton} onClick={()=>setRefresh(v=>v+1)} disabled={loading}><RefreshCw size={15} className={loading?styles.spin:""}/> Atualizar</button></div>
         <div className={styles.filters}>
