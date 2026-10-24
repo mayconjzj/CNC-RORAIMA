@@ -89,3 +89,38 @@ export function AdminStatCard({ className, iconClassName, icon: Icon, label, val
     </article>
   );
 }
+
+type AdminPageHeaderProps = {
+  className: string;
+  contentClassName?: string;
+  eyebrowClassName?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+};
+
+export function AdminPageHeader({
+  className,
+  contentClassName,
+  eyebrowClassName,
+  titleClassName,
+  descriptionClassName,
+  eyebrow,
+  title,
+  description,
+  actions,
+}: AdminPageHeaderProps) {
+  return (
+    <header className={className}>
+      <div className={contentClassName}>
+        <div className={eyebrowClassName}>{eyebrow}</div>
+        <h1 className={titleClassName}>{title}</h1>
+        <p className={descriptionClassName}>{description}</p>
+      </div>
+      {actions}
+    </header>
+  );
+}
