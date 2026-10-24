@@ -56,6 +56,18 @@ export default function AdminPage() {
     setLoggedIn(true);
   }
   useEffect(() => { void load().finally(() => setCheckingSession(false)); }, []);
+  useEffect(() => {
+    if (checkingSession || !loggedIn) return;
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+    if (params.get("new") === "1") {
+      resetForm(); setMessage(""); setShowArticleForm(true);
+    } else if (editId) {
+      const article = articles.find((item) => item.id === editId);
+      if (article) editArticle(article);
+    }
+  }, [checkingSession, loggedIn, articles]);
+
 
   async function login(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
