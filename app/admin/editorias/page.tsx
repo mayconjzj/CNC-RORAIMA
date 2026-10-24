@@ -72,7 +72,12 @@ export default function AdminCategoriesPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); }
 
-  if (loading) return <main className={styles.loading}><LoaderCircle size={22} className={styles.spin} />Verificando sessão administrativa…</main>;
+  if (loading) return <main className={styles.shell} aria-busy="true"><AdminSidebar onLogout={() => void logout()} /><div className={styles.main}>
+    <div className={styles.breadcrumb}><span className={styles.skeletonLine} style={{width:130}}/><ChevronLeft size={14}/><span className={styles.skeletonLine} style={{width:65}}/></div>
+    <header className={styles.pageHeader}><div><span className={styles.skeletonLine} style={{width:140,height:10,marginBottom:14}}/><span className={styles.skeletonLine} style={{width:190,height:38,marginBottom:10}}/><span className={styles.skeletonLine} style={{width:330,maxWidth:"75vw",height:13}}/></div><span className={styles.skeletonButton}/></header>
+    <section className={styles.stats}>{[0,1,2].map(i=><div className={styles.statCard} key={i}><span className={styles.skeletonIcon}/><div className={styles.skeletonStatText}><span className={styles.skeletonLine}/><span className={styles.skeletonLine}/><span className={styles.skeletonLine}/></div></div>)}</section>
+    <section className={styles.directory}><div className={styles.directoryHeader}><div><span className={styles.skeletonLine} style={{width:180,height:18,marginBottom:9}}/><span className={styles.skeletonLine} style={{width:230}}/></div><span className={styles.skeletonSearch}/></div>{[0,1,2,3,4].map(i=><div className={styles.skeletonCategoryRow} key={i}><span className={styles.skeletonNumber}/><span className={styles.skeletonIcon}/><div className={styles.skeletonStatText}><span className={styles.skeletonLine} style={{width:"45%"}}/><span className={styles.skeletonLine} style={{width:"65%"}}/></div><span className={styles.skeletonButtonSmall}/></div>)}</section>
+  </div></main>;
   if (!authorized) return <main className={styles.unauthorized}><ShieldCheck size={34} /><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as editorias.</p><a href="/admin">Ir para o painel</a></main>;
 
   return <main className={styles.shell}>
