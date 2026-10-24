@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { ArrowUpRight, Check, ChevronLeft, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
@@ -110,9 +110,9 @@ export default function AdminAuthorsPage() {
         <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Novo autor</button>
       </header>
       <section className={styles.stats} aria-label="Resumo de autores">
-        <div className={styles.statCard}><span className={styles.statIcon}><UsersRound size={19} /></span><div><span>Total de autores</span><strong>{authors.length}</strong><small>Cadastros editoriais</small></div></div>
-        <div className={styles.statCard}><span className={styles.statIconGold}><CircleUserRound size={19} /></span><div><span>Com fotografia</span><strong>{authors.filter((author) => author.avatar_url).length}</strong><small>Perfis com imagem</small></div></div>
-        <div className={styles.statCard}><span className={styles.statIconDark}><ShieldCheck size={19} /></span><div><span>Biografias</span><strong>{authors.filter((author) => author.bio?.trim()).length}</strong><small>Perfis contextualizados</small></div></div>
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIcon} icon={UsersRound} label="Total de autores" value={authors.length} note="Cadastros editoriais" />
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIconGold} icon={CircleUserRound} label="Com fotografia" value={authors.filter((author) => author.avatar_url).length} note="Perfis com imagem" />
+        <AdminStatCard className={styles.statCard} iconClassName={styles.statIconDark} icon={ShieldCheck} label="Biografias" value={authors.filter((author) => author.bio?.trim()).length} note="Perfis contextualizados" />
       </section>
       {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
       {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
