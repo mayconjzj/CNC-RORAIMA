@@ -53,9 +53,9 @@ export default function AdminNewsPage() {
     } catch (e) {
       if (!signal?.aborted) setError(e instanceof Error ? e.message : "Falha ao carregar o painel de notícias.");
     } finally { if (!signal?.aborted) setLoading(false); }
-  }, [query, status, category, author, sort, page, refresh]);
+  }, [query, status, category, author, sort, page]);
 
-  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load]);
+  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load, refresh]);
   const stats = useMemo(() => ({
     published: articles.filter((item) => item.status === "published").length,
     drafts: articles.filter((item) => item.status !== "published").length,
