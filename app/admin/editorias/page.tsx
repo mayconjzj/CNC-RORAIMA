@@ -5,7 +5,8 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminStatCard, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
-import { Check, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
+import { CategoryForm } from "./components/category-form";
+import { FolderKanban, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
 type Category = { id: string; name: string; slug: string; article_count?: number };
 
@@ -89,15 +90,7 @@ export default function AdminCategoriesPage() {
       </section>
       {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
       {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
-      {formOpen && <section className={styles.formCard}>
-        <div className={styles.formHeader}><span className={styles.formIcon}><FolderKanban size={20} /></span><div><h2>{editingId ? "Editar editoria" : "Criar nova editoria"}</h2><p>Escolha um nome simples e fácil de entender para os leitores.</p></div><button type="button" className={styles.closeButton} onClick={closeForm} aria-label="Fechar formulário"><X size={19} /></button></div>
-        <form onSubmit={save}><div className={styles.formBody}>
-          <label className={styles.fieldLabel} htmlFor="category-name">Nome da editoria <span>*</span></label>
-          <input id="category-name" className={styles.input} autoFocus required minLength={2} maxLength={60} placeholder="Ex.: Economia, Política, Cultura…" value={name} onChange={(event) => setName(event.target.value)} />
-          <div className={styles.fieldMeta}><span>Use um nome curto e reconhecível.</span><span>{name.length}/60</span></div>
-          <div className={styles.slugPreview}><span className={styles.slugIcon}><Hash size={16} /></span><div><small>IDENTIFICADOR DA EDITORIA</small><strong>{name.trim() ? name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : "nome-da-editoria"}</strong><p>O endereço público é gerado automaticamente pelo sistema.</p></div></div>
-        </div><div className={styles.formFooter}><span><ShieldCheck size={15} /> Somente administradores podem alterar editorias.</span><div><button type="button" className={styles.secondaryButton} onClick={closeForm} disabled={busy}>Cancelar</button><button type="submit" className={styles.primaryButton} disabled={busy}>{busy ? <LoaderCircle size={17} className={styles.spin} /> : <Check size={17} />}{busy ? "Salvando…" : editingId ? "Salvar alterações" : "Criar editoria"}</button></div></div></form>
-      </section>}
+      {formOpen && <CategoryForm editingId={editingId} name={name} busy={busy} onNameChange={setName} onClose={closeForm} onSubmit={(event) => void save(event)} />}
       <section className={styles.directory}>
         <div className={styles.directoryHeader}><div><h2>Diretório de editorias</h2><p>Gerencie os temas disponíveis para categorizar as notícias.</p></div><div className={styles.searchBox}><Search size={17} /><input aria-label="Buscar editorias" placeholder="Buscar editoria…" value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X size={15} /></button>}</div></div>
         <div className={styles.directoryMeta}><span>{filtered.length} {filtered.length === 1 ? "editoria encontrada" : "editorias encontradas"}</span><span>ORDEM ALFABÉTICA</span></div>
