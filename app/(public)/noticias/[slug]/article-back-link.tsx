@@ -1,9 +1,20 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ArticleBackLink() {
+type ArticleBackLinkProps = {
+  slug: string;
+};
+
+export default function ArticleBackLink({ slug }: ArticleBackLinkProps) {
   const router = useRouter();
+
+  useEffect(() => {
+    // Next.js can preserve the previous scroll position during client navigation.
+    // Each article slug should start at the top of its own page.
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   function goBack() {
     if (window.history.length > 1) {

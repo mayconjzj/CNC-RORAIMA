@@ -83,7 +83,7 @@ export default async function ArticlePage({ params }: Props) {
     
     <script type="application/ld+json">{JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>
     <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
-      <ArticleBackLink />
+      <ArticleBackLink slug={article.slug} />
       <p style={{ color: "#b90018", textTransform: "uppercase", letterSpacing: 1.5, fontSize: 12, fontWeight: 800, marginTop: 28 }}>{article.category_name ?? "Notícias de Roraima"}</p>
       <h1 style={{ fontSize: "clamp(32px, 6vw, 54px)", lineHeight: 1.08, margin: "12px 0 18px" }}>{article.title}</h1>
       {article.excerpt && <p style={{ fontSize: 21, lineHeight: 1.6, color: "#666" }}>{article.excerpt}</p>}
