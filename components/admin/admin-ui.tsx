@@ -84,7 +84,7 @@ type AdminStatCardProps = {
 export function AdminStatCard({ className, iconClassName, icon: Icon, label, value, note }: AdminStatCardProps) {
   return (
     <article className={className}>
-      <span className={iconClassName}><Icon size={19} aria-hidden="true" /></span>
+      <span className={iconClassName}><Icon size={19} /></span>
       <div><span>{label}</span><strong>{value}</strong><small>{note}</small></div>
     </article>
   );
