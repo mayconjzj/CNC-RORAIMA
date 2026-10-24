@@ -1,0 +1,109 @@
+.shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #f5f5f6;
+}
+
+.card {
+  width: min(460px, 100%);
+  padding: 30px;
+  border: 1px solid #e8e8eb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 40px #00000012;
+}
+
+.brand {
+  color: #b90018;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-decoration: none;
+}
+
+.title {
+  margin: 18px 0 8px;
+  font-size: 27px;
+  line-height: 1.2;
+}
+
+.description {
+  margin: 0 0 24px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #24252b;
+  font: inherit;
+}
+
+.input:focus-visible {
+  outline: 2px solid #b90018;
+  outline-offset: 2px;
+}
+
+.message {
+  margin: 0 0 16px;
+  color: #b90018;
+  font-size: 14px;
+}
+
+.success {
+  color: #187448;
+  line-height: 1.6;
+}
+
+.primaryButton,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  background: #b90018;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primaryButton {
+  width: 100%;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.secondaryLink {
+  margin-top: 12px;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}
