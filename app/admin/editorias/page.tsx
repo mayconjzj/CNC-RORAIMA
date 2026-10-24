@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminBreadcrumb, AdminNotice } from "@/components/admin/admin-ui";
 import styles from "./editorias.module.css";
 import { Check, ChevronLeft, FolderKanban, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, X, Newspaper, Hash } from "lucide-react";
 
@@ -78,7 +79,7 @@ export default function AdminCategoriesPage() {
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
-      <div className={styles.breadcrumb}><a href="/admin">Painel administrativo</a><ChevronLeft size={14} /><span>Editorias</span></div>
+      <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Editorias" }]} />
       <header className={styles.pageHeader}>
         <div><div className={styles.eyebrow}><span /> ORGANIZAÇÃO EDITORIAL</div><h1>Editorias</h1><p>Organize as notícias por assunto e mantenha a navegação do portal clara para os leitores.</p></div>
         <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Nova editoria</button>
@@ -88,8 +89,8 @@ export default function AdminCategoriesPage() {
         <div className={styles.statCard}><span className={styles.statIconGold}><Hash size={19} /></span><div><span>Com endereço próprio</span><strong>{categories.filter((item) => !!item.slug).length}</strong><small>Identificadores para navegação</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconDark}><Newspaper size={19} /></span><div><span>Resultados da busca</span><strong>{filtered.length}</strong><small>Editorias na visualização atual</small></div></div>
       </section>
-      {message && <div className={styles.successNotice} role="status"><Check size={17} />{message}<button onClick={() => setMessage("")} aria-label="Fechar aviso"><X size={16} /></button></div>}
-      {error && <div className={styles.errorNotice} role="alert">{error}<button onClick={() => setError("")} aria-label="Fechar erro"><X size={16} /></button></div>}
+      {message && <AdminNotice type="success" message={message} onDismiss={() => setMessage("")} className={styles.successNotice} />}
+      {error && <AdminNotice type="error" message={error} onDismiss={() => setError("")} className={styles.errorNotice} />}
       {formOpen && <section className={styles.formCard}>
         <div className={styles.formHeader}><span className={styles.formIcon}><FolderKanban size={20} /></span><div><h2>{editingId ? "Editar editoria" : "Criar nova editoria"}</h2><p>Escolha um nome simples e fácil de entender para os leitores.</p></div><button type="button" className={styles.closeButton} onClick={closeForm} aria-label="Fechar formulário"><X size={19} /></button></div>
         <form onSubmit={save}><div className={styles.formBody}>
