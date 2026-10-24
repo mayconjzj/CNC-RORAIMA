@@ -101,7 +101,7 @@ export default function AdminCategoriesPage() {
       </section>}
       <section className={styles.directory}>
         <div className={styles.directoryHeader}><div><h2>Diretório de editorias</h2><p>Gerencie os temas disponíveis para categorizar as notícias.</p></div><div className={styles.searchBox}><Search size={17} /><input aria-label="Buscar editorias" placeholder="Buscar editoria…" value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X size={15} /></button>}</div></div>
-        <div className={styles.directoryMeta}><span>{filtered.length} {filtered.length === 1 ? "edit oria encontrada".replace("edit oria", "editoria") : "editorias encontradas"}</span><span>ORDEM ALFABÉTICA</span></div>
+        <div className={styles.directoryMeta}><span>{filtered.length} {filtered.length === 1 ? "editoria encontrada" : "editorias encontradas"}</span><span>ORDEM ALFABÉTICA</span></div>
         {filtered.length === 0 ? <div className={styles.emptyState}><span><FolderKanban size={25} /></span><h3>{query ? "Nenhuma editoria encontrada" : "Comece organizando o portal"}</h3><p>{query ? "Experimente buscar por outro nome ou termo." : "Crie editorias como Política, Economia, Cultura e Esportes para organizar as notícias."}</p>{!query && <button className={styles.primaryButton} onClick={openCreate}><Plus size={17} /> Criar primeira editoria</button>}</div> :
           <div className={styles.categoryList}>{filtered.map((category, index) => <article className={styles.categoryRow} key={category.id}>
             <span className={styles.categoryNumber}>{String(index + 1).padStart(2, "0")}</span><span className={styles.categorySymbol}><FolderKanban size={19} /></span>
