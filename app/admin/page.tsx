@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { createAuthClient } from "@neondatabase/auth/next";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArrowUpRight, FilePlus2, FolderKanban, Newspaper, RefreshCw, UsersRound, CheckCircle2, FilePenLine } from "lucide-react";
 import styles from "./dashboard.module.css";
+
+const authClient = createAuthClient();
 
 type Article = {
   id: string;
@@ -92,26 +95,68 @@ export default function AdminPage() {
     setMessage("");
     setError("");
     try {
-      const response = await fetch("/api/admin/login", {
+      let authSignInSucceeded = false;
+      try {
+        const authResult = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
+        authSignInSucceeded = !authResult.error;
+      } catch {
+        authSignInSucceeded = false;
+      }
+
+      if (authSignInSucceeded) {
+        const sessionResponse = await fetch("/api/admin/me", { cache: "no-store" });
+        if (sessionResponse.ok) {
+          setPassword("");
+          await loadDashboard();
+          return;
+        }
+      }
+
+      // Password-verified bridge used only to migrate an existing administrator.
+      const legacyResponse = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const result = await response.json();
-      if (!response.ok) {
-        setMessage(result.error ?? "Não foi possível entrar.");
+      const legacyData = await legacyResponse.json();
+      if (!legacyResponse.ok) {
+        setMessage(legacyData.error ?? "E-mail ou senha inválidos.");
         return;
       }
+
+      if (!authSignInSucceeded) {
+        let signupSucceeded = false;
+        try {
+          const signup = await authClient.signUp.email({
+            email: email.trim().toLowerCase(),
+            password,
+            name: typeof legacyData.displayName === "string" ? legacyData.displayName : email.split("@")[0],
+          });
+          signupSucceeded = !signup.error;
+        } catch {
+          signupSucceeded = false;
+        }
+        if (!signupSucceeded) {
+          try {
+            const retrySignIn = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
+            if (retrySignIn.error) throw new Error("sign-in failed");
+          } catch {
+            throw new Error("Não foi possível criar ou acessar sua identidade Neon Auth. Verifique a senha e tente novamente.");
+          }
+        }
+      }
+
+      const linkResponse = await fetch("/api/admin/link-auth", { method: "POST" });
+      const linkData = await linkResponse.json();
+      if (!linkResponse.ok) throw new Error(linkData.error ?? "Não foi possível migrar sua conta para o Neon Auth.");
       setPassword("");
-      window.sessionStorage.setItem("cnc-admin-session", "active");
       await loadDashboard();
-    } catch {
-      setMessage("Falha de conexão ao entrar.");
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Falha de conexão ao entrar.");
     } finally {
       setBusy(false);
     }
   }
-
   async function logout() {
     clearAdminSessionMarker();
     setLoggedIn(false);
