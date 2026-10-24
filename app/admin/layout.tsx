@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminRouteGuard } from "@/components/admin/admin-route-guard";
 
 export const metadata: Metadata = {
   title: "Painel administrativo",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <AdminRouteGuard>{children}</AdminRouteGuard>;
 }
