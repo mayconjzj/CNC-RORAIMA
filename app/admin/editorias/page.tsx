@@ -55,7 +55,17 @@ export default function AdminCategoriesPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Não foi possível salvar a editoria.");
       const category = data.category as Category;
-      setCategories((current) => (editingId ? current.map((item) => item.id === category.id ? category : item) : [...current.filter((item) => item.id !== category.id), category]).sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setCategories((current) => {
+        const previous = current.find((item) => item.id === category.id);
+        const savedCategory = {
+          ...category,
+          article_count: category.article_count ?? previous?.article_count ?? 0,
+        };
+        const updated = editingId
+          ? current.map((item) => item.id === savedCategory.id ? savedCategory : item)
+          : [...current.filter((item) => item.id !== savedCategory.id), savedCategory];
+        return updated.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+      });
       closeForm();
       setMessage(data.existing ? "Essa editoria já estava cadastrada." : editingId ? "Editoria atualizada com sucesso." : "Editoria criada com sucesso.");
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao salvar a editoria."); }
