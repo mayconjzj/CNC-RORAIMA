@@ -74,13 +74,7 @@ export default function AdminNewsPage() {
   }
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); }
 
-  if (loading && !authorized) return <main className={styles.shell} aria-busy="true"><AdminSidebar onLogout={() => void logout()} /><div className={styles.main}>
-    <div className={styles.breadcrumb}><span className={styles.skeletonLine} style={{width:130}}/><ChevronLeft size={14}/><span className={styles.skeletonLine} style={{width:65}}/></div>
-    <header className={styles.pageHeader}><div><span className={styles.skeletonLine} style={{width:140,height:10,marginBottom:14}}/><span className={styles.skeletonLine} style={{width:230,height:38,marginBottom:10}}/><span className={styles.skeletonLine} style={{width:330,maxWidth:"75vw",height:13}}/></div><span className={styles.skeletonButton}/></header>
-    <section className={styles.stats}>{[0,1,2].map((i)=><div className={styles.statCard} key={i}><span className={styles.skeletonIcon}/><div className={styles.skeletonText}><span className={styles.skeletonLine}/><span className={styles.skeletonLine}/></div></div>)}</section>
-    <section className={styles.directory}><div className={styles.directoryHeader}><span className={styles.skeletonLine} style={{width:180,height:18}}/><span className={styles.skeletonSearch}/></div>{[0,1,2,3,4].map(i=><div className={styles.skeletonRow} key={i}><span className={styles.skeletonThumb}/><div className={styles.skeletonText}><span className={styles.skeletonLine} style={{width:"65%"}}/><span className={styles.skeletonLine} style={{width:"88%"}}/><span className={styles.skeletonLine} style={{width:"35%"}}/></div></div>)}</section>
-  </div></main>;
-  if (!authorized) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
+  if (!authorized && !loading) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
 
   const start = total === 0 ? 0 : page * PAGE_SIZE + 1;
   const end = Math.min((page + 1) * PAGE_SIZE, total);
