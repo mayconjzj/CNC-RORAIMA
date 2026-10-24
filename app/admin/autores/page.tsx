@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBreadcrumb, AdminNotice, AdminStatCard } from "@/components/admin/admin-ui";
+import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
 import styles from "./autores.module.css";
 import { ArrowUpRight, Check, ChevronLeft, CircleUserRound, ImagePlus, LoaderCircle, Pencil, Plus, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
@@ -105,10 +105,7 @@ export default function AdminAuthorsPage() {
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
       <AdminBreadcrumb className={styles.breadcrumb} linkClassName={styles.breadcrumbLink} currentClassName={styles.breadcrumbCurrent} items={[{ label: "Painel administrativo", href: "/admin" }, { label: "Autores" }]} />
-      <header className={styles.pageHeader}>
-        <div><div className={styles.eyebrow}><span /> GESTÃO EDITORIAL</div><h1>Autores</h1><p>Gerencie os perfis, biografias e fotografias que assinam as notícias da CNC Roraima.</p></div>
-        <button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Novo autor</button>
-      </header>
+      <AdminPageHeader className={styles.pageHeader} contentClassName={styles.pageHeaderContent} eyebrowClassName={styles.eyebrow} titleClassName={styles.pageTitle} descriptionClassName={styles.pageDescription} eyebrow={<><span /> GESTÃO EDITORIAL</>} title="Autores" description="Gerencie os perfis, biografias e fotografias que assinam as notícias da CNC Roraima." actions={<button className={styles.primaryButton} onClick={openCreate}><Plus size={18} /> Novo autor</button>} />
       <section className={styles.stats} aria-label="Resumo de autores">
         <AdminStatCard className={styles.statCard} iconClassName={styles.statIcon} icon={UsersRound} label="Total de autores" value={authors.length} note="Cadastros editoriais" />
         <AdminStatCard className={styles.statCard} iconClassName={styles.statIconGold} icon={CircleUserRound} label="Com fotografia" value={authors.filter((author) => author.avatar_url).length} note="Perfis com imagem" />
