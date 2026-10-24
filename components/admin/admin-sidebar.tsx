@@ -11,7 +11,7 @@ import styles from "./admin-sidebar.module.css";
 type AdminSidebarProps = { onLogout: () => void };
 
 const navigation = [
-  { label: "Visão geral", href: "#admin-overview", icon: LayoutDashboard },
+  { label: "Visão geral", href: "/admin", icon: LayoutDashboard },
   { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
   { label: "Editorias", href: "/admin/editorias", icon: FolderKanban },
   { label: "Autores", href: "/admin/autores", icon: UsersRound },
@@ -57,11 +57,11 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
         <div className={styles.sectionLabel}>WORKSPACE</div>
         <nav className={styles.nav}>
           {navigation.map(({ label, href, icon: Icon }) => (
-            <a key={href} href={href} className={styles.navLink} onClick={closeMobile}>
+            <Link key={href} href={href} className={styles.navLink} onClick={closeMobile}>
               <Icon size={18} strokeWidth={1.8} />
               <span>{label}</span>
               <ChevronRight className={styles.chevron} size={15} />
-            </a>
+            </Link>
           ))}
         </nav>
 
