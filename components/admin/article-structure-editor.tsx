@@ -427,9 +427,9 @@ export function ArticleStructureEditor({
                       />
                     )}
 
-                    {(["image", "video", "audio"] as const).includes(
-                      block.type as "image" | "video" | "audio",
-                    ) && (
+                    {(block.type === "image" ||
+                      block.type === "video" ||
+                      block.type === "audio") && (
                       <>
                         <input
                           style={inputStyle}
