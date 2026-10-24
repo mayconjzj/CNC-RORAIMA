@@ -13,7 +13,7 @@ type AdminSidebarProps = { onLogout: () => void };
 const navigation = [
   { label: "Visão geral", href: "#admin-overview", icon: LayoutDashboard },
   { label: "Notícias", href: "#admin-news", icon: Newspaper },
-  { label: "Editorias", href: "#admin-categories", icon: FolderKanban },
+  { label: "Editorias", href: "/admin/editorias", icon: FolderKanban },
   { label: "Autores", href: "/admin/autores", icon: UsersRound },
 ];
 
