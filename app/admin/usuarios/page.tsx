@@ -19,7 +19,7 @@ type AdminUser = {
   invitation_expires_at?: string;
 };
 
-type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string };
+type ApiResponse = { users?: AdminUser[]; user?: AdminUser; error?: string; inviteUrl?: string };
 
 function formatDate(value: string | null) {
   if (!value) return "Nunca acessou";
@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/invitations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await response.json() as ApiResponse;
       if (!response.ok) throw new Error(data.error ?? "Não foi possível enviar o convite.");
-      resetForm(); setMessage("Convite enviado por e-mail. A conta aparecerá como pendente até a pessoa criar a senha."); await loadUsers();
+      resetForm(); if (data.inviteUrl) { window.prompt("Copie este link e envie ao convidado por um canal seguro. O link expira em 48 horas:", data.inviteUrl); setMessage("Convite criado. Envie manualmente o link ao convidado."); } else { setMessage("Convite criado."); } await loadUsers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao enviar convite."); }
     finally { setBusy(false); }
   }
@@ -148,12 +148,12 @@ export default function AdminUsersPage() {
 
         {formOpen && (
           <section className={styles.formPanel} aria-labelledby="create-user-title">
-            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>A pessoa receberá um link válido por 48 horas para criar sua senha.</p></div>
+            <div className={styles.panelHeading}><div><span className={styles.panelEyebrow}>NOVO CONVITE</span><h2 id="create-user-title">Convidar usuário</h2><p>Gere um link válido por 48 horas e envie ao convidado por um canal seguro.</p></div>
               <button type="button" className={styles.iconButton} onClick={resetForm} aria-label="Fechar formulário"><X size={18} /></button></div>
             <form onSubmit={createUser} className={styles.form}>
               <label>E-mail do convidado<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} autoComplete="email" required disabled={busy} placeholder="nome@exemplo.com" /></label>
               <div className={styles.securityNote}><ShieldCheck size={17} /><p>A conta só será criada quando o convidado aceitar o convite e definir a própria senha. Nenhuma permissão é concedida automaticamente.</p></div>
-              <div className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={resetForm} disabled={busy}>Cancelar</button><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? "Enviando convite…" : "Enviar convite"}</button></div>
+              <div className={styles.formActions}><button className={styles.secondaryButton} type="button" onClick={resetForm} disabled={busy}>Cancelar</button><button className={styles.primaryButton} type="submit" disabled={busy}>{busy ? "Gerando link…" : "Enviar convite"}</button></div>
             </form>
           </section>
         )}
