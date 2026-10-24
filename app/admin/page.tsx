@@ -57,9 +57,11 @@ export default function AdminPage() {
         setLoggedIn(false);
         return;
       }
-      const [recentData, publishedData, draftData, categoryData, authorData] = await Promise.all(responses.map((response) => response.json()));
-      const failed = responses.find((response) => !response.ok);
-      if (failed) throw new Error("Não foi possível carregar todos os dados do painel. Tente atualizar.");
+      const parsed = await Promise.all(responses.map((response) => response.json()));
+      const failed = responses.find((response) => !response.ok && response.status !== 403);
+      if (failed) throw new Error("Não foi possível carregar os dados do painel. Tente atualizar.");
+      const [recentData, publishedData, draftData, categoryData, authorData] = parsed;
+      const noPermissions = responses.every((response) => response.status === 403);
       const recent: Article[] = recentData.articles ?? [];
       setData({
         recent,
@@ -71,7 +73,7 @@ export default function AdminPage() {
       });
       setLoggedIn(true);
       markAdminSessionActive();
-      setError("");
+      setError(noPermissions ? "Sua conta ainda não tem permissões concedidas. Peça ao administrador do portal para liberar as áreas necessárias." : "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao carregar o painel geral.");
     } finally {
