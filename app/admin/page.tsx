@@ -95,8 +95,15 @@ export default function AdminPage() {
     setMessage("");
     setError("");
     try {
-      const authResult = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
-      if (!authResult.error) {
+      let authSignInSucceeded = false;
+      try {
+        const authResult = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
+        authSignInSucceeded = !authResult.error;
+      } catch {
+        authSignInSucceeded = false;
+      }
+
+      if (authSignInSucceeded) {
         const sessionResponse = await fetch("/api/admin/me", { cache: "no-store" });
         if (sessionResponse.ok) {
           setPassword("");
@@ -105,7 +112,7 @@ export default function AdminPage() {
         }
       }
 
-      // Temporary, password-verified bridge: link the existing administrator to Neon Auth.
+      // Password-verified bridge used only to migrate an existing administrator.
       const legacyResponse = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,15 +124,23 @@ export default function AdminPage() {
         return;
       }
 
-      if (authResult.error) {
-        const signup = await authClient.signUp.email({
-          email: email.trim().toLowerCase(),
-          password,
-          name: typeof legacyData.displayName === "string" ? legacyData.displayName : email.split("@")[0],
-        });
-        if (signup.error) {
-          const retrySignIn = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
-          if (retrySignIn.error) {
+      if (!authSignInSucceeded) {
+        let signupSucceeded = false;
+        try {
+          const signup = await authClient.signUp.email({
+            email: email.trim().toLowerCase(),
+            password,
+            name: typeof legacyData.displayName === "string" ? legacyData.displayName : email.split("@")[0],
+          });
+          signupSucceeded = !signup.error;
+        } catch {
+          signupSucceeded = false;
+        }
+        if (!signupSucceeded) {
+          try {
+            const retrySignIn = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
+            if (retrySignIn.error) throw new Error("sign-in failed");
+          } catch {
             throw new Error("Não foi possível criar ou acessar sua identidade Neon Auth. Verifique a senha e tente novamente.");
           }
         }
