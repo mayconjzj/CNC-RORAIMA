@@ -38,8 +38,7 @@ export async function POST(request: Request) {
     const sql = getDb();
     const rows = await sql`
       WITH state AS (
-        SELECT count(*)::int AS total,
-          count(*) FILTER (WHERE auth_user_id IS NOT NULL)::int AS linked
+        SELECT count(*)::int AS total
         FROM admin_users
       ),
       existing AS (
