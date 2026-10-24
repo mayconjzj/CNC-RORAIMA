@@ -8,7 +8,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 import { formatNewsDate } from "@/lib/news-date";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {

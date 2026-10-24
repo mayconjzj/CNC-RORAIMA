@@ -3,7 +3,7 @@ name: Quality checks
 on:
   push:
     branches:
-      - work/cnc-portal-improvements
+      - main
   pull_request:
     branches:
       - main

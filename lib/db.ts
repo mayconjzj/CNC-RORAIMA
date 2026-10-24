@@ -1,3 +1,4 @@
+import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";

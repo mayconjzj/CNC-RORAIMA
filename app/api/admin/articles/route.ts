@@ -3,6 +3,7 @@ import { requireAdminPermission } from "@/lib/admin-permissions";
 import { getDb } from "@/lib/db";
 import { parseArticleInput } from "@/lib/article-service";
 import { revalidatePublishedContent } from "@/lib/revalidation";
+import { parseBoundedInteger } from "@/lib/pagination";
 
 export const runtime = "nodejs";
 
@@ -18,10 +19,8 @@ export async function GET(request: Request) {
     const author = (params.get("author") ?? "all").slice(0, 120);
     const requestedSort = params.get("sort") ?? "updated_desc";
     const sort = ["updated_desc", "published_desc", "published_asc", "title_asc", "title_desc"].includes(requestedSort) ? requestedSort : "updated_desc";
-    const requestedLimit = Number.parseInt(params.get("limit") ?? "50", 10);
-    const limit = Number.isFinite(requestedLimit) ? Math.min(100, Math.max(1, requestedLimit)) : 50;
-    const requestedOffset = Number.parseInt(params.get("offset") ?? "0", 10);
-    const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
+    const limit = parseBoundedInteger(params.get("limit"), 50, 1, 100);
+    const offset = parseBoundedInteger(params.get("offset"), 0, 0, 100000);
     const sql = getDb();
     const [articles, countRows] = await Promise.all([
       sql`
@@ -61,7 +60,10 @@ export async function GET(request: Request) {
           AND (${author} = 'all' OR (${author} = 'none' AND a.author_id IS NULL) OR a.author_id::text = ${author})
       `,
     ]);
-    return NextResponse.json({ articles, total: Number(countRows[0]?.total ?? 0) });
+    return NextResponse.json(
+      { articles, total: Number(countRows[0]?.total ?? 0) },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+    );
   } catch (error) {
     console.error("Falha ao listar artigos", error);
     return NextResponse.json({ error: "Erro ao consultar artigos." }, { status: 500 });
