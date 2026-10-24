@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { Check, ChevronLeft, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
@@ -82,8 +83,8 @@ export default function AdminNewsPage() {
   return <main className={styles.shell}>
     <AdminSidebar onLogout={() => void logout()} />
     <div className={styles.main}>
-      <div className={styles.breadcrumb}><a href="/admin">Painel administrativo</a><ChevronLeft size={14}/><span>Notícias</span></div>
-      <header className={styles.pageHeader}><div><div className={styles.eyebrow}><span/> GESTÃO DE CONTEÚDO</div><h1>Notícias</h1><p>Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima.</p></div><a className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</a></header>
+      <div className={styles.breadcrumb}><Link href="/admin">Painel administrativo</Link><ChevronLeft size={14}/><span>Notícias</span></div>
+      <header className={styles.pageHeader}><div><div className={styles.eyebrow}><span/> GESTÃO DE CONTEÚDO</div><h1>Notícias</h1><p>Pesquise, filtre, edite e acompanhe as publicações do portal CNC Roraima.</p></div><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={17}/> Adicionar notícia</Link></header>
       <section className={styles.stats} aria-label="Resumo da página atual">
         <div className={styles.statCard}><span className={styles.statIcon}><Newspaper size={19}/></span><div><span>Resultados nesta página</span><strong>{loading ? "—" : articles.length}</strong><small>{total} notícias no filtro atual</small></div></div>
         <div className={styles.statCard}><span className={styles.statIconGold}><Check size={19}/></span><div><span>Publicadas nesta página</span><strong>{loading ? "—" : stats.published}</strong><small>Visíveis ao público</small></div></div>
@@ -102,15 +103,15 @@ export default function AdminNewsPage() {
         </div>
         <div className={styles.listMeta}><span><Filter size={14}/> {loading?"Atualizando resultados…":`Exibindo ${start}–${end} de ${total} notícias`}</span><button onClick={clearFilters} className={styles.clearButton} disabled={!query&&status==="all"&&category==="all"&&author==="all"&&sort==="updated_desc"}>Limpar filtros</button></div>
         {loading && articles.length===0 ? <div className={styles.loadingRows}>{[0,1,2,3].map(i=><div className={styles.skeletonRow} key={i}><span className={styles.skeletonThumb}/><div className={styles.skeletonText}><span className={styles.skeletonLine} style={{width:"65%"}}/><span className={styles.skeletonLine} style={{width:"88%"}}/><span className={styles.skeletonLine} style={{width:"35%"}}/></div></div>)}</div>
-        : articles.length===0 ? <div className={styles.emptyState}><span><Newspaper size={25}/></span><h3>Nenhuma notícia encontrada</h3><p>{query||status!=="all"||category!=="all"||author!=="all"?"Altere ou limpe os filtros para ver outros resultados.":"Cadastre a primeira notícia para começar a publicar no portal."}</p><a className={styles.primaryButton} href="/admin?new=1#admin-news"><FilePlus2 size={16}/> Adicionar notícia</a></div>
+        : articles.length===0 ? <div className={styles.emptyState}><span><Newspaper size={25}/></span><h3>Nenhuma notícia encontrada</h3><p>{query||status!=="all"||category!=="all"||author!=="all"?"Altere ou limpe os filtros para ver outros resultados.":"Cadastre a primeira notícia para começar a publicar no portal."}</p><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={16}/> Adicionar notícia</Link></div>
         : <div className={styles.articleList}>{articles.map(article=><article className={styles.articleRow} key={article.id}>
           <div className={styles.articleImage}>{article.featured_image_url?<img src={article.featured_image_url} alt="" loading="lazy"/>:<Newspaper size={22}/>}</div>
           <div className={styles.articleInfo}><div className={styles.articleTags}><span className={article.status==="published"?styles.published:styles.draft}><i/>{article.status==="published"?"Publicada":"Rascunho"}</span>{article.is_featured&&<span className={styles.featured}>Destaque</span>}<span>{article.category_name??"Sem editoria"}</span></div><h3>{article.title}</h3><p>{article.excerpt||"Sem resumo cadastrado."}</p><small>{article.author_name??authors.find(a=>a.id===article.author_id)?.name??"Autor não definido"} · Atualizada em {article.updated_at?new Date(article.updated_at).toLocaleDateString("pt-BR"):"—"}</small></div>
-          <div className={styles.actions}>{article.status==="published"&&<a href={`/noticias/${article.slug}`} target="_blank" rel="noreferrer" aria-label={`Ver ${article.title}`} title="Ver notícia"><ExternalLink size={16}/></a>}<a href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`} title="Editar notícia"><Pencil size={16}/></a><button disabled={busyId===article.id} onClick={()=>void remove(article)} aria-label={`Excluir ${article.title}`} title="Excluir notícia">{busyId===article.id?<LoaderCircle size={16} className={styles.spin}/>:<Trash2 size={16}/>}</button></div>
+          <div className={styles.actions}>{article.status==="published"&&<a href={`/noticias/${article.slug}`} target="_blank" rel="noreferrer" aria-label={`Ver ${article.title}`} title="Ver notícia"><ExternalLink size={16}/></a>}<Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`} title="Editar notícia"><Pencil size={16}/></Link><button disabled={busyId===article.id} onClick={()=>void remove(article)} aria-label={`Excluir ${article.title}`} title="Excluir notícia">{busyId===article.id?<LoaderCircle size={16} className={styles.spin}/>:<Trash2 size={16}/>}</button></div>
         </article>)}</div>}
         <div className={styles.pagination}><span>Página {Math.min(page+1,Math.max(1,Math.ceil(total/PAGE_SIZE)))} de {Math.max(1,Math.ceil(total/PAGE_SIZE))}</span><div><button className={styles.secondaryButton} disabled={page===0||loading} onClick={()=>setPage(p=>Math.max(0,p-1))}>Anterior</button><button className={styles.secondaryButton} disabled={(page+1)*PAGE_SIZE>=total||loading} onClick={()=>setPage(p=>p+1)}>Próxima</button></div></div>
       </section>
-      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><a href="/admin">Voltar ao painel <ExternalLink size={13}/></a></footer>
+      <footer className={styles.pageFooter}><span>C N C <b>RORAIMA</b> · PAINEL EDITORIAL</span><Link href="/admin">Voltar ao painel <ExternalLink size={13}/></Link></footer>
     </div>
   </main>;
 }
