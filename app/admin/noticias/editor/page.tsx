@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties, FormEvent } from "react";
 import { upload } from "@vercel/blob/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminNotice } from "@/components/admin/admin-ui";
 import { ArticleEditorLoadingSkeleton } from "./components/editor-loading-skeleton";
 import { ArticleStructureEditor } from "@/components/admin/article-structure-editor";
@@ -52,10 +53,10 @@ function ArticleEditorContent() {
       fetch("/api/admin/categories", { cache: "no-store" }),
       fetch("/api/admin/authors", { cache: "no-store" }),
     ]);
-    if (a.status === 401 || c.status === 401 || u.status === 401) { setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); setChecking(false); return false; }
+    if (a.status === 401 || c.status === 401 || u.status === 401) { setAuthorized(false); clearAdminSessionMarker(); setChecking(false); return false; }
     const [ad, cd, ud] = await Promise.all([a.json(), c.json(), u.json()]);
     if (!a.ok || !c.ok || !u.ok) throw new Error(ad.error || cd.error || ud.error || "Não foi possível carregar o editor.");
-    setCategories(cd.categories ?? []); setAuthors(ud.authors ?? []); setAuthorized(true); window.sessionStorage.setItem("cnc-admin-session", "active"); setChecking(false);
+    setCategories(cd.categories ?? []); setAuthors(ud.authors ?? []); setAuthorized(true); markAdminSessionActive(); setChecking(false);
     return true;
   }, []);
 
@@ -124,7 +125,7 @@ function ArticleEditorContent() {
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); router.replace("/admin"); }
   const previewAuthor = authors.find(a => a.id === authorId);
 
-  if (checking && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (checking && !hasAdminSessionMarker()) return <main className={styles.unauthorized}><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
   if (!checking && !authorized) return <main className={styles.unauthorized}><h1>Acesso restrito</h1><p>Sua sessão administrativa não está ativa.</p><Link href="/admin">Entrar no painel</Link></main>;
 
   return <main className={styles.shell}>
