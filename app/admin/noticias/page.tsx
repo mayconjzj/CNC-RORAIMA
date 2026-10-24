@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminArticleRow } from "./components/admin-article-row";
 import { clearAdminSessionMarker, hasAdminSessionMarker, markAdminSessionActive } from "@/lib/admin-session";
 import { AdminBreadcrumb, AdminNotice, AdminPageHeader, AdminPageFooter } from "@/components/admin/admin-ui";
-import { Check, ExternalLink, FilePlus2, Filter, LoaderCircle, Newspaper, Pencil, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Check, FilePlus2, Filter, LoaderCircle, Newspaper, RefreshCw, Search, Trash2, X } from "lucide-react";
 import styles from "./noticias.module.css";
 
 type Article = {
@@ -106,11 +107,7 @@ export default function AdminNewsPage() {
         <div className={styles.listMeta}><span><Filter size={14}/> {loading?"Atualizando resultados…":`Exibindo ${start}–${end} de ${total} notícias`}</span><button onClick={clearFilters} className={styles.clearButton} disabled={!query&&status==="all"&&category==="all"&&author==="all"&&sort==="updated_desc"}>Limpar filtros</button></div>
         {loading && articles.length===0 ? <div className={styles.loadingRows}>{[0,1,2,3].map(i=><div className={styles.skeletonRow} key={i}><span className={styles.skeletonThumb}/><div className={styles.skeletonText}><span className={styles.skeletonLine} style={{width:"65%"}}/><span className={styles.skeletonLine} style={{width:"88%"}}/><span className={styles.skeletonLine} style={{width:"35%"}}/></div></div>)}</div>
         : articles.length===0 ? <div className={styles.emptyState}><span><Newspaper size={25}/></span><h3>Nenhuma notícia encontrada</h3><p>{query||status!=="all"||category!=="all"||author!=="all"?"Altere ou limpe os filtros para ver outros resultados.":"Cadastre a primeira notícia para começar a publicar no portal."}</p><Link className={styles.primaryButton} href="/admin/noticias/editor"><FilePlus2 size={16}/> Adicionar notícia</Link></div>
-        : <div className={styles.articleList}>{articles.map(article=><article className={styles.articleRow} key={article.id}>
-          <div className={styles.articleImage}>{article.featured_image_url?<img src={article.featured_image_url} alt="" loading="lazy"/>:<Newspaper size={22}/>}</div>
-          <div className={styles.articleInfo}><div className={styles.articleTags}><span className={article.status==="published"?styles.published:styles.draft}><i/>{article.status==="published"?"Publicada":"Rascunho"}</span>{article.is_featured&&<span className={styles.featured}>Destaque</span>}<span>{article.category_name??"Sem editoria"}</span></div><h3>{article.title}</h3><p>{article.excerpt||"Sem resumo cadastrado."}</p><small>{article.author_name??authors.find(a=>a.id===article.author_id)?.name??"Autor não definido"} · Atualizada em {article.updated_at?new Date(article.updated_at).toLocaleDateString("pt-BR"):"—"}</small></div>
-          <div className={styles.actions}>{article.status==="published"&&<a href={`/noticias/${article.slug}`} target="_blank" rel="noreferrer" aria-label={`Ver ${article.title}`} title="Ver notícia"><ExternalLink size={16}/></a>}<Link href={`/admin/noticias/editor?edit=${encodeURIComponent(article.id)}`} aria-label={`Editar ${article.title}`} title="Editar notícia"><Pencil size={16}/></Link><button disabled={busyId===article.id} onClick={()=>void remove(article)} aria-label={`Excluir ${article.title}`} title="Excluir notícia">{busyId===article.id?<LoaderCircle size={16} className={styles.spin}/>:<Trash2 size={16}/>}</button></div>
-        </article>)}</div>}
+: <div className={styles.articleList}>{articles.map((article) => <AdminArticleRow key={article.id} article={article} authorName={article.author_name ?? authors.find((author) => author.id === article.author_id)?.name ?? "Autor não definido"} busy={busyId === article.id} onDelete={(item) => void remove(item)} />)}</div>}
         <div className={styles.pagination}><span>Página {Math.min(page+1,Math.max(1,Math.ceil(total/PAGE_SIZE)))} de {Math.max(1,Math.ceil(total/PAGE_SIZE))}</span><div><button className={styles.secondaryButton} disabled={page===0||loading} onClick={()=>setPage(p=>Math.max(0,p-1))}>Anterior</button><button className={styles.secondaryButton} disabled={(page+1)*PAGE_SIZE>=total||loading} onClick={()=>setPage(p=>p+1)}>Próxima</button></div></div>
       </section>
       <AdminPageFooter className={styles.pageFooter} />
