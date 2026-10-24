@@ -40,13 +40,13 @@ export default function AdminNewsPage() {
         fetch("/api/admin/categories", { cache: "no-store", signal }),
         fetch("/api/admin/authors", { cache: "no-store", signal }),
       ]);
-      if (articleResponse.status === 401 || categoryResponse.status === 401 || authorResponse.status === 401) { setAuthorized(false); return; }
+      if (articleResponse.status === 401 || categoryResponse.status === 401 || authorResponse.status === 401) { setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); return; }
       const [articleData, categoryData, authorData] = await Promise.all([articleResponse.json(), categoryResponse.json(), authorResponse.json()]);
       if (!articleResponse.ok) throw new Error(articleData.error ?? "Não foi possível carregar as notícias.");
       if (!categoryResponse.ok) throw new Error(categoryData.error ?? "Não foi possível carregar as editorias.");
       if (!authorResponse.ok) throw new Error(authorData.error ?? "Não foi possível carregar os autores.");
       setArticles(articleData.articles ?? []); setTotal(Number(articleData.total ?? 0));
-      setCategories(categoryData.categories ?? []); setAuthors(authorData.authors ?? []); setAuthorized(true);
+      setCategories(categoryData.categories ?? []); setAuthors(authorData.authors ?? []); setAuthorized(true); window.sessionStorage.setItem("cnc-admin-session", "active");
     } catch (e) {
       if (!signal?.aborted) setError(e instanceof Error ? e.message : "Falha ao carregar o painel de notícias.");
     } finally { if (!signal?.aborted) setLoading(false); }
@@ -72,10 +72,10 @@ export default function AdminNewsPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Falha ao excluir a notícia."); }
     finally { setBusyId(null); }
   }
-  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); }
+  async function logout() { await fetch("/api/admin/logout", { method: "POST" }); setAuthorized(false); window.sessionStorage.removeItem("cnc-admin-session"); }
 
-  if (loading) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
-  if (!authorized) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
+  if (loading && typeof window !== "undefined" && window.sessionStorage.getItem("cnc-admin-session") !== "active") return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Verificando acesso</h1><p>Aguarde enquanto validamos sua sessão administrativa.</p></main>;
+  if (!loading && !authorized) return <main className={styles.unauthorized}><Newspaper size={34}/><h1>Acesso restrito</h1><p>Entre no painel administrativo para gerenciar as notícias.</p><a href="/admin">Ir para o painel</a></main>;
 
   const start = total === 0 ? 0 : page * PAGE_SIZE + 1;
   const end = Math.min((page + 1) * PAGE_SIZE, total);
