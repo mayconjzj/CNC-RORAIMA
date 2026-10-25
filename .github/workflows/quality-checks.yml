@@ -29,4 +29,4 @@ jobs:
       - name: Build Next.js application
         run: npm run build
         env:
-          NEXT_PUBLIC_SITE_URL: https://cnc-roraima.vercel.app
+          NEXT_PUBLIC_SITE_URL: https://cncroraima.vercel.app
