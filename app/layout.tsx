@@ -34,14 +34,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: "CNC Roraima — Notícias de Roraima",
+    title: "CNC Roraima | Notícias de Roraima",
     description: "As notícias de Roraima com informação, contexto e credibilidade.",
     url: siteUrl,
     locale: "pt_BR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CNC Roraima — Notícias de Roraima",
+    title: "CNC Roraima | Notícias de Roraima",
     description: "As notícias de Roraima com informação, contexto e credibilidade.",
   },
   robots: {
