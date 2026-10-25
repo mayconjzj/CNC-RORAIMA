@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: SITE_NAME,
   title: {
-    default: "CNC Roraima — Notícias de Roraima",
-    template: "%s | CNC Roraima",
+    default: "CNC Roraima | Notícias de Roraima",
+    template: "CNC Roraima | %s",
   },
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
   icons: {
