@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       siteName: SITE_NAME,
       locale: "pt_BR",
-      title: article.title,
+      title: `CNC Roraima | ${article.title}`,
       description,
       url: `/noticias/${article.slug}`,
       publishedTime: article.published_at || undefined,
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: article.featured_image_url ? "summary_large_image" : "summary",
-      title: article.title,
+      title: `CNC Roraima | ${article.title}`,
       description,
       images: article.featured_image_url ? [article.featured_image_url] : [],
     },
