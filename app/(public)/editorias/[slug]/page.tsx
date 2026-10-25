@@ -61,7 +61,7 @@ const getCategoryListing = unstable_cache(
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategory(slug);
-  return category ? { title: category.name, description: `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: `/editorias/${category.slug}`, title: `CNC Roraima | ${category.name}`, description: `Últimas notícias de ${category.name} em Roraima.` }, twitter: { card: "summary", title: `${category.name} | CNC Roraima`, description: `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada", robots: { index: false, follow: false } };
+  return category ? { title: category.name, description: `Últimas notícias de ${category.name} em Roraima.`, alternates: { canonical: `/editorias/${category.slug}` }, openGraph: { type: "website", siteName: "CNC Roraima", locale: "pt_BR", url: `/editorias/${category.slug}`, title: `CNC Roraima | ${category.name}`, description: `Últimas notícias de ${category.name} em Roraima.` }, twitter: { card: "summary", title: `CNC Roraima | ${category.name}`, description: `Últimas notícias de ${category.name} em Roraima.` } } : { title: "Editoria não encontrada", robots: { index: false, follow: false } };
 }
 
 
