@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Sobre a CNC Roraima",
+  title: "Sobre nós",
   description: "Conheça a proposta editorial e os princípios do portal CNC Roraima — Cristhian Cruz News.",
   alternates: { canonical: "/sobre" },
 };

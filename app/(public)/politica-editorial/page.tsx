@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Princípios Editoriais",
+  title: "Política Editorial",
   description: "Conheça os princípios de apuração, correção e transparência editorial da CNC Roraima.",
   alternates: { canonical: "/politica-editorial" },
 };
