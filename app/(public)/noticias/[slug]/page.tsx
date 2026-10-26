@@ -11,6 +11,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 import { formatArticleTimestamp, hasArticleBeenUpdated } from "@/lib/news-date";
 import { ShareButtons } from "@/components/news/share-buttons";
+import { LatestNewsSection, type LatestNewsArticle } from "@/components/news/latest-news-section";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,6 +29,22 @@ const findArticle = cache(unstable_cache(async function findArticle(slug: string
   `;
   return (rows[0] as Article | undefined) ?? null;
 }, ["published-article-by-slug"], { revalidate: 60, tags: ["published-articles"] }));
+
+const findLatestNews = cache(unstable_cache(async function findLatestNews(currentSlug: string): Promise<LatestNewsArticle[]> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT a.id, a.title, a.slug, a.excerpt, a.featured_image_url, a.published_at,
+      c.name AS category_name
+    FROM articles a
+    LEFT JOIN categories c ON c.id = a.category_id
+    WHERE a.status = 'published'
+      AND a.published_at <= NOW()
+      AND a.slug <> ${currentSlug}
+    ORDER BY a.published_at DESC, a.created_at DESC
+    LIMIT 5
+  `;
+  return rows as LatestNewsArticle[];
+}, ["latest-published-news-excluding-current"], { revalidate: 60, tags: ["published-articles"] }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -63,6 +80,7 @@ export default async function ArticlePage({ params }: Props) {
   const article = await findArticle(slug);
   if (!article) notFound();
   const sections = normalizeArticleSections(article.content);
+  const latestNews = await findLatestNews(article.slug);
   const siteUrl = SITE_URL;
   const articleUrl = `${siteUrl}/noticias/${article.slug}`;
   const structuredData = {
