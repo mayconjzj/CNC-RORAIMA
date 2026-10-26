@@ -191,11 +191,13 @@ function ArticleStructuredData({ article }: { article: Article }) {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const article = await findArticle(slug);
+  // Run the independent, cached reads concurrently to reduce article-page latency.
+  const [article, latestNews] = await Promise.all([
+    findArticle(slug),
+    findLatestNews(slug),
+  ]);
   if (!article) notFound();
 
-  // Fetch the sidebar as soon as the article is known; both queries share the same cache policy.
-  const [latestNews] = await Promise.all([findLatestNews(article.slug)]);
   const sections = normalizeArticleSections(article.content);
 
   return (
