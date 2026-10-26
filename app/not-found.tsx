@@ -32,20 +32,13 @@ export default function NotFound() {
           e continue acompanhando as notícias de Roraima.
         </p>
 
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+        <div className="mt-8 flex justify-center">
           <Link
             href="/"
             className="inline-flex min-h-12 items-center justify-center rounded-md bg-[#a30d19] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#850a14] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a30d19]"
           >
             Voltar para a página inicial
           </Link>
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="inline-flex min-h-12 items-center justify-center rounded-md border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:border-[#a30d19] hover:text-[#a30d19] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a30d19]"
-          >
-            Voltar à página anterior
-          </button>
         </div>
 
         <div className="mx-auto mt-12 h-px w-16 bg-[#c9a45c]" />
