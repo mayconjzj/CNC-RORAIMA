@@ -40,7 +40,7 @@ const findLatestNews = cache(unstable_cache(async function findLatestNews(curren
     WHERE a.status = 'published'
       AND a.published_at <= NOW()
       AND a.slug <> ${currentSlug}
-    ORDER BY a.published_at DESC, a.created_at DESC
+    ORDER BY a.published_at DESC
     LIMIT 5
   `;
   return rows as LatestNewsArticle[];
