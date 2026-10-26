@@ -121,6 +121,10 @@
   color: #202126;
 }
 
+.articleLoading .articleLayout {
+  margin: 0 auto;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
@@ -307,6 +311,8 @@
 }
 
 @media (max-width: 760px) {
+  .articleLoading .articleLayout { margin-top: 0; }
+
   .articleLayout {
     display: flex;
     flex-direction: column;
