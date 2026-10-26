@@ -1,25 +1,25 @@
 import styles from "./article-layout.module.css";
 
 function SkeletonLine({ className = "" }: { className?: string }) {
-  return <span className={`sk-shimmer sk-line ${className}`} />;
+  return <span className={`${styles.shimmer} ${styles.line} ${className}`} />;
 }
 
 function LatestNewsSkeleton() {
   return (
     <aside className={styles.latestSidebar} aria-hidden="true">
-      <div className="sk-latest-heading">
-        <span className="sk-shimmer sk-latest-title" />
-        <span className="sk-shimmer sk-latest-rule" />
+      <div className={styles.latestHeading}>
+        <span className={styles.latestTitle} />
+        <span className={styles.latestRule} />
       </div>
-      <div className="sk-latest-list">
+      <div className={styles.latestList}>
         {Array.from({ length: 5 }, (_, index) => (
-          <div className="sk-latest-item" key={index}>
-            <span className="sk-shimmer sk-latest-image" />
-            <div className="sk-latest-copy">
-              <SkeletonLine className="sk-latest-category" />
-              <SkeletonLine className="sk-latest-title-line" />
-              <SkeletonLine className="sk-latest-title-line sk-latest-title-line-short" />
-              <SkeletonLine className="sk-latest-date" />
+          <div className={styles.latestItem} key={index}>
+            <span className={styles.latestImage} />
+            <div className={styles.latestCopy}>
+              <SkeletonLine className={styles.latestCategory} />
+              <SkeletonLine className={styles.latestTitleLine} />
+              <SkeletonLine className={`${styles.latestTitleLine} ${styles.latestTitleLineShort}`} />
+              <SkeletonLine className={styles.latestDate} />
             </div>
           </div>
         ))}
@@ -30,47 +30,50 @@ function LatestNewsSkeleton() {
 
 export default function ArticleLoading() {
   return (
-    <main className="article-loading" role="status" aria-label="Carregando notícia" aria-busy="true">
-      <span className="sr-only">Carregando notícia…</span>
-      <div className={`article-loading-layout ${styles.articleLayout}`} aria-hidden="true">
-        <article className={`article-loading-inner ${styles.articleContent}`}>
-          <div className="sk-back" />
-          <div className="sk-category" />
-          <div className="sk-title">
-            <span className="sk-shimmer sk-title-line sk-title-line-long" />
-            <span className="sk-shimmer sk-title-line sk-title-line-medium" />
+    <main className={styles.articleLoading} role="status" aria-label="Carregando notícia" aria-busy="true">
+      <span className={styles.srOnly}>Carregando notícia…</span>
+      <div className={styles.articleLayout} aria-hidden="true">
+        <article className={styles.articleContent}>
+          <div className={styles.skeletonBack} />
+          <div className={styles.skeletonCategory} />
+          <div className={styles.skeletonTitle}>
+            <span className={`${styles.shimmer} ${styles.titleLine} ${styles.titleLineLong}`} />
+            <span className={`${styles.shimmer} ${styles.titleLine} ${styles.titleLineMedium}`} />
           </div>
-          <div className="sk-excerpt">
-            <SkeletonLine className="sk-excerpt-line-long" />
-            <SkeletonLine className="sk-excerpt-line-short" />
+          <div className={styles.skeletonExcerpt}>
+            <SkeletonLine className={styles.excerptLineLong} />
+            <SkeletonLine className={styles.excerptLineShort} />
           </div>
-          <div className="sk-article-meta">
-            <span className="sk-shimmer sk-avatar" />
-            <div className="sk-meta-copy">
-              <SkeletonLine className="sk-meta-name" />
-              <SkeletonLine className="sk-meta-date" />
+          <div className={styles.skeletonMeta}>
+            <span className={styles.avatar} />
+            <div className={styles.metaCopy}>
+              <SkeletonLine className={styles.metaName} />
+              <SkeletonLine className={styles.metaDate} />
             </div>
-            <div className="sk-share">
-              <span className="sk-shimmer sk-share-button" />
-              <span className="sk-shimmer sk-share-button" />
-              <span className="sk-shimmer sk-share-button" />
+            <div className={styles.shareButtons}>
+              <span className={styles.shareButton} />
+              <span className={styles.shareButton} />
+              <span className={styles.shareButton} />
             </div>
           </div>
-          <div className="sk-article-hero sk-shimmer" />
-          <div className="sk-article-body">
+          <div className={`${styles.shimmer} ${styles.skeletonHero}`} />
+          <div className={styles.skeletonBody}>
             {Array.from({ length: 4 }, (_, index) => (
-              <SkeletonLine className={index === 2 ? "sk-body-line-wide" : "sk-body-line-full"} key={index} />
+              <SkeletonLine
+                className={index === 2 ? styles.bodyLineWide : styles.bodyLineFull}
+                key={index}
+              />
             ))}
-            <span className="sk-shimmer sk-body-heading" />
-            <SkeletonLine className="sk-body-line-full" />
-            <SkeletonLine className="sk-body-line-wide" />
-            <SkeletonLine className="sk-body-line-full" />
-            <SkeletonLine className="sk-body-line-medium" />
-            <span className="sk-shimmer sk-body-heading sk-body-heading-second" />
-            <SkeletonLine className="sk-body-line-full" />
-            <SkeletonLine className="sk-body-line-wide" />
-            <SkeletonLine className="sk-body-line-full" />
-            <SkeletonLine className="sk-body-line-short" />
+            <span className={`${styles.shimmer} ${styles.bodyHeading}`} />
+            <SkeletonLine className={styles.bodyLineFull} />
+            <SkeletonLine className={styles.bodyLineWide} />
+            <SkeletonLine className={styles.bodyLineFull} />
+            <SkeletonLine className={styles.bodyLineMedium} />
+            <span className={`${styles.shimmer} ${styles.bodyHeading} ${styles.bodyHeadingSecond}`} />
+            <SkeletonLine className={styles.bodyLineFull} />
+            <SkeletonLine className={styles.bodyLineWide} />
+            <SkeletonLine className={styles.bodyLineFull} />
+            <SkeletonLine className={styles.bodyLineShort} />
           </div>
         </article>
         <LatestNewsSkeleton />
