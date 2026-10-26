@@ -1,5 +1,4 @@
 import { Search } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { getPublishedCategories } from "@/lib/db";
 import { SiteNavigation } from "@/components/site-navigation";
@@ -7,14 +6,11 @@ import { SiteNavigation } from "@/components/site-navigation";
 export function Brand() {
   return (
     <Link className="brand" href="/" aria-label="CNC Roraima - página inicial">
-      <Image
-        className="brand-logo"
-        src="/cnc-logo.svg"
-        alt="CNC Roraima"
-        width={132}
-        height={62}
-        priority
-      />
+      <span className="brand-mark">C<span>N</span>C</span>
+      <span className="brand-copy">
+        <strong>CRISTHIAN CRUZ <i>NEWS</i></strong>
+        <small>INFORMAÇÃO DE CREDIBILIDADE</small>
+      </span>
     </Link>
   );
 }
