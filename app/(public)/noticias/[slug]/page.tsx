@@ -11,6 +11,8 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { shouldOptimizeImage } from "@/lib/media";
 import { formatArticleTimestamp, hasArticleBeenUpdated } from "@/lib/news-date";
 import { ShareButtons } from "@/components/news/share-buttons";
+import { LatestNewsSection, type LatestNewsArticle } from "@/components/news/latest-news-section";
+import styles from "./article-layout.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,6 +30,22 @@ const findArticle = cache(unstable_cache(async function findArticle(slug: string
   `;
   return (rows[0] as Article | undefined) ?? null;
 }, ["published-article-by-slug"], { revalidate: 60, tags: ["published-articles"] }));
+
+const findLatestNews = cache(unstable_cache(async function findLatestNews(currentSlug: string): Promise<LatestNewsArticle[]> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT a.id, a.title, a.slug, a.excerpt, a.featured_image_url, a.published_at,
+      c.name AS category_name
+    FROM articles a
+    LEFT JOIN categories c ON c.id = a.category_id
+    WHERE a.status = 'published'
+      AND a.published_at <= NOW()
+      AND a.slug <> ${currentSlug}
+    ORDER BY a.published_at DESC
+    LIMIT 5
+  `;
+  return rows as LatestNewsArticle[];
+}, ["latest-published-news-excluding-current"], { revalidate: 60, tags: ["published-articles"] }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -63,6 +81,7 @@ export default async function ArticlePage({ params }: Props) {
   const article = await findArticle(slug);
   if (!article) notFound();
   const sections = normalizeArticleSections(article.content);
+  const latestNews = await findLatestNews(article.slug);
   const siteUrl = SITE_URL;
   const articleUrl = `${siteUrl}/noticias/${article.slug}`;
   const structuredData = {
@@ -82,7 +101,8 @@ export default async function ArticlePage({ params }: Props) {
   return <main style={{ minHeight: "100vh", color: "#202126" }}>
     
     <script type="application/ld+json">{JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>
-    <article style={{ width: "min(900px, calc(100% - 32px))", margin: "42px auto 80px" }}>
+    <div className={styles.articleLayout}>
+      <article className={styles.articleContent}>
       <ArticleBackLink slug={article.slug} />
       <p style={{ color: "#b90018", textTransform: "uppercase", letterSpacing: 1.5, fontSize: 12, fontWeight: 800, marginTop: 28 }}>{article.category_name ?? "Notícias de Roraima"}</p>
       <h1 style={{ fontSize: "clamp(32px, 6vw, 54px)", lineHeight: 1.08, margin: "12px 0 18px" }}>{article.title}</h1>
@@ -93,7 +113,10 @@ export default async function ArticlePage({ params }: Props) {
       </div>
       {article.featured_image_url && <Image src={article.featured_image_url} alt={article.image_alt || article.title} width={1200} height={520} sizes="(max-width: 900px) 100vw, 900px" priority unoptimized={!shouldOptimizeImage(article.featured_image_url)} style={{ width: "100%", height: "auto", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <ArticleBody sections={sections} />
-      
-    </article>
+      </article>
+      <aside className={styles.latestSidebar} aria-label="Últimas notícias">
+        <LatestNewsSection articles={latestNews} />
+      </aside>
+    </div>
   </main>;
 }
