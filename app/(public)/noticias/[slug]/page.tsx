@@ -111,7 +111,7 @@ export default async function ArticlePage({ params }: Props) {
       </div>
       {article.featured_image_url && <Image src={article.featured_image_url} alt={article.image_alt || article.title} width={1200} height={520} sizes="(max-width: 900px) 100vw, 900px" priority unoptimized={!shouldOptimizeImage(article.featured_image_url)} style={{ width: "100%", height: "auto", maxHeight: 520, objectFit: "cover", borderRadius: 12, marginBottom: 30 }} />}
       <ArticleBody sections={sections} />
-      
+      <LatestNewsSection articles={latestNews} />
     </article>
   </main>;
 }
