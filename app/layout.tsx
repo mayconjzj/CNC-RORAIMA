@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
   description: "Notícias de Roraima, informação local e cobertura das ações da CNC.",
   icons: {
-    icon: [{ url: "/icon.png", type: "image/png" }],
-    shortcut: "/icon.png",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
   },
   verification: {
     google: "TxSfWovss5wRRrEt5OcWFHccbCtavJrUE9BnnYbOPzw",
