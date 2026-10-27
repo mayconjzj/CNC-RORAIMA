@@ -86,11 +86,14 @@ export default function NewsArchiveLoading() {
           .archive-loading-intro{height:12px;width:100%}
           .archive-loading-search-row{gap:8px;padding-left:9px}
           .archive-loading-button{width:55px;height:32px}
-          .archive-loading-grid{gap:12px}
-          .archive-loading-copy{padding:10px}
+          .archive-loading-grid{grid-template-columns:1fr;gap:14px}
+          .archive-loading-card{display:grid;grid-template-columns:38% minmax(0,1fr)}
+          .archive-loading-image{height:100%;min-height:150px;aspect-ratio:auto}
+          .archive-loading-copy{padding:12px}
           .archive-loading-card-title{height:12px}
-          .archive-loading-excerpt{display:none}
-          .archive-loading-meta{padding-top:11px}
+          .archive-loading-excerpt{height:9px;display:block}
+          .archive-loading-meta{padding-top:9px;gap:5px 8px;flex-direction:row;flex-wrap:wrap}
+          .archive-loading-meta .archive-loading-line{width:42%}
         }
         @media(prefers-reduced-motion:reduce){.archive-loading-line{animation:none}}
       `}</style>
